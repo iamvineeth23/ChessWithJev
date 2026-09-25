@@ -16,4 +16,4 @@ Run the board:
 .venv/bin/chess
 ```
 
-The empty 8×8 board opens in a native window. Run the setup script again to create the `chess` launcher in an existing environment.
+The 8×8 board opens in a native window with classic SVG pieces in their starting positions, ranks on the left, and files below. Run the setup script again to create the `chess` launcher in an existing environment.
