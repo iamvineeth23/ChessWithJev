@@ -2,7 +2,7 @@ import runpy
 from base64 import b64decode
 import chess
 from src.game.position import Position
-from src.ui.board import BoardView, piece_image, square_color, square_name
+from src.ui.board import BoardView, move_history, piece_image, square_color, square_name
 from src.ui import board
 from unittest.mock import MagicMock, patch
 
@@ -16,13 +16,14 @@ def test_board_colors() -> None:
 
 
 def test_board_opens_native_window() -> None:
-    with patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'run') as run:
+    with patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()), patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
     run.assert_called_once_with(native=True, title='ChessWithJev')
     labels = [call.args[0] for call in label.call_args_list]
     assert labels[:8] == list('87654321')
-    assert labels[-8:] == list('abcdefgh')
-    assert len(labels) == 16
+    assert labels[8:16] == list('abcdefgh')
+    assert labels[-4:] == ['Move History', 'White to move', 'No moves yet', 'Choose promotion']
+    assert len(labels) == 20
     assert image.call_count == 32
 
 
@@ -93,14 +94,27 @@ def test_clicks_move_only_legal_pieces() -> None:
 
 def test_promotion_and_external_position_reset() -> None:
     view = BoardView()
+    view.promotion_dialog = MagicMock()
     with patch.object(view, 'sync'):
         view.set_fen('7k/P7/8/8/8/8/8/K7 w - - 0 1')
         view.click_square(chess.A7)
         view.click_square(chess.A8)
-        assert view.position.board.piece_at(chess.A8) == chess.Piece.from_symbol('Q')
+        assert view.pending_promotion == (chess.A7, chess.A8)
+        assert view.position.board.piece_at(chess.A7) == chess.Piece.from_symbol('P')
+        view.choose_promotion(chess.KNIGHT)
+        assert view.position.board.piece_at(chess.A8) == chess.Piece.from_symbol('N')
         view.click_square(chess.H8)
         view.set_fen(chess.STARTING_FEN)
         assert view.selected is None
+
+
+def test_all_promotion_choices_are_legal() -> None:
+    for piece_type in (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT):
+        position = Position()
+        position.set_fen('7k/P7/8/8/8/8/8/K7 w - - 0 1')
+        assert not position.move(chess.A7, chess.A8)
+        assert position.move(chess.A7, chess.A8, promotion=piece_type)
+        assert position.board.piece_at(chess.A8) == chess.Piece(piece_type, chess.WHITE)
 
 
 def test_move_updates_only_changed_squares() -> None:
@@ -122,3 +136,126 @@ def test_only_legal_moves_are_printed(capsys) -> None:
     assert position.move(chess.E2, chess.E4)
     assert position.move(chess.E7, chess.E5)
     assert capsys.readouterr().out == 'e4\ne5\n'
+
+
+def test_castling_and_en_passant_update_all_affected_squares() -> None:
+    view = BoardView()
+    view.squares = {square: MagicMock() for square in chess.SQUARES}
+    view.shown_pieces = {square: view.position.board.piece_at(square) for square in chess.SQUARES}
+    view.promotion_dialog = MagicMock()
+    view.set_fen('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
+    for element in view.squares.values():
+        element.reset_mock()
+    view.click_square(chess.E1)
+    view.click_square(chess.G1)
+    assert view.position.board.piece_at(chess.F1) == chess.Piece.from_symbol('R')
+    assert view.position.board.piece_at(chess.G1) == chess.Piece.from_symbol('K')
+    assert {square for square, element in view.squares.items() if element.clear.called} == {chess.E1, chess.F1, chess.G1, chess.H1}
+    view.set_fen('7k/8/8/3pP3/8/8/8/K7 w - d6 0 1')
+    for element in view.squares.values():
+        element.reset_mock()
+    view.click_square(chess.E5)
+    view.click_square(chess.D6)
+    assert view.position.board.piece_at(chess.D5) is None
+    assert view.position.board.piece_at(chess.D6) == chess.Piece.from_symbol('P')
+    assert {square for square, element in view.squares.items() if element.clear.called} == {chess.E5, chess.D5, chess.D6}
+
+
+def test_check_checkmate_stalemate_and_draw_status() -> None:
+    position = Position()
+    position.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
+    assert position.status() == 'Checkmate — White wins'
+    assert not position.move(chess.H8, chess.H7)
+    position.set_fen('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1')
+    assert position.status() == 'Stalemate — draw'
+    position.set_fen('7k/8/6K1/8/8/8/8/8 w - - 0 1')
+    assert position.status() == 'Draw — insufficient material'
+    position.set_fen('7k/8/8/8/8/8/7R/K7 b - - 0 1')
+    assert position.status() == 'Black to move — check'
+
+
+def test_claimable_and_automatic_draws() -> None:
+    position = Position()
+    position.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
+    assert position.claim_draw()
+    assert position.status() == 'Draw — 50-move rule'
+    assert not position.move(chess.G2, chess.G3)
+    position.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 150 1')
+    assert position.status() == 'Draw — 75-move rule'
+    assert not position.claim_draw()
+
+
+def test_threefold_claim_and_fivefold_automatic_draw(capsys) -> None:
+    position = Position()
+    cycle = [(chess.G1, chess.F3), (chess.G8, chess.F6),
+             (chess.F3, chess.G1), (chess.F6, chess.G8)]
+    for _ in range(2):
+        for source, target in cycle:
+            assert position.move(source, target)
+    assert position.claim_draw()
+    assert position.status() == 'Draw — threefold repetition'
+    position.set_fen(chess.STARTING_FEN)
+    for _ in range(4):
+        for source, target in cycle:
+            assert position.move(source, target)
+    assert position.status() == 'Draw — fivefold repetition'
+    assert not position.move(chess.E2, chess.E4)
+    capsys.readouterr()
+
+
+def test_real_nicegui_promotion_draw_and_status_controls() -> None:
+    def click(element) -> None:
+        listener = next(iter(element._event_listeners.values()))
+        element.client.handle_event({'id': element.id, 'listener_id': listener.id, 'args': []})
+
+    view = BoardView()
+    view.render()
+    view.render_controls()
+    assert len(view.squares) == 64
+    assert view.status_label.text == 'White to move'
+    assert not view.claim_button.visible
+
+    view.set_fen('7k/P7/8/8/8/8/8/K7 w - - 0 1')
+    click(view.squares[chess.A7])
+    click(view.squares[chess.A8])
+    assert view.promotion_dialog.value
+    assert view.position.board.piece_at(chess.A7) == chess.Piece.from_symbol('P')
+    knight_button = next(element for element in view.promotion_dialog.descendants()
+                         if element._props.get('label') == 'Knight')
+    click(knight_button)
+    assert not view.promotion_dialog.value
+    assert view.position.board.piece_at(chess.A8) == chess.Piece.from_symbol('N')
+    assert view.status_label.text == 'Draw — insufficient material'
+
+    view.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
+    assert view.claim_button.visible
+    click(view.claim_button)
+    assert view.status_label.text == 'Draw — 50-move rule'
+    assert not view.claim_button.visible
+    click(view.squares[chess.G2])
+    assert view.selected is None
+
+    view.set_fen('7k/8/8/8/8/8/7R/K7 b - - 0 1')
+    assert view.status_label.text == 'Black to move — check'
+    view.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
+    assert view.status_label.text == 'Checkmate — White wins'
+
+
+def test_move_history_and_new_game() -> None:
+    view = BoardView()
+    view.render_controls()
+    view.position.move(chess.E2, chess.E4)
+    view.position.move(chess.C7, chess.C5)
+    view.sync()
+    assert view.history_label.text == '1. e4\n1... c5'
+    assert view.status_label.text == 'White to move'
+    view.new_game()
+    assert view.position.board.fen() == chess.STARTING_FEN
+    assert view.history_label.text == 'No moves yet'
+
+
+def test_move_history_preserves_move_numbers_from_custom_position() -> None:
+    position = Position()
+    position.set_fen('7k/8/8/8/8/8/6R1/K7 b - - 0 12')
+    position.move(chess.H8, chess.H7)
+    assert move_history(position.board) == '12... Kh7'
