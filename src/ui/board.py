@@ -5,7 +5,7 @@ import chess
 import chess.svg
 from nicegui import ui
 
-from src.game.position import starting_piece
+from src.game.position import Position
 
 
 def square_color(row: int, column: int) -> str:
@@ -22,6 +22,63 @@ def piece_image(piece: chess.Piece) -> str:
     return f'data:image/svg+xml;base64,{b64encode(svg).decode()}'
 
 
+class BoardView:
+    def __init__(self, position: Position | None = None) -> None:
+        self.position = position or Position()
+        self.selected: chess.Square | None = None
+        self.squares = {}
+        self.shown_pieces: dict[chess.Square, chess.Piece | None] = {}
+
+    def set_fen(self, fen: str) -> None:
+        self.position.set_fen(fen)
+        self.selected = None
+        self.sync()
+
+    def set_board(self, board: chess.Board) -> None:
+        self.position.set_board(board)
+        self.selected = None
+        self.sync()
+
+    def click_square(self, square: chess.Square) -> None:
+        piece = self.position.board.piece_at(square)
+        if piece and piece.color == self.position.board.turn:
+            self.selected = square if self.selected != square else None
+        elif self.selected is not None:
+            self.position.move(self.selected, square)
+            self.selected = None
+        self.sync()
+
+    def sync(self) -> None:
+        for square, element in self.squares.items():
+            element.classes(add='selected' if square == self.selected else None,
+                            remove='selected' if square != self.selected else None)
+            piece = self.position.board.piece_at(square)
+            if piece == self.shown_pieces[square]:
+                continue
+            element.clear()
+            if piece:
+                with element:
+                    ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
+            self.shown_pieces[square] = piece
+
+    def render(self) -> None:
+        self.squares.clear()
+        self.shown_pieces.clear()
+        with ui.element('div').classes('chess-board').props('aria-label="Chess board"'):
+            for row in range(8):
+                for column in range(8):
+                    square = chess.parse_square(square_name(row, column))
+                    element = ui.element('div').classes(f'chess-square {square_color(row, column)}').props(f'aria-label="{square_name(row, column)}"').on('click', lambda _, square=square: self.click_square(square))
+                    self.squares[square] = element
+                    if square == self.selected:
+                        element.classes('selected')
+                    with element:
+                        piece = self.position.board.piece_at(square)
+                        if piece:
+                            ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
+                        self.shown_pieces[square] = piece
+
+
 def main() -> None:
     ui.add_css('''
         .chess-layout { display: grid; grid-template-columns: 20px auto; grid-template-rows: auto 20px; width: max-content; }
@@ -32,19 +89,14 @@ def main() -> None:
         .chess-square { aspect-ratio: 1; position: relative; }
         .chess-square.light { background: #f0d9b5; }
         .chess-square.dark { background: #b58863; }
-        .chess-piece { position: absolute; inset: 5%; width: 90%; height: 90%; }
+        .chess-square.selected { outline: 4px solid #3b82f6; outline-offset: -4px; z-index: 1; }
+        .chess-piece { position: absolute; inset: 5%; width: 90%; height: 90%; pointer-events: none; }
     ''')
     with ui.element('div').classes('chess-layout'):
         with ui.element('div').classes('rank-labels'):
             for rank in range(8, 0, -1):
                 ui.label(str(rank)).classes('axis-label')
-        with ui.element('div').classes('chess-board').props('aria-label="Chess board"'):
-            for row in range(8):
-                for column in range(8):
-                    with ui.element('div').classes(f'chess-square {square_color(row, column)}'):
-                        piece = starting_piece(square_name(row, column))
-                        if piece:
-                            ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
+        BoardView().render()
         with ui.element('div').classes('file-labels'):
             for file in 'abcdefgh':
                 ui.label(file).classes('axis-label')
