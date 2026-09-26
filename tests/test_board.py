@@ -207,6 +207,20 @@ def test_only_legal_moves_are_printed(capsys) -> None:
     assert capsys.readouterr().out == 'e4\ne5\n'
 
 
+def test_print_legal_moves_uses_the_current_position(capsys) -> None:
+    position = Position()
+    position.set_fen('8/8/8/8/8/8/8/K6k w - - 0 1')
+    position.print_legal_moves()
+    assert capsys.readouterr().out == "['Kb2', 'Ka2', 'Kb1']\n"
+
+
+def test_debug_prints_legal_moves_after_each_move(capsys) -> None:
+    position = Position()
+    with patch('src.game.position.sys.argv', ['chess', '-d']):
+        assert position.move(chess.E2, chess.E4)
+    assert capsys.readouterr().out == "e4\n['Nh6', 'Nf6', 'Nc6', 'Na6', 'h6', 'g6', 'f6', 'e6', 'd6', 'c6', 'b6', 'a6', 'h5', 'g5', 'f5', 'e5', 'd5', 'c5', 'b5', 'a5']\n"
+
+
 def test_castling_and_en_passant_update_all_affected_squares() -> None:
     view = BoardView()
     view.squares = {square: MagicMock() for square in chess.SQUARES}

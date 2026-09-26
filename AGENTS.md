@@ -10,7 +10,7 @@ Integration of Stockfish to evaluate or compare with Jev.
 - **DO NOT** update `README.md` with every single change. Update only functional information that end user needs. 
 - **DO NOT** assume before making any changes. **ALWAYS** ask the user until common-understanding is reached before making major changes.
 - Write tests for all relevant features.
-- When GUI updates are requested, keep scope precise to requested change. If any other changes occur as a consequence of one action, inform the user and avoid regressions.
+- When GUI updates are request to change X, keep scope only to X. Preserve rest of the GUI state. Validate the change before claiming as done.
 
 ## Stack
 

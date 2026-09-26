@@ -315,6 +315,8 @@ class BoardView:
 
 
 def main() -> None:
+    if '-d' in sys.argv[1:]:
+        Position().print_legal_moves()
     ui.add_body_html('''
         <script>
             const watchMoveLog = () => {

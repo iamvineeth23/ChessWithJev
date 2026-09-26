@@ -1,4 +1,5 @@
 import chess
+import sys
 
 
 class Position:
@@ -56,6 +57,9 @@ class Position:
             return f'Draw — {reasons[outcome.termination]}'
         return f'{"White" if self.board.turn else "Black"} to move' + (' — check' if self.board.is_check() else '')
 
+    def print_legal_moves(self) -> None:
+        print([self.board.san(move) for move in self.board.legal_moves], flush=True)
+
     def move(self, source: chess.Square, target: chess.Square, promotion: chess.PieceType | None = None) -> bool:
         if self.outcome():
             return False
@@ -66,4 +70,6 @@ class Position:
         self.board.push(move)
         self.redo_stack.clear()
         print(notation, flush=True)
+        if '-d' in sys.argv[1:]:
+            self.print_legal_moves()
         return True
