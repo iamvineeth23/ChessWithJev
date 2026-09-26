@@ -131,52 +131,100 @@ class BoardView:
                         self.shown_pieces[square] = piece
 
     def render_controls(self) -> None:
+        ui.label('SYSTEM STATUS').classes('panel-kicker')
+        self.status_label = ui.label(self.position.status()).classes('status-text').props('role="status" aria-live="polite"')
         with ui.element('div').classes('history-heading'):
-            ui.label('Move History')
-            self.status_label = ui.label(self.position.status()).props('role="status" aria-live="polite"')
+            ui.label('MOVE LOG')
+            ui.label('01 / LIVE').classes('panel-meta')
         with ui.element('div').classes('move-history-panel'):
             self.history_label = ui.label(move_history(self.position.board)).classes('move-history')
-        ui.button('New Game', on_click=self.new_game).classes('new-game-button')
-        self.claim_button = ui.button('Claim draw', on_click=self.claim_draw)
+        ui.button('NEW GAME', on_click=self.new_game).classes('terminal-button new-game-button')
+        self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
-        with ui.dialog().props('persistent') as self.promotion_dialog, ui.card():
-            ui.label('Choose promotion')
-            with ui.row():
+        with ui.dialog().props('persistent') as self.promotion_dialog, ui.card().classes('promotion-card'):
+            ui.label('CHOOSE PROMOTION').classes('panel-kicker')
+            with ui.row().classes('promotion-actions'):
                 for piece_type in (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT):
-                    ui.button(chess.piece_name(piece_type).title(), on_click=lambda _, piece_type=piece_type: self.choose_promotion(piece_type))
+                    ui.button(chess.piece_name(piece_type).title(), on_click=lambda _, piece_type=piece_type: self.choose_promotion(piece_type)).classes('terminal-button')
 
 
 def main() -> None:
     ui.add_css('''
-        .game-layout { display: flex; align-items: flex-start; gap: 24px; }
-        .game-controls { display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; width: 260px; height: min(calc(100vw - 340px), calc(90dvh - 20px), 640px); flex-shrink: 0; }
-        .history-heading { display: flex; justify-content: space-between; gap: 8px; }
-        .move-history-panel { height: 190px; overflow-y: auto; border: 1px solid #bbb; padding: 8px; }
-        .move-history { white-space: pre-line; overflow-wrap: anywhere; }
-        .new-game-button { width: 100%; }
-        .chess-layout { display: grid; grid-template-columns: 20px auto; grid-template-rows: auto 20px; width: max-content; }
+        :root { --green: #a8f0b0; --muted: #779780; --line: #425c48; --panel: #17251c; }
+        body { background: #0c1510; color: #d7e8d6; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; }
+        .nicegui-content { padding: 0; }
+        .app-shell { width: min(1120px, 100%); min-height: 100dvh; margin: 0 auto; padding: clamp(20px, 4vw, 44px); box-sizing: border-box; }
+        .app-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+        .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
+        .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }
+        .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
+        .game-layout { display: flex; align-items: stretch; gap: 28px; }
+        .board-panel, .game-controls { background: var(--panel); border: 1px solid var(--line); box-shadow: 8px 8px 0 #080f0b; }
+        .board-panel { padding: clamp(12px, 2vw, 22px); min-width: 0; flex: 1; }
+        .board-heading { display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--green); font-size: 12px; letter-spacing: .12em; }
+        .game-controls { display: flex; flex-direction: column; gap: 14px; width: 274px; flex-shrink: 0; padding: 22px; }
+        .status-text { color: var(--green); font-size: 18px; line-height: 1.4; }
+        .history-heading { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
+        .move-history-panel { flex: 1; min-height: 180px; max-height: 430px; overflow-y: auto; border: 1px solid var(--line); background: #101b14; padding: 14px; }
+        .move-history { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
+        .terminal-button { width: 100%; border: 1px solid var(--green); border-radius: 0; background: transparent; color: var(--green); font-family: inherit; font-weight: 700; letter-spacing: .08em; box-shadow: none; }
+        .terminal-button:hover { background: #294733; }
+        .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
+        .new-game-button { background: var(--green); color: #0c1510; }
+        .new-game-button:hover { background: #cefbd1; }
+        .chess-layout { display: grid; grid-template-columns: 24px minmax(0, 1fr); grid-template-rows: auto 24px; width: 100%; }
         .rank-labels { display: grid; grid-template-rows: repeat(8, 1fr); }
         .file-labels { grid-column: 2; display: grid; grid-template-columns: repeat(8, 1fr); }
-        .axis-label { display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; }
-        .chess-board { display: grid; grid-template-columns: repeat(8, 1fr); width: min(calc(100vw - 340px), calc(90dvh - 20px), 640px); }
-        .chess-square { aspect-ratio: 1; position: relative; }
-        .chess-square.light { background: #f0d9b5; }
-        .chess-square.dark { background: #b58863; }
-        .chess-square.selected { outline: 4px solid #3b82f6; outline-offset: -4px; z-index: 1; }
+        .axis-label { display: flex; align-items: center; justify-content: center; }
+        .chess-board { display: grid; grid-template-columns: repeat(8, 1fr); width: 100%; border: 2px solid #89b993; }
+        .chess-square { aspect-ratio: 1; position: relative; cursor: pointer; }
+        .chess-square.light { background: #b5c6ad; }
+        .chess-square.dark { background: #506953; }
+        .chess-square:hover { box-shadow: inset 0 0 0 3px #d0eac2; }
+        .chess-square.selected { outline: 4px solid #e7cb7d; outline-offset: -4px; z-index: 1; }
         .chess-piece { position: absolute; inset: 5%; width: 90%; height: 90%; pointer-events: none; }
+        .promotion-card { background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 24px; font-family: inherit; }
+        .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
+        .promotion-actions .terminal-button { width: auto; }
+        .footer-note { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 16px; }
+        @media (min-width: 761px) {
+            .app-shell { height: 100dvh; display: flex; flex-direction: column; }
+            .game-layout { flex: 1; min-height: 0; }
+            .board-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+            .board-heading { width: 100%; }
+            .chess-layout { width: auto; height: 100%; max-width: 100%; max-height: 640px; aspect-ratio: 1; justify-self: center; min-width: 0; min-height: 0; grid-template-rows: max-content 24px; align-content: start; }
+            .move-history-panel { min-height: 0; }
+        }
+        @media (max-width: 760px) {
+            .app-header { align-items: start; }
+            .game-layout { flex-direction: column; }
+            .game-controls { width: 100%; }
+            .move-history-panel { max-height: 230px; }
+        }
     ''')
     view = BoardView()
-    with ui.element('div').classes('game-layout'):
-        with ui.element('div').classes('chess-layout'):
-            with ui.element('div').classes('rank-labels'):
-                for rank in range(8, 0, -1):
-                    ui.label(str(rank)).classes('axis-label')
-            view.render()
-            with ui.element('div').classes('file-labels'):
-                for file in 'abcdefgh':
-                    ui.label(file).classes('axis-label')
-        with ui.element('div').classes('game-controls'):
-            view.render_controls()
+    with ui.element('div').classes('app-shell'):
+        with ui.element('header').classes('app-header'):
+            with ui.element('div'):
+                ui.label('LOCAL CHESS TERMINAL / V.01').classes('app-kicker')
+                ui.label('CHESS WITH JEV').classes('app-title')
+            ui.label('● SYSTEM ONLINE').classes('header-mark')
+        with ui.element('main').classes('game-layout'):
+            with ui.element('section').classes('board-panel'):
+                with ui.element('div').classes('board-heading'):
+                    ui.label('BOARD / 01')
+                    ui.label('PLAYER VS PLAYER')
+                with ui.element('div').classes('chess-layout'):
+                    with ui.element('div').classes('rank-labels'):
+                        for rank in range(8, 0, -1):
+                            ui.label(str(rank)).classes('axis-label')
+                    view.render()
+                    with ui.element('div').classes('file-labels'):
+                        for file in 'abcdefgh':
+                            ui.label(file).classes('axis-label')
+            with ui.element('aside').classes('game-controls'):
+                view.render_controls()
+        ui.label('CHESS WITH JEV  /  LOCAL SESSION').classes('footer-note')
     ui.run(native=True, title='ChessWithJev')
 
 

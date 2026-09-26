@@ -16,11 +16,6 @@ Run the board:
 .venv/bin/chess
 ```
 
-The 8×8 board opens in a native window with classic SVG pieces in their starting positions, ranks on the left, and files below. Run the setup script again to create the `chess` launcher in an existing environment.
-
-Two people can play by clicking a piece and then its destination. The selected square is outlined; click it again to cancel or click another piece of the same color to change selection. Illegal moves leave the board unchanged. Castling and en passant follow standard chess rules. On promotion, choose a queen, rook, bishop, or knight.
-Each legal move is printed to the terminal in standard algebraic notation.
-
-The panel beside the board shows whose turn it is and a scrollable move history with one move per line. New Game resets the board and history. The status also shows check, checkmate, stalemate, and draws. Automatic draws end the game; a Claim draw button appears when a threefold repetition or 50-move claim is available.
+Notes:
 
 To change the displayed position in code, keep a reference to `BoardView` and call `set_fen(fen)` or `set_board(chess_board)`. Both update the python-chess position and refresh the board. Call these methods from the NiceGUI UI context.

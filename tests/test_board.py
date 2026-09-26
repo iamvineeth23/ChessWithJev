@@ -20,10 +20,10 @@ def test_board_opens_native_window() -> None:
         runpy.run_path(board.__file__, run_name='__mp_main__')
     run.assert_called_once_with(native=True, title='ChessWithJev')
     labels = [call.args[0] for call in label.call_args_list]
-    assert labels[:8] == list('87654321')
-    assert labels[8:16] == list('abcdefgh')
-    assert labels[-4:] == ['Move History', 'White to move', 'No moves yet', 'Choose promotion']
-    assert len(labels) == 20
+    assert labels[5:13] == list('87654321')
+    assert labels[13:21] == list('abcdefgh')
+    assert labels[-7:] == ['SYSTEM STATUS', 'White to move', 'MOVE LOG', '01 / LIVE', 'No moves yet', 'CHOOSE PROMOTION', 'CHESS WITH JEV  /  LOCAL SESSION']
+    assert len(labels) == 28
     assert image.call_count == 32
 
 
