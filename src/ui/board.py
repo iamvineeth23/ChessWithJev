@@ -1,9 +1,10 @@
 from base64 import b64encode
 from functools import lru_cache
+import sys
 
 import chess
 import chess.svg
-from nicegui import ui
+from nicegui import app, ui
 
 from src.game.position import Position
 
@@ -32,6 +33,20 @@ def move_history(board: chess.Board) -> str:
     return '\n'.join(lines) or 'No moves yet'
 
 
+def lock_window_aspect_ratio() -> None:
+    import webview
+    from PyObjCTools import AppHelper
+
+    window = webview.windows[0]
+    window.events.shown.wait()
+
+    def lock() -> None:
+        window.native.setAspectRatio_(window.native.frame().size)
+        window.native.setContentMinSize_((800, 600))
+
+    AppHelper.callAfter(lock)
+
+
 class BoardView:
     def __init__(self, position: Position | None = None) -> None:
         self.position = position or Position()
@@ -41,6 +56,8 @@ class BoardView:
         self.status_label = None
         self.history_label = None
         self.claim_button = None
+        self.undo_button = None
+        self.redo_button = None
         self.squares = {}
         self.shown_pieces: dict[chess.Square, chess.Piece | None] = {}
 
@@ -78,6 +95,16 @@ class BoardView:
     def new_game(self) -> None:
         self.set_board(chess.Board())
 
+    def undo(self) -> None:
+        if self.position.undo():
+            self.selected = None
+            self.sync()
+
+    def redo(self) -> None:
+        if self.position.redo():
+            self.selected = None
+            self.sync()
+
     def click_square(self, square: chess.Square) -> None:
         if self.position.outcome() or self.pending_promotion:
             return
@@ -101,6 +128,10 @@ class BoardView:
             self.history_label.set_text(move_history(self.position.board))
         if self.claim_button:
             self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
+        if self.undo_button:
+            self.undo_button.set_enabled(bool(self.position.board.move_stack))
+        if self.redo_button:
+            self.redo_button.set_enabled(bool(self.position.redo_stack))
         for square, element in self.squares.items():
             element.classes(add='selected' if square == self.selected else None,
                             remove='selected' if square != self.selected else None)
@@ -129,6 +160,11 @@ class BoardView:
                         if piece:
                             ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
                         self.shown_pieces[square] = piece
+        with ui.element('div').classes('board-actions'):
+            self.undo_button = ui.button('↶', on_click=self.undo).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
+            self.redo_button = ui.button('↷', on_click=self.redo).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
+            self.undo_button.set_enabled(bool(self.position.board.move_stack))
+            self.redo_button.set_enabled(bool(self.position.redo_stack))
 
     def render_controls(self) -> None:
         ui.label('SYSTEM STATUS').classes('panel-kicker')
@@ -172,7 +208,10 @@ def main() -> None:
         .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
         .new-game-button { background: var(--green); color: #0c1510; }
         .new-game-button:hover { background: #cefbd1; }
-        .chess-layout { display: grid; grid-template-columns: 24px minmax(0, 1fr); grid-template-rows: auto 24px; width: 100%; }
+        .chess-layout { display: grid; grid-template-columns: 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
+        .board-actions { grid-column: 3; grid-row: 1; align-self: end; display: flex; flex-direction: column; gap: 8px; padding-left: 8px; }
+        .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
+        .board-actions .terminal-button:disabled { opacity: .4; }
         .rank-labels { display: grid; grid-template-rows: repeat(8, 1fr); }
         .file-labels { grid-column: 2; display: grid; grid-template-columns: repeat(8, 1fr); }
         .axis-label { display: flex; align-items: center; justify-content: center; }
@@ -192,7 +231,7 @@ def main() -> None:
             .game-layout { flex: 1; min-height: 0; }
             .board-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
             .board-heading { width: 100%; }
-            .chess-layout { width: auto; height: 100%; max-width: 100%; max-height: 640px; aspect-ratio: 1; justify-self: center; min-width: 0; min-height: 0; grid-template-rows: max-content 24px; align-content: start; }
+            .chess-layout { width: min(100%, calc(100dvh - 280px), 640px); height: max-content; justify-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
@@ -225,6 +264,8 @@ def main() -> None:
             with ui.element('aside').classes('game-controls'):
                 view.render_controls()
         ui.label('CHESS WITH JEV  /  LOCAL SESSION').classes('footer-note')
+    if sys.platform == 'darwin':
+        app.native.start_args['func'] = lock_window_aspect_ratio
     ui.run(native=True, title='ChessWithJev')
 
 

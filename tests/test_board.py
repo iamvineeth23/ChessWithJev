@@ -2,7 +2,7 @@ import runpy
 from base64 import b64decode
 import chess
 from src.game.position import Position
-from src.ui.board import BoardView, move_history, piece_image, square_color, square_name
+from src.ui.board import BoardView, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
 from src.ui import board
 from unittest.mock import MagicMock, patch
 
@@ -25,6 +25,16 @@ def test_board_opens_native_window() -> None:
     assert labels[-7:] == ['SYSTEM STATUS', 'White to move', 'MOVE LOG', '01 / LIVE', 'No moves yet', 'CHOOSE PROMOTION', 'CHESS WITH JEV  /  LOCAL SESSION']
     assert len(labels) == 28
     assert image.call_count == 32
+
+
+def test_native_window_keeps_its_starting_aspect_ratio() -> None:
+    window = MagicMock()
+    window.native.frame.return_value.size = (800, 628)
+    with patch('webview.windows', [window]), patch('PyObjCTools.AppHelper.callAfter', side_effect=lambda callback: callback()):
+        lock_window_aspect_ratio()
+    window.events.shown.wait.assert_called_once_with()
+    window.native.setAspectRatio_.assert_called_once_with((800, 628))
+    window.native.setContentMinSize_.assert_called_once_with((800, 600))
 
 
 def test_piece_images_are_distinct_svgs() -> None:
@@ -214,6 +224,16 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     assert len(view.squares) == 64
     assert view.status_label.text == 'White to move'
     assert not view.claim_button.visible
+    assert not view.undo_button.enabled
+    assert not view.redo_button.enabled
+    click(view.squares[chess.E2])
+    click(view.squares[chess.E4])
+    assert view.undo_button.enabled
+    click(view.undo_button)
+    assert view.history_label.text == 'No moves yet'
+    assert view.redo_button.enabled
+    click(view.redo_button)
+    assert view.history_label.text == '1. e4'
 
     view.set_fen('7k/P7/8/8/8/8/8/K7 w - - 0 1')
     click(view.squares[chess.A7])
@@ -259,3 +279,38 @@ def test_move_history_preserves_move_numbers_from_custom_position() -> None:
     position.set_fen('7k/8/8/8/8/8/6R1/K7 b - - 0 12')
     position.move(chess.H8, chess.H7)
     assert move_history(position.board) == '12... Kh7'
+
+
+def test_undo_redo_updates_board_history_and_status() -> None:
+    view = BoardView()
+    view.render_controls()
+    assert view.position.move(chess.E2, chess.E4)
+    assert view.position.move(chess.E7, chess.E5)
+    view.sync()
+    view.undo()
+    assert view.history_label.text == '1. e4'
+    assert view.status_label.text == 'Black to move'
+    assert view.position.board.piece_at(chess.E5) is None
+    view.redo()
+    assert view.history_label.text == '1. e4\n1... e5'
+    assert view.position.board.piece_at(chess.E5) == chess.Piece.from_symbol('p')
+    view.undo()
+    assert view.position.move(chess.C7, chess.C5)
+    view.sync()
+    view.redo()
+    assert view.history_label.text == '1. e4\n1... c5'
+    view.new_game()
+    assert not view.position.redo_stack
+    assert view.history_label.text == 'No moves yet'
+
+
+def test_undo_reopens_finished_game() -> None:
+    position = Position()
+    for source, target in [(chess.F2, chess.F3), (chess.E7, chess.E5),
+                           (chess.G2, chess.G4), (chess.D8, chess.H4)]:
+        assert position.move(source, target)
+    assert position.status() == 'Checkmate — Black wins'
+    assert position.undo()
+    assert position.status() == 'Black to move'
+    assert position.redo()
+    assert position.status() == 'Checkmate — Black wins'

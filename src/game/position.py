@@ -5,14 +5,30 @@ class Position:
     def __init__(self) -> None:
         self.board = chess.Board()
         self.claimed_draw: chess.Outcome | None = None
+        self.redo_stack: list[chess.Move] = []
 
     def set_fen(self, fen: str) -> None:
         self.board.set_fen(fen)
         self.claimed_draw = None
+        self.redo_stack.clear()
 
     def set_board(self, board: chess.Board) -> None:
         self.board = board.copy()
         self.claimed_draw = None
+        self.redo_stack.clear()
+
+    def undo(self) -> bool:
+        if not self.board.move_stack:
+            return False
+        self.claimed_draw = None
+        self.redo_stack.append(self.board.pop())
+        return True
+
+    def redo(self) -> bool:
+        if not self.redo_stack:
+            return False
+        self.board.push(self.redo_stack.pop())
+        return True
 
     def outcome(self) -> chess.Outcome | None:
         return self.claimed_draw or self.board.outcome()
@@ -48,5 +64,6 @@ class Position:
             return False
         notation = self.board.san(move)
         self.board.push(move)
+        self.redo_stack.clear()
         print(notation, flush=True)
         return True

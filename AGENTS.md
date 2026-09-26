@@ -7,6 +7,7 @@ Integration of Stockfish to evaluate or compare with Jev.
 
 - Scope & access is only for this repository.
 - Update `README.md` with information that helps user in interacting or using the application. Design decisions don't belong here.
+- **DO NOT** update `README.md` with every single change. Update only functional information that end user needs. 
 - **DO NOT** assume before making any changes. **ALWAYS** ask the user until common-understanding is reached before making major changes.
 - Write tests for all relevant features.
 
