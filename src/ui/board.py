@@ -70,11 +70,16 @@ class BoardView:
         self.claim_button = None
         self.undo_button = None
         self.redo_button = None
+        self.history_back_button = None
+        self.history_forward_button = None
+        self.preview_index: int | None = None
+        self.preview_board: chess.Board | None = None
         self.squares = {}
         self.shown_pieces: dict[chess.Square, chess.Piece | None] = {}
 
     def set_fen(self, fen: str) -> None:
         self.position.set_fen(fen)
+        self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
         if self.promotion_dialog:
@@ -83,6 +88,7 @@ class BoardView:
 
     def set_board(self, board: chess.Board) -> None:
         self.position.set_board(board)
+        self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
         if self.promotion_dialog:
@@ -101,12 +107,13 @@ class BoardView:
     def play_move(self, move: chess.Move) -> bool:
         played = self.controller.play(move)
         if played:
+            self.preview_index = self.preview_board = None
             self.selected = None
             self.sync()
         return played
 
     def play_human_move(self, move: chess.Move) -> bool:
-        if self.players[self.position.board.turn] != 'human' or not self.controller.play(move):
+        if self.preview_board is not None or self.players[self.position.board.turn] != 'human' or not self.controller.play(move):
             return False
         self.selected = None
         self.automatic_step()
@@ -121,7 +128,7 @@ class BoardView:
             self.controller.play_stockfish_move()
 
     def random_step(self) -> None:
-        if not self.position.outcome() and self.players[self.position.board.turn] != 'human':
+        if self.preview_board is None and not self.position.outcome() and self.players[self.position.board.turn] != 'human':
             self.automatic_step()
             self.sync()
         if self.position.outcome() and self.random_timer:
@@ -129,6 +136,8 @@ class BoardView:
             self.random_button.set_text('START')
 
     def toggle_random(self) -> None:
+        if self.preview_board is not None:
+            return
         self.random_timer.active = not self.random_timer.active
         self.random_button.set_text('PAUSE' if self.random_timer.active else 'START')
 
@@ -138,7 +147,10 @@ class BoardView:
             self.random_button.set_text('START')
 
     def claim_draw(self) -> None:
+        if self.preview_board is not None:
+            return
         if self.position.claim_draw():
+            self.preview_index = self.preview_board = None
             self.selected = None
             self.sync()
 
@@ -149,7 +161,10 @@ class BoardView:
             self.random_step()
 
     def undo(self) -> None:
+        if self.preview_board is not None:
+            return
         self.pause_random()
+        self.preview_index = self.preview_board = None
         if self.players[chess.WHITE] != 'human' and self.players[chess.BLACK] == 'human' and len(self.position.board.move_stack) == 1:
             return
         if self.position.undo():
@@ -159,7 +174,10 @@ class BoardView:
             self.sync()
 
     def redo(self) -> None:
+        if self.preview_board is not None:
+            return
         self.pause_random()
+        self.preview_index = self.preview_board = None
         if self.position.redo():
             if self.players[chess.WHITE] != self.players[chess.BLACK] and self.position.redo_stack:
                 self.position.redo()
@@ -167,7 +185,7 @@ class BoardView:
             self.sync()
 
     def click_square(self, square: chess.Square) -> None:
-        if self.position.outcome() or self.pending_promotion or self.players[self.position.board.turn] != 'human':
+        if self.preview_board is not None or self.position.outcome() or self.pending_promotion or self.players[self.position.board.turn] != 'human':
             return
         piece = self.position.board.piece_at(square)
         if piece and piece.color == self.position.board.turn:
@@ -183,30 +201,51 @@ class BoardView:
                 self.selected = None
         self.sync()
 
+    def step_history(self, direction: int) -> None:
+        count = len(self.position.board.move_stack)
+        index = count if self.preview_index is None else self.preview_index
+        target = max(0, min(count, index + direction))
+        if target == index:
+            return
+        self.pause_random()
+        self.selected = None
+        self.preview_index = None if target == count else target
+        self.preview_board = None
+        if self.preview_index is not None:
+            self.preview_board = self.position.board.root()
+            for move in self.position.board.move_stack[:target]:
+                self.preview_board.push(move)
+        self.sync()
+
     def sync(self) -> None:
+        board = self.preview_board or self.position.board
         if self.eval_fill:
-            position = (self.position.board.fen(), self.position.claimed_draw)
+            position = (board.fen(), self.position.claimed_draw if self.preview_board is None else None)
             if position != self.eval_position:
-                percent = 100 * self.controller.white_expectation()
+                percent = 100 * self.controller.white_expectation(board)
                 self.eval_fill.style(f'height: {percent:.1f}%')
                 self.eval_bar.props(f'aria-valuenow="{percent:.0f}" aria-valuetext="White expected score {percent:.0f} percent"')
                 self.eval_position = position
         if self.status_label:
-            self.status_label.set_text(self.position.status())
+            self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.history_label:
             self.history_label.set_text(move_history(self.position.board))
         if self.claim_button:
-            self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
+            self.claim_button.visible = self.preview_board is None and not self.position.outcome() and self.position.board.can_claim_draw()
         if self.undo_button:
-            self.undo_button.set_enabled(bool(self.position.board.move_stack))
+            self.undo_button.set_enabled(self.preview_board is None and bool(self.position.board.move_stack))
         if self.redo_button:
-            self.redo_button.set_enabled(bool(self.position.redo_stack))
+            self.redo_button.set_enabled(self.preview_board is None and bool(self.position.redo_stack))
+        if self.history_back_button:
+            self.history_back_button.set_enabled((self.preview_index if self.preview_index is not None else len(self.position.board.move_stack)) > 0)
+        if self.history_forward_button:
+            self.history_forward_button.set_enabled(self.preview_index is not None)
         if self.random_button:
-            self.random_button.set_enabled(not bool(self.position.outcome()))
+            self.random_button.set_enabled(self.preview_board is None and not bool(self.position.outcome()))
         for square, element in self.squares.items():
             element.classes(add='selected' if square == self.selected else None,
                             remove='selected' if square != self.selected else None)
-            piece = self.position.board.piece_at(square)
+            piece = board.piece_at(square)
             if piece == self.shown_pieces[square]:
                 continue
             element.clear()
@@ -218,6 +257,7 @@ class BoardView:
     def render(self) -> None:
         self.squares.clear()
         self.shown_pieces.clear()
+        board = self.preview_board or self.position.board
         with ui.element('div').classes('chess-board').props('aria-label="Chess board"'):
             for row in range(8):
                 for column in range(8):
@@ -227,15 +267,19 @@ class BoardView:
                     if square == self.selected:
                         element.classes('selected')
                     with element:
-                        piece = self.position.board.piece_at(square)
+                        piece = board.piece_at(square)
                         if piece:
                             ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
                         self.shown_pieces[square] = piece
         with ui.element('div').classes('board-actions'):
             self.undo_button = ui.button('↶', on_click=self.undo, color=None).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
+            self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
+            self.history_forward_button = ui.button('→', on_click=lambda: self.step_history(1), color=None).classes('terminal-button').props('aria-label="Next move in history" title="Next move in history"')
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
+            self.history_back_button.set_enabled(bool(self.position.board.move_stack))
+            self.history_forward_button.set_enabled(False)
 
     def render_evaluation(self) -> None:
         with ui.element('div').classes('eval-bar').props('role="meter" aria-label="Position evaluation" aria-valuemin="0" aria-valuemax="100"') as self.eval_bar:
@@ -319,11 +363,11 @@ def main() -> None:
         .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
         .new-game-button, .board-actions .terminal-button { background: var(--green); color: #0c1510; }
         .new-game-button:hover, .board-actions .terminal-button:hover { background: #cefbd1; }
-        .chess-layout { display: grid; grid-template-columns: 36px 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
-        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: flex; flex-direction: column; gap: 8px; padding-left: 8px; }
+        .chess-layout { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
+        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(2, 32px); gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
         .board-actions .terminal-button:disabled { opacity: .4; }
-        .eval-bar { grid-column: 1; grid-row: 1; width: 36px; height: 100%; border: 2px solid #89b993; background: #17251c; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; }
+        .eval-bar { grid-column: 1; grid-row: 1; width: 16px; height: 100%; border: 2px solid #89b993; background: #17251c; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; }
         .eval-white { width: 100%; background: #d7e8d6; }
         .rank-labels { grid-column: 2; grid-row: 1; display: grid; grid-template-rows: repeat(8, 1fr); }
         .file-labels { grid-column: 3; display: grid; grid-template-columns: repeat(8, 1fr); }
@@ -352,7 +396,7 @@ def main() -> None:
             .game-layout { flex: 1; min-height: 0; }
             .board-panel { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; }
             .board-heading { width: 100%; }
-            .chess-layout { width: min(100%, calc(100dvh - 220px), 640px); height: max-content; justify-self: center; min-width: 0; grid-template-rows: auto 24px; }
+            .chess-layout { width: min(100%, calc(100dvh - 220px), 740px); height: max-content; justify-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {

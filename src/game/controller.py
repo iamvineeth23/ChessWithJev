@@ -21,11 +21,12 @@ class GameController:
             self.engine.quit()
             self.engine = None
 
-    def white_expectation(self) -> float:
-        outcome = self.position.outcome()
+    def white_expectation(self, board: chess.Board | None = None) -> float:
+        board = board if board is not None else self.position.board
+        outcome = self.position.outcome() if board is self.position.board else board.outcome()
         if outcome:
             return 0.5 if outcome.winner is None else float(outcome.winner)
-        info = self.stockfish_engine().analyse(self.position.board, chess.engine.Limit(time=0.1))
+        info = self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1))
         return info['score'].white().wdl().expectation()
 
     def play(self, move: chess.Move) -> bool:

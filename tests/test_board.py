@@ -360,6 +360,69 @@ def test_undo_redo_updates_board_history_and_status() -> None:
     assert view.history_label.text == 'No moves yet'
 
 
+def test_history_buttons_preview_without_changing_live_game() -> None:
+    from nicegui import ui
+
+    view = BoardView(white='human', black='human')
+    view.render()
+    view.render_controls()
+    for move in ('e2e4', 'e7e5', 'g1f3'):
+        assert view.play_move(chess.Move.from_uci(move))
+    live_fen = view.position.board.fen()
+    live_moves = view.position.board.move_stack.copy()
+    live_redo = view.position.redo_stack.copy()
+    live_log = view.history_label.text
+
+    button = view.history_back_button
+    listener = next(iter(button._event_listeners.values()))
+    ui.context.client.handle_event({'id': button.id, 'listener_id': listener.id, 'args': []})
+    assert view.preview_index == 2
+    assert view.shown_pieces[chess.G1] == chess.Piece.from_symbol('N')
+    assert view.shown_pieces[chess.F3] is None
+    assert view.status_label.text == 'Viewing move 2 / 3'
+    assert not view.undo_button.enabled
+    assert not view.redo_button.enabled
+    assert view.history_forward_button.enabled
+    assert not view.play_human_move(chess.Move.from_uci('g1f3'))
+    view.click_square(chess.G1)
+    view.undo()
+    view.redo()
+    assert view.selected is None
+
+    view.step_history(-1)
+    view.step_history(-1)
+    assert view.preview_index == 0
+    assert not view.history_back_button.enabled
+    view.step_history(1)
+    view.step_history(1)
+    view.step_history(1)
+    assert view.preview_board is None
+    assert view.shown_pieces[chess.F3] == chess.Piece.from_symbol('N')
+    assert not view.history_forward_button.enabled
+    assert view.position.board.fen() == live_fen
+    assert view.position.board.move_stack == live_moves
+    assert view.position.redo_stack == live_redo
+    assert view.history_label.text == live_log
+
+
+def test_history_preview_pauses_computer_game_and_resets_on_new_game() -> None:
+    view = BoardView(white='random', black='random')
+    view.render()
+    view.render_controls()
+    assert view.play_move(chess.Move.from_uci('e2e4'))
+    view.toggle_random()
+    assert view.random_timer.active
+    view.step_history(-1)
+    assert not view.random_timer.active
+    with patch.object(view.controller, 'play_random_move') as play_random:
+        view.random_step()
+    play_random.assert_not_called()
+    view.new_game()
+    assert view.preview_board is None
+    assert view.position.board.fen() == chess.STARTING_FEN
+    assert not view.history_back_button.enabled
+
+
 def test_undo_reopens_finished_game() -> None:
     position = Position()
     for source, target in [(chess.F2, chess.F3), (chess.E7, chess.E5),

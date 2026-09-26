@@ -22,6 +22,8 @@ At the start screen, choose `human`, `random`, or `stockfish` for White and Blac
 
 The vertical bar beside the board shows Stockfish's current position estimate in every game mode. Black is at the top and White is at the bottom; a larger section means a better expected result for that color.
 
+Use the left and right arrows beside Undo and Redo to review recorded moves. The preview is read-only and leaves the live game unchanged; step right to the latest move to resume play.
+
 Notes:
 
 To change the displayed position in code, keep a reference to `BoardView` and call `set_fen(fen)` or `set_board(chess_board)`. Both update the python-chess position and refresh the board. Call these methods from the NiceGUI UI context.
