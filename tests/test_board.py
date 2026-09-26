@@ -1,6 +1,7 @@
 import runpy
 from base64 import b64decode
 import chess
+import pytest
 from src.game.position import Position
 from src.ui.board import BoardView, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
 from src.ui import board
@@ -15,10 +16,15 @@ def test_board_colors() -> None:
     assert colors[7][0] == 'dark'  # a1
 
 
-def test_board_opens_native_window() -> None:
-    with patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()), patch.object(board.ui, 'run') as run:
+@pytest.mark.parametrize('debug', [False, True])
+def test_board_opens_native_window(debug: bool) -> None:
+    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()), patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
-    run.assert_called_once_with(native=True, title='ChessWithJev')
+    assert add_body_html.called == debug
+    if debug:
+        assert 'window.innerWidth' in add_body_html.call_args.args[0]
+        assert "addEventListener('resize', updateSize)" in add_body_html.call_args.args[0]
+    run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643))
     labels = [call.args[0] for call in label.call_args_list]
     assert labels[5:13] == list('87654321')
     assert labels[13:21] == list('abcdefgh')
@@ -29,12 +35,12 @@ def test_board_opens_native_window() -> None:
 
 def test_native_window_keeps_its_starting_aspect_ratio() -> None:
     window = MagicMock()
-    window.native.frame.return_value.size = (800, 628)
     with patch('webview.windows', [window]), patch('PyObjCTools.AppHelper.callAfter', side_effect=lambda callback: callback()):
         lock_window_aspect_ratio()
     window.events.shown.wait.assert_called_once_with()
-    window.native.setAspectRatio_.assert_called_once_with((800, 628))
     window.native.setContentMinSize_.assert_called_once_with((800, 600))
+    window.native.setContentSize_.assert_called_once_with((900, 643))
+    window.native.setContentAspectRatio_.assert_called_once_with((900, 643))
 
 
 def test_piece_images_are_distinct_svgs() -> None:

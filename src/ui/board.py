@@ -41,8 +41,9 @@ def lock_window_aspect_ratio() -> None:
     window.events.shown.wait()
 
     def lock() -> None:
-        window.native.setAspectRatio_(window.native.frame().size)
         window.native.setContentMinSize_((800, 600))
+        window.native.setContentSize_((900, 643))
+        window.native.setContentAspectRatio_((900, 643))
 
     AppHelper.callAfter(lock)
 
@@ -185,6 +186,18 @@ class BoardView:
 
 
 def main() -> None:
+    if '-d' in sys.argv[1:]:
+        ui.add_body_html('''
+            <div id="viewport-size" style="position:fixed;right:8px;bottom:8px;z-index:1000;
+                padding:4px 7px;background:#17251c;color:#a8f0b0;border:1px solid #425c48;
+                font:11px monospace;pointer-events:none" aria-label="Viewport size"></div>
+            <script>
+                const size = document.getElementById('viewport-size');
+                function updateSize() { size.textContent = `${window.innerWidth} × ${window.innerHeight}`; }
+                window.addEventListener('resize', updateSize);
+                updateSize();
+            </script>
+        ''')
     ui.add_css('''
         :root { --green: #a8f0b0; --muted: #779780; --line: #425c48; --panel: #17251c; }
         body { background: #0c1510; color: #d7e8d6; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; }
@@ -266,7 +279,7 @@ def main() -> None:
         ui.label('CHESS WITH JEV  /  LOCAL SESSION').classes('footer-note')
     if sys.platform == 'darwin':
         app.native.start_args['func'] = lock_window_aspect_ratio
-    ui.run(native=True, title='ChessWithJev')
+    ui.run(native=True, title='ChessWithJev', window_size=(900, 643))
 
 
 if __name__ in {'__main__', '__mp_main__'}:
