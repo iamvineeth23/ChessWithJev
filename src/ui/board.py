@@ -17,7 +17,9 @@ def square_color(row: int, column: int) -> str:
     return 'light' if (row + column) % 2 == 0 else 'dark'
 
 
-def square_name(row: int, column: int) -> str:
+def square_name(row: int, column: int, flipped: bool = False) -> str:
+    if flipped:
+        row, column = 7 - row, 7 - column
     return f'{chr(ord("a") + column)}{8 - row}'
 
 
@@ -63,6 +65,7 @@ class BoardView:
         self.controller = GameController(position)
         self.position = self.controller.position
         self.players = {chess.WHITE: white, chess.BLACK: black}
+        self.black_at_bottom = white != 'human' and black == 'human'
         self.on_change = on_change
         self.random_timer = None
         self.random_button = None
@@ -278,8 +281,9 @@ class BoardView:
         with ui.element('div').classes('chess-board').props('aria-label="Chess board"'):
             for row in range(8):
                 for column in range(8):
-                    square = chess.parse_square(square_name(row, column))
-                    element = ui.element('div').classes(f'chess-square {square_color(row, column)}').props(f'aria-label="{square_name(row, column)}"').on('click', lambda _, square=square: self.click_square(square))
+                    name = square_name(row, column, self.black_at_bottom)
+                    square = chess.parse_square(name)
+                    element = ui.element('div').classes(f'chess-square {square_color(row, column)}').props(f'aria-label="{name}"').on('click', lambda _, square=square: self.click_square(square))
                     self.squares[square] = element
                     if square == self.selected:
                         element.classes('selected')
@@ -517,11 +521,11 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                     with ui.element('div').classes('chess-layout'):
                         view.render_evaluation()
                         with ui.element('div').classes('rank-labels'):
-                            for rank in range(8, 0, -1):
+                            for rank in (range(1, 9) if view.black_at_bottom else range(8, 0, -1)):
                                 ui.label(str(rank)).classes('axis-label')
                         view.render()
                         with ui.element('div').classes('file-labels'):
-                            for file in 'abcdefgh':
+                            for file in ('hgfedcba' if view.black_at_bottom else 'abcdefgh'):
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls()

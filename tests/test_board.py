@@ -52,6 +52,20 @@ def test_square_coordinates() -> None:
     assert square_name(0, 7) == 'h8'
     assert square_name(7, 0) == 'a1'
     assert square_name(7, 7) == 'h1'
+    assert square_name(0, 0, flipped=True) == 'h1'
+    assert square_name(7, 7, flipped=True) == 'a8'
+
+
+def test_human_black_rotates_the_board() -> None:
+    view = BoardView(white='random', black='human')
+    view.render()
+
+    assert list(view.squares)[:2] == [chess.H1, chess.G1]
+    assert list(view.squares)[-2:] == [chess.B8, chess.A8]
+
+    both_human = BoardView(white='human', black='human')
+    both_human.render()
+    assert list(both_human.squares)[:2] == [chess.A8, chess.B8]
 
 
 def test_starting_pieces() -> None:
