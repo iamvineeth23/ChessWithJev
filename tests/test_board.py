@@ -20,7 +20,7 @@ def test_board_colors() -> None:
 
 @pytest.mark.parametrize('debug', [False, True])
 def test_board_opens_native_window(debug: bool) -> None:
-    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()) as button, patch.object(board.ui, 'select', return_value=MagicMock()) as select, patch.object(board.ui, 'run') as run:
+    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css') as add_css, patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()) as button, patch.object(board.ui, 'select', return_value=MagicMock()) as select, patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
     assert add_body_html.call_count == 1 + debug
     assert 'new MutationObserver' in add_body_html.call_args_list[0].args[0]
@@ -28,6 +28,10 @@ def test_board_opens_native_window(debug: bool) -> None:
         assert 'window.innerWidth' in add_body_html.call_args_list[1].args[0]
         assert "addEventListener('resize', updateSize)" in add_body_html.call_args_list[1].args[0]
     run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643))
+    assert 'user-select: text' in add_css.call_args.args[0]
+    footer_on = label.return_value.classes.return_value.props.return_value.on
+    assert footer_on.call_args.args == ('click',)
+    assert 'navigator.clipboard' in footer_on.call_args.kwargs['js_handler']
     labels = [call.args[0] for call in label.call_args_list]
     assert labels == ['LOCAL CHESS TERMINAL / V.01', 'CHESS WITH JEV', '● SYSTEM ONLINE', chess.STARTING_FEN, 'SELECT PLAYERS']
     assert [call.kwargs['label'] for call in select.call_args_list] == ['White', 'Black']
@@ -368,6 +372,7 @@ def test_history_buttons_preview_without_changing_live_game() -> None:
     view = BoardView(white='human', black='human')
     view.render()
     view.render_controls()
+    view.fen_label = MagicMock()
     for move in ('e2e4', 'e7e5', 'g1f3'):
         assert view.play_move(chess.Move.from_uci(move))
     live_fen = view.position.board.fen()
@@ -379,6 +384,7 @@ def test_history_buttons_preview_without_changing_live_game() -> None:
     listener = next(iter(button._event_listeners.values()))
     ui.context.client.handle_event({'id': button.id, 'listener_id': listener.id, 'args': []})
     assert view.preview_index == 2
+    view.fen_label.set_text.assert_called_with(view.preview_board.fen())
     assert view.shown_pieces[chess.G1] == chess.Piece.from_symbol('N')
     assert view.shown_pieces[chess.F3] is None
     assert view.status_label.text == 'Viewing move 2 / 3'
@@ -399,6 +405,7 @@ def test_history_buttons_preview_without_changing_live_game() -> None:
     view.step_history(1)
     view.step_history(1)
     assert view.preview_board is None
+    view.fen_label.set_text.assert_called_with(live_fen)
     assert view.shown_pieces[chess.F3] == chess.Piece.from_symbol('N')
     assert not view.history_forward_button.enabled
     assert view.position.board.fen() == live_fen

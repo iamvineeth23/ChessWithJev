@@ -230,7 +230,7 @@ class BoardView:
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:
-            self.fen_label.set_text(self.position.board.fen())
+            self.fen_label.set_text(board.fen())
         if self.history_label:
             self.history_label.set_text(move_history(self.position.board))
         if self.claim_button:
@@ -385,7 +385,7 @@ def main() -> None:
         .promotion-card { background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 24px; font-family: inherit; }
         .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
         .promotion-actions .terminal-button { width: auto; }
-        .footer-note { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 16px; }
+        .footer-note { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 16px; user-select: text; cursor: copy; }
         .game-page + .footer-note { margin-top: 20px; }
         .app-shell > main:not(.game-page) { display: flex; flex: 1; }
         .landing { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 20px; max-width: 440px; width: 100%; margin: auto; }
@@ -417,7 +417,18 @@ def main() -> None:
                 ui.label('CHESS WITH JEV').classes('app-title')
             ui.label('● SYSTEM ONLINE').classes('header-mark')
         content = ui.element('main')
-        footer = ui.label(chess.STARTING_FEN).classes('footer-note')
+        footer = ui.label(chess.STARTING_FEN).classes('footer-note').props('title="Click to copy FEN" aria-label="Current FEN; click to copy"').on('click', js_handler='''(...args) => {
+            const text = args[0].currentTarget.textContent;
+            const fallback = () => {
+                const input = document.createElement('textarea');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                input.remove();
+            };
+            navigator.clipboard?.writeText(text).catch(fallback) ?? fallback();
+        }''')
 
     def show_landing() -> None:
         footer.visible = False
