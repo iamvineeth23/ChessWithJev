@@ -18,6 +18,42 @@ class Position:
         self.claimed_draw = None
         self.redo_stack.clear()
 
+    def snapshot(self) -> dict[str, object]:
+        return {
+            'root_fen': self.board.root().fen(),
+            'moves': [move.uci() for move in self.board.move_stack],
+            'redo': [move.uci() for move in self.redo_stack],
+            'claimed_draw': self.claimed_draw is not None,
+        }
+
+    def restore(self, snapshot: object) -> bool:
+        if not isinstance(snapshot, dict):
+            return False
+        root_fen = snapshot.get('root_fen')
+        moves = snapshot.get('moves')
+        redo = snapshot.get('redo')
+        if not isinstance(root_fen, str) or not isinstance(moves, list) or not isinstance(redo, list):
+            return False
+        try:
+            board = chess.Board(root_fen)
+            for encoded in moves:
+                move = chess.Move.from_uci(encoded)
+                if move not in board.legal_moves:
+                    return False
+                board.push(move)
+            redo_moves = [chess.Move.from_uci(encoded) for encoded in redo]
+            probe = board.copy(stack=True)
+            for move in reversed(redo_moves):
+                if move not in probe.legal_moves:
+                    return False
+                probe.push(move)
+        except (TypeError, ValueError):
+            return False
+        self.board = board
+        self.redo_stack = redo_moves
+        self.claimed_draw = board.outcome(claim_draw=True) if snapshot.get('claimed_draw') else None
+        return True
+
     def undo(self) -> bool:
         if not self.board.move_stack:
             return False

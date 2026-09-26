@@ -5,7 +5,7 @@ import chess.engine
 import pytest
 from src.game.position import Position
 from src.game.controller import GameController
-from src.ui.board import BoardView, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
+from src.ui.board import BoardView, build_page, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
 from src.ui import board
 from unittest.mock import MagicMock, patch
 
@@ -24,24 +24,10 @@ def test_board_colors() -> None:
 
 @pytest.mark.parametrize('debug', [False, True])
 def test_board_opens_native_window(debug: bool) -> None:
-    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css') as add_css, patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()) as button, patch.object(board.ui, 'select', return_value=MagicMock()) as select, patch.object(board.ui, 'run') as run:
+    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
-    assert add_body_html.call_count == 1 + debug
-    assert 'new MutationObserver' in add_body_html.call_args_list[0].args[0]
-    if debug:
-        assert 'window.innerWidth' in add_body_html.call_args_list[1].args[0]
-        assert "addEventListener('resize', updateSize)" in add_body_html.call_args_list[1].args[0]
-    run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643))
-    assert 'user-select: text' in add_css.call_args.args[0]
-    footer_on = label.return_value.classes.return_value.props.return_value.on
-    assert footer_on.call_args.args == ('click',)
-    assert 'navigator.clipboard' in footer_on.call_args.kwargs['js_handler']
-    labels = [call.args[0] for call in label.call_args_list]
-    assert labels == ['LOCAL CHESS TERMINAL / V.01', 'CHESS WITH JEV', '● SYSTEM ONLINE', chess.STARTING_FEN, 'SELECT PLAYERS']
-    assert [call.kwargs['label'] for call in select.call_args_list] == ['White', 'Black']
-    assert all(call.args[0] == ['human', 'random', 'stockfish'] for call in select.call_args_list)
-    assert image.call_count == 0
-    assert [call.args[0] for call in button.call_args_list] == ['START GAME']
+    run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643), reconnect_timeout=60,
+                                storage_secret='chesswithjev-local-state')
 
 
 def test_native_window_keeps_its_starting_aspect_ratio() -> None:
@@ -542,6 +528,26 @@ def test_evaluation_bar_tracks_position_and_reuses_unchanged_score() -> None:
     assert view.eval_bar._props['aria-valuenow'] == '20'
 
 
+def test_position_snapshot_restores_moves_redo_and_claimed_draw() -> None:
+    position = Position()
+    assert position.move(chess.E2, chess.E4)
+    assert position.move(chess.E7, chess.E5)
+    assert position.undo()
+    restored = Position()
+    assert restored.restore(position.snapshot())
+    assert restored.board.fen() == position.board.fen()
+    assert [move.uci() for move in restored.redo_stack] == ['e7e5']
+    assert restored.redo()
+    assert restored.board.piece_at(chess.E5) == chess.Piece.from_symbol('p')
+    claimed = Position()
+    claimed.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
+    assert claimed.claim_draw()
+    restored_claim = Position()
+    assert restored_claim.restore(claimed.snapshot())
+    assert restored_claim.status() == 'Draw — 50-move rule'
+    assert not Position().restore({'root_fen': 'bad', 'moves': [], 'redo': []})
+
+
 def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
     controller = GameController()
     engine = MagicMock()
@@ -574,8 +580,8 @@ def test_random_vs_random_starts_pauses_and_resets() -> None:
 def test_landing_starts_game_and_returns_to_setup() -> None:
     from nicegui import ui
 
-    with patch.object(ui, 'run'):
-        board.main()
+    storage = {}
+    build_page(storage)
     client = ui.context.client
 
     def click(element) -> None:
@@ -588,6 +594,7 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     selects[1].value = 'human'
     start = max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id)
     click(start)
+    assert storage['game']['position']['moves'] == []
     assert any(element.text == 'WHITE / HUMAN  ·  BLACK / HUMAN' for element in client.elements.values() if hasattr(element, 'text'))
     status_strip = max((element for element in client.elements.values() if 'status-strip' in element._classes), key=lambda element: element.id)
     board_panel = max((element for element in client.elements.values() if 'board-panel' in element._classes), key=lambda element: element.id)
@@ -599,5 +606,6 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     assert not any(element.text == 'SYSTEM STATUS' for element in controls.descendants() if hasattr(element, 'text'))
     back = max((element for element in client.elements.values() if element._props.get('label') == 'MAIN MENU'), key=lambda element: element.id)
     click(back)
+    assert 'game' not in storage
     assert max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id).id != start.id
     assert not footer.visible

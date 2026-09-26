@@ -2,6 +2,8 @@ from base64 import b64encode
 from functools import lru_cache
 import sys
 import shutil
+import os
+from collections.abc import Callable, MutableMapping
 
 import chess
 import chess.svg
@@ -55,12 +57,13 @@ def lock_window_aspect_ratio() -> None:
 
 
 class BoardView:
-    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random') -> None:
+    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', on_change: Callable[['BoardView'], None] | None = None) -> None:
         if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
             raise ValueError('Players must be human, random, or stockfish')
         self.controller = GameController(position)
         self.position = self.controller.position
         self.players = {chess.WHITE: white, chess.BLACK: black}
+        self.on_change = on_change
         self.random_timer = None
         self.random_button = None
         self.selected: chess.Square | None = None
@@ -265,6 +268,8 @@ class BoardView:
                 with element:
                     ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
             self.shown_pieces[square] = piece
+        if self.on_change:
+            self.on_change(self)
 
     def render(self) -> None:
         self.squares.clear()
@@ -338,9 +343,28 @@ class BoardView:
                 self.history_labels.append(label)
 
 
-def main() -> None:
-    if '-d' in sys.argv[1:]:
-        Position().print_legal_moves()
+def game_snapshot(view: BoardView) -> dict[str, object]:
+    return {
+        'white': view.players[chess.WHITE],
+        'black': view.players[chess.BLACK],
+        'position': view.position.snapshot(),
+    }
+
+
+def saved_game(storage: MutableMapping[str, object]) -> tuple[Position, str, str] | None:
+    game = storage.get('game')
+    if not isinstance(game, dict):
+        return None
+    white, black = game.get('white'), game.get('black')
+    if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
+        return None
+    position = Position()
+    if not position.restore(game.get('position')):
+        return None
+    return position, white, black
+
+
+def build_page(storage: MutableMapping[str, object]) -> None:
     ui.add_body_html('''
         <script>
             const watchMoveLog = () => {
@@ -460,7 +484,9 @@ def main() -> None:
             navigator.clipboard?.writeText(text).catch(fallback) ?? fallback();
         }''')
 
-    def show_landing() -> None:
+    def show_landing(clear_game: bool = False) -> None:
+        if clear_game:
+            storage.pop('game', None)
         footer.visible = False
         content.clear()
         content.classes(remove='game-page')
@@ -471,11 +497,12 @@ def main() -> None:
                 black = ui.select(['human', 'random', 'stockfish'], value='random', label='Black').props('outlined popup-content-class="player-options" aria-label="Black player"')
                 ui.button('START GAME', on_click=lambda: show_game(white.value, black.value), color=None).classes('terminal-button new-game-button')
 
-    def show_game(white: str, black: str) -> None:
+    def show_game(white: str, black: str, position: Position | None = None) -> None:
         if not shutil.which('stockfish'):
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
-        view = BoardView(white=white, black=black)
+        view = BoardView(position=position, white=white, black=black,
+                         on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)))
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
         footer.visible = True
@@ -498,14 +525,30 @@ def main() -> None:
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls()
-                    ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing()), color=None).classes('terminal-button')
+                    ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')
         if white != 'human' and black == 'human':
             view.random_step()
 
-    show_landing()
+    restored = saved_game(storage)
+    if restored:
+        show_game(restored[1], restored[2], restored[0])
+    else:
+        storage.pop('game', None)
+        show_landing()
+
+
+@ui.page('/')
+def page() -> None:
+    build_page(app.storage.user)
+
+
+def main() -> None:
+    if '-d' in sys.argv[1:]:
+        Position().print_legal_moves()
     if sys.platform == 'darwin':
         app.native.start_args['func'] = lock_window_aspect_ratio
-    ui.run(native=True, title='ChessWithJev', window_size=(900, 643))
+    ui.run(native=True, title='ChessWithJev', window_size=(900, 643), reconnect_timeout=60,
+           storage_secret=os.environ.get('CHESSWITHJEV_STORAGE_SECRET', 'chesswithjev-local-state'))
 
 
 if __name__ in {'__main__', '__mp_main__'}:
