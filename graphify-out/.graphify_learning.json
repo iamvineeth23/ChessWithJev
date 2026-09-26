@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-09-26T07:20:37.099447+00:00",
+  "nodes": {
+    "src_game_position_position": {
+      "code_fingerprint": "194406a50cbb27e8524cb5b1d8a7e3bc4dece9a7bb620ad1fa299e4cfa645f18",
+      "label": "Position",
+      "last": "2026-09-26T07:20:13.929997+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-26T07:20:13.929997+00:00",
+          "outcome": "useful",
+          "q": "yes follow these paths"
+        }
+      ],
+      "score": 0.999993804,
+      "source_file": "src/game/position.py",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_ui_board_boardview": {
+      "code_fingerprint": "5d8bf8db4a4e0ff2a34cc09c3ee97984bf63cee197361c8eedad7d5ef8a9778e",
+      "label": "BoardView",
+      "last": "2026-09-26T07:20:13.929997+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-26T07:20:13.929997+00:00",
+          "outcome": "useful",
+          "q": "yes follow these paths"
+        }
+      ],
+      "score": 0.999993804,
+      "source_file": "src/ui/board.py",
+      "status": "tentative",
+      "uses": 1
+    }
+  },
+  "version": 1
+}
