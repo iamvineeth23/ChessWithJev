@@ -16,8 +16,6 @@ Run the board:
 .venv/bin/chess
 ```
 
-Play as White by clicking a piece and then its destination. Black replies with a random legal move. Use **Undo** and **Redo** to step through complete White and Black turns, **New Game** to reset, and **Claim Draw** when available. The status panel shows checkmate or the draw result when the game ends.
-
 Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
 
 Notes:

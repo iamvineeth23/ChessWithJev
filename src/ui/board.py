@@ -50,9 +50,14 @@ def lock_window_aspect_ratio() -> None:
 
 
 class BoardView:
-    def __init__(self, position: Position | None = None) -> None:
+    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random') -> None:
+        if white not in {'human', 'random'} or black not in {'human', 'random'}:
+            raise ValueError('Players must be human or random')
         self.controller = GameController(position)
         self.position = self.controller.position
+        self.players = {chess.WHITE: white, chess.BLACK: black}
+        self.random_timer = None
+        self.random_button = None
         self.selected: chess.Square | None = None
         self.pending_promotion: tuple[chess.Square, chess.Square] | None = None
         self.promotion_dialog = None
@@ -97,12 +102,29 @@ class BoardView:
         return played
 
     def play_human_move(self, move: chess.Move) -> bool:
-        if self.position.board.turn != chess.WHITE or not self.controller.play(move):
+        if self.players[self.position.board.turn] != 'human' or not self.controller.play(move):
             return False
         self.selected = None
-        self.controller.play_random_black_move()
+        if self.players[self.position.board.turn] == 'random':
+            self.controller.play_random_move()
         self.sync()
         return True
+
+    def random_step(self) -> None:
+        if self.players[self.position.board.turn] == 'random' and self.controller.play_random_move():
+            self.sync()
+        if self.position.outcome() and self.random_timer:
+            self.random_timer.active = False
+            self.random_button.set_text('START')
+
+    def toggle_random(self) -> None:
+        self.random_timer.active = not self.random_timer.active
+        self.random_button.set_text('PAUSE' if self.random_timer.active else 'START')
+
+    def pause_random(self) -> None:
+        if self.random_timer:
+            self.random_timer.active = False
+            self.random_button.set_text('START')
 
     def claim_draw(self) -> None:
         if self.position.claim_draw():
@@ -110,24 +132,31 @@ class BoardView:
             self.sync()
 
     def new_game(self) -> None:
+        self.pause_random()
         self.set_board(chess.Board())
+        if self.players[chess.WHITE] == 'random' and self.players[chess.BLACK] == 'human':
+            self.random_step()
 
     def undo(self) -> None:
+        self.pause_random()
+        if self.players[chess.WHITE] == 'random' and self.players[chess.BLACK] == 'human' and len(self.position.board.move_stack) == 1:
+            return
         if self.position.undo():
-            if self.position.board.turn == chess.BLACK:
+            if self.players[chess.WHITE] != self.players[chess.BLACK] and self.position.board.move_stack:
                 self.position.undo()
             self.selected = None
             self.sync()
 
     def redo(self) -> None:
+        self.pause_random()
         if self.position.redo():
-            if self.position.board.turn == chess.BLACK:
+            if self.players[chess.WHITE] != self.players[chess.BLACK] and self.position.redo_stack:
                 self.position.redo()
             self.selected = None
             self.sync()
 
     def click_square(self, square: chess.Square) -> None:
-        if self.position.outcome() or self.pending_promotion or self.position.board.turn != chess.WHITE:
+        if self.position.outcome() or self.pending_promotion or self.players[self.position.board.turn] != 'human':
             return
         piece = self.position.board.piece_at(square)
         if piece and piece.color == self.position.board.turn:
@@ -154,6 +183,8 @@ class BoardView:
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
         if self.redo_button:
             self.redo_button.set_enabled(bool(self.position.redo_stack))
+        if self.random_button:
+            self.random_button.set_enabled(not bool(self.position.outcome()))
         for square, element in self.squares.items():
             element.classes(add='selected' if square == self.selected else None,
                             remove='selected' if square != self.selected else None)
@@ -197,6 +228,9 @@ class BoardView:
         with ui.element('div').classes('move-history-panel'):
             self.history_label = ui.label(move_history(self.position.board)).classes('move-history')
         ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
+        if self.players[chess.WHITE] == self.players[chess.BLACK] == 'random':
+            self.random_timer = ui.timer(0.6, self.random_step, active=False)
+            self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
         with ui.dialog().props('persistent') as self.promotion_dialog, ui.card().classes('promotion-card'):
@@ -274,6 +308,13 @@ def main() -> None:
         .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
         .promotion-actions .terminal-button { width: auto; }
         .footer-note { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 16px; }
+        .app-shell > main:not(.game-layout) { display: flex; flex: 1; }
+        .landing { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 20px; max-width: 440px; width: 100%; margin: auto; }
+        .landing .q-field { width: 100%; color: var(--green); }
+        .landing .q-field__label, .landing .q-field__native, .landing .q-field__marginal { color: var(--green) !important; }
+        .landing .q-field--outlined .q-field__control:before { border-color: var(--line); }
+        .player-options { background: var(--panel); color: var(--green); }
+        .landing-title { color: var(--green); font-size: 24px; }
         @media (min-width: 761px) {
             .app-shell { height: 100dvh; display: flex; flex-direction: column; }
             .game-layout { flex: 1; min-height: 0; }
@@ -289,18 +330,32 @@ def main() -> None:
             .move-history-panel { max-height: 230px; }
         }
     ''')
-    view = BoardView()
     with ui.element('div').classes('app-shell'):
         with ui.element('header').classes('app-header'):
             with ui.element('div'):
                 ui.label('LOCAL CHESS TERMINAL / V.01').classes('app-kicker')
                 ui.label('CHESS WITH JEV').classes('app-title')
             ui.label('● SYSTEM ONLINE').classes('header-mark')
-        with ui.element('main').classes('game-layout'):
+        content = ui.element('main')
+        ui.label('CHESS WITH JEV  /  LOCAL SESSION').classes('footer-note')
+
+    def show_landing() -> None:
+        content.clear()
+        with content:
+            with ui.element('section').classes('landing'):
+                ui.label('SELECT PLAYERS').classes('landing-title')
+                white = ui.select(['human', 'random'], value='human', label='White').props('outlined popup-content-class="player-options" aria-label="White player"')
+                black = ui.select(['human', 'random'], value='random', label='Black').props('outlined popup-content-class="player-options" aria-label="Black player"')
+                ui.button('START GAME', on_click=lambda: show_game(white.value, black.value), color=None).classes('terminal-button new-game-button')
+
+    def show_game(white: str, black: str) -> None:
+        view = BoardView(white=white, black=black)
+        content.clear()
+        with content.classes('game-layout'):
             with ui.element('section').classes('board-panel'):
                 with ui.element('div').classes('board-heading'):
                     ui.label('BOARD / 01')
-                    ui.label('WHITE / HUMAN  ·  BLACK / RANDOM')
+                    ui.label(f'WHITE / {white.upper()}  ·  BLACK / {black.upper()}')
                 with ui.element('div').classes('chess-layout'):
                     with ui.element('div').classes('rank-labels'):
                         for rank in range(8, 0, -1):
@@ -311,7 +366,11 @@ def main() -> None:
                             ui.label(file).classes('axis-label')
             with ui.element('aside').classes('game-controls'):
                 view.render_controls()
-        ui.label('CHESS WITH JEV  /  LOCAL SESSION').classes('footer-note')
+                ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), content.classes(remove='game-layout'), show_landing()), color=None).classes('terminal-button')
+        if white == 'random' and black == 'human':
+            view.random_step()
+
+    show_landing()
     if sys.platform == 'darwin':
         app.native.start_args['func'] = lock_window_aspect_ratio
     ui.run(native=True, title='ChessWithJev', window_size=(900, 643))
