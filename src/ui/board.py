@@ -86,7 +86,7 @@ class BoardView:
         source, target = self.pending_promotion
         self.pending_promotion = None
         self.promotion_dialog.close()
-        self.play_move(chess.Move(source, target, promotion=piece_type))
+        self.play_human_move(chess.Move(source, target, promotion=piece_type))
         self.selected = None
 
     def play_move(self, move: chess.Move) -> bool:
@@ -95,6 +95,14 @@ class BoardView:
             self.selected = None
             self.sync()
         return played
+
+    def play_human_move(self, move: chess.Move) -> bool:
+        if self.position.board.turn != chess.WHITE or not self.controller.play(move):
+            return False
+        self.selected = None
+        self.controller.play_random_black_move()
+        self.sync()
+        return True
 
     def claim_draw(self) -> None:
         if self.position.claim_draw():
@@ -106,16 +114,20 @@ class BoardView:
 
     def undo(self) -> None:
         if self.position.undo():
+            if self.position.board.turn == chess.BLACK:
+                self.position.undo()
             self.selected = None
             self.sync()
 
     def redo(self) -> None:
         if self.position.redo():
+            if self.position.board.turn == chess.BLACK:
+                self.position.redo()
             self.selected = None
             self.sync()
 
     def click_square(self, square: chess.Square) -> None:
-        if self.position.outcome() or self.pending_promotion:
+        if self.position.outcome() or self.pending_promotion or self.position.board.turn != chess.WHITE:
             return
         piece = self.position.board.piece_at(square)
         if piece and piece.color == self.position.board.turn:
@@ -126,7 +138,7 @@ class BoardView:
                 self.pending_promotion = (self.selected, square)
                 self.promotion_dialog.open()
             else:
-                if self.play_move(chess.Move(self.selected, square)):
+                if self.play_human_move(chess.Move(self.selected, square)):
                     return
                 self.selected = None
         self.sync()
@@ -288,7 +300,7 @@ def main() -> None:
             with ui.element('section').classes('board-panel'):
                 with ui.element('div').classes('board-heading'):
                     ui.label('BOARD / 01')
-                    ui.label('PLAYER VS PLAYER')
+                    ui.label('WHITE / HUMAN  ·  BLACK / RANDOM')
                 with ui.element('div').classes('chess-layout'):
                     with ui.element('div').classes('rank-labels'):
                         for rank in range(8, 0, -1):

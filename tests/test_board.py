@@ -93,7 +93,7 @@ def test_render_uses_current_position() -> None:
 
 def test_clicks_move_only_legal_pieces() -> None:
     view = BoardView()
-    with patch.object(view, 'sync'):
+    with patch.object(view, 'sync'), patch('src.game.controller.random.choice', side_effect=lambda moves: next(move for move in moves if move.uci() == 'e7e5')):
         view.click_square(chess.E7)  # black cannot move first
         assert view.selected is None
         view.click_square(chess.E2)
@@ -103,11 +103,10 @@ def test_clicks_move_only_legal_pieces() -> None:
         view.click_square(chess.E2)
         view.click_square(chess.E4)
         assert view.position.board.piece_at(chess.E4) == chess.Piece.from_symbol('P')
-        assert view.position.board.turn == chess.BLACK
-        view.click_square(chess.E4)  # white cannot move twice
-        assert view.selected is None
+        assert view.position.board.turn == chess.WHITE
+        assert [move.uci() for move in view.position.board.move_stack] == ['e2e4', 'e7e5']
         view.click_square(chess.E7)
-        view.click_square(chess.E5)
+        assert view.selected is None
         assert view.position.board.piece_at(chess.E5) == chess.Piece.from_symbol('p')
 
 
@@ -118,6 +117,33 @@ def test_controller_accepts_moves_from_any_caller() -> None:
     assert controller.play(chess.Move.from_uci('e2e4'))
     assert controller.play(chess.Move.from_uci('e7e5'))
     assert [move.uci() for move in controller.position.board.move_stack] == ['e2e4', 'e7e5']
+
+
+def test_random_black_move_uses_legal_moves_and_stops_at_game_end() -> None:
+    controller = GameController()
+    assert not controller.play_random_black_move()
+    assert controller.play(chess.Move.from_uci('f2f3'))
+    with patch('src.game.controller.random.choice', side_effect=lambda moves: next(move for move in moves if move.uci() == 'e7e5')):
+        assert controller.play_random_black_move()
+    assert controller.play(chess.Move.from_uci('g2g4'))
+    with patch('src.game.controller.random.choice', side_effect=lambda moves: next(move for move in moves if move.uci() == 'd8h4')):
+        assert controller.play_random_black_move()
+    assert controller.position.status() == 'Checkmate — Black wins'
+    assert not controller.play_random_black_move()
+
+
+def test_human_cannot_move_black_and_mate_ends_before_reply() -> None:
+    view = BoardView()
+    view.set_fen('7k/8/5KQ1/8/8/8/8/8 w - - 0 1')
+    with patch('src.game.controller.random.choice') as choose:
+        view.click_square(chess.G6)
+        view.click_square(chess.G7)
+    assert view.position.status() == 'Checkmate — White wins'
+    choose.assert_not_called()
+    assert len(view.position.board.move_stack) == 1
+    view.set_fen('7k/8/8/8/8/8/8/K7 b - - 0 1')
+    view.click_square(chess.H8)
+    assert view.selected is None
 
 
 def test_programmatic_move_refreshes_board_view() -> None:
@@ -158,11 +184,12 @@ def test_move_updates_only_changed_squares() -> None:
     elements = [MagicMock() for _ in chess.SQUARES]
     view.squares = dict(zip(chess.SQUARES, elements))
     view.shown_pieces = {square: view.position.board.piece_at(square) for square in chess.SQUARES}
-    view.click_square(chess.E2)
-    assert not any(element.clear.called for element in elements)
-    view.click_square(chess.E4)
+    with patch('src.game.controller.random.choice', side_effect=lambda moves: next(move for move in moves if move.uci() == 'e7e5')):
+        view.click_square(chess.E2)
+        assert not any(element.clear.called for element in elements)
+        view.click_square(chess.E4)
     changed = {square for square, element in view.squares.items() if element.clear.called}
-    assert changed == {chess.E2, chess.E4}
+    assert changed == {chess.E2, chess.E4, chess.E7, chess.E5}
 
 
 def test_only_legal_moves_are_printed(capsys) -> None:
@@ -182,16 +209,18 @@ def test_castling_and_en_passant_update_all_affected_squares() -> None:
     view.set_fen('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
     for element in view.squares.values():
         element.reset_mock()
-    view.click_square(chess.E1)
-    view.click_square(chess.G1)
+    with patch.object(view.controller, 'play_random_black_move'):
+        view.click_square(chess.E1)
+        view.click_square(chess.G1)
     assert view.position.board.piece_at(chess.F1) == chess.Piece.from_symbol('R')
     assert view.position.board.piece_at(chess.G1) == chess.Piece.from_symbol('K')
     assert {square for square, element in view.squares.items() if element.clear.called} == {chess.E1, chess.F1, chess.G1, chess.H1}
     view.set_fen('7k/8/8/3pP3/8/8/8/K7 w - d6 0 1')
     for element in view.squares.values():
         element.reset_mock()
-    view.click_square(chess.E5)
-    view.click_square(chess.D6)
+    with patch.object(view.controller, 'play_random_black_move'):
+        view.click_square(chess.E5)
+        view.click_square(chess.D6)
     assert view.position.board.piece_at(chess.D5) is None
     assert view.position.board.piece_at(chess.D6) == chess.Piece.from_symbol('P')
     assert {square for square, element in view.squares.items() if element.clear.called} == {chess.E5, chess.D5, chess.D6}
@@ -259,7 +288,7 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     assert view.history_label.text == 'No moves yet'
     assert view.redo_button.enabled
     click(view.redo_button)
-    assert view.history_label.text == '1. e4'
+    assert view.history_label.text.startswith('1. e4\n1... ')
 
     view.set_fen('7k/P7/8/8/8/8/8/K7 w - - 0 1')
     click(view.squares[chess.A7])
@@ -314,13 +343,14 @@ def test_undo_redo_updates_board_history_and_status() -> None:
     assert view.position.move(chess.E7, chess.E5)
     view.sync()
     view.undo()
-    assert view.history_label.text == '1. e4'
-    assert view.status_label.text == 'Black to move'
+    assert view.history_label.text == 'No moves yet'
+    assert view.status_label.text == 'White to move'
     assert view.position.board.piece_at(chess.E5) is None
     view.redo()
     assert view.history_label.text == '1. e4\n1... e5'
     assert view.position.board.piece_at(chess.E5) == chess.Piece.from_symbol('p')
     view.undo()
+    assert view.position.move(chess.E2, chess.E4)
     assert view.position.move(chess.C7, chess.C5)
     view.sync()
     view.redo()
