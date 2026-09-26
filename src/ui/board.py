@@ -6,6 +6,7 @@ import chess
 import chess.svg
 from nicegui import app, ui
 
+from src.game.controller import GameController
 from src.game.position import Position
 
 
@@ -50,7 +51,8 @@ def lock_window_aspect_ratio() -> None:
 
 class BoardView:
     def __init__(self, position: Position | None = None) -> None:
-        self.position = position or Position()
+        self.controller = GameController(position)
+        self.position = self.controller.position
         self.selected: chess.Square | None = None
         self.pending_promotion: tuple[chess.Square, chess.Square] | None = None
         self.promotion_dialog = None
@@ -84,9 +86,15 @@ class BoardView:
         source, target = self.pending_promotion
         self.pending_promotion = None
         self.promotion_dialog.close()
-        self.position.move(source, target, promotion=piece_type)
+        self.play_move(chess.Move(source, target, promotion=piece_type))
         self.selected = None
-        self.sync()
+
+    def play_move(self, move: chess.Move) -> bool:
+        played = self.controller.play(move)
+        if played:
+            self.selected = None
+            self.sync()
+        return played
 
     def claim_draw(self) -> None:
         if self.position.claim_draw():
@@ -118,7 +126,8 @@ class BoardView:
                 self.pending_promotion = (self.selected, square)
                 self.promotion_dialog.open()
             else:
-                self.position.move(self.selected, square)
+                if self.play_move(chess.Move(self.selected, square)):
+                    return
                 self.selected = None
         self.sync()
 

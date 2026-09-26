@@ -3,6 +3,7 @@ from base64 import b64decode
 import chess
 import pytest
 from src.game.position import Position
+from src.game.controller import GameController
 from src.ui.board import BoardView, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
 from src.ui import board
 from unittest.mock import MagicMock, patch
@@ -108,6 +109,23 @@ def test_clicks_move_only_legal_pieces() -> None:
         view.click_square(chess.E7)
         view.click_square(chess.E5)
         assert view.position.board.piece_at(chess.E5) == chess.Piece.from_symbol('p')
+
+
+def test_controller_accepts_moves_from_any_caller() -> None:
+    controller = GameController()
+    assert not controller.play(chess.Move.from_uci('e2e5'))
+    assert controller.position.board.fen() == chess.STARTING_FEN
+    assert controller.play(chess.Move.from_uci('e2e4'))
+    assert controller.play(chess.Move.from_uci('e7e5'))
+    assert [move.uci() for move in controller.position.board.move_stack] == ['e2e4', 'e7e5']
+
+
+def test_programmatic_move_refreshes_board_view() -> None:
+    view = BoardView()
+    view.render_controls()
+    assert view.play_move(chess.Move.from_uci('e2e4'))
+    assert view.history_label.text == '1. e4'
+    assert view.status_label.text == 'Black to move'
 
 
 def test_promotion_and_external_position_reset() -> None:
