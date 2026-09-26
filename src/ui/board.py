@@ -345,17 +345,18 @@ def main() -> None:
         :root { --green: #a8f0b0; --muted: #779780; --line: #425c48; --panel: #17251c; }
         body { background: #0c1510; color: #d7e8d6; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; }
         .nicegui-content { padding: 0; }
-        .app-shell { width: min(1120px, 100%); min-height: 100dvh; margin: 0 auto; padding: clamp(20px, 4vw, 44px); box-sizing: border-box; }
-        .app-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+        .app-shell { width: min(1120px, 100%); min-height: 100dvh; margin: 0 auto; padding: clamp(20px, 4vw, 44px); padding-top: 5px; box-sizing: border-box; }
+        .app-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
         .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
         .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }
         .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
-        .game-layout { display: flex; align-items: stretch; gap: 28px; }
+        .game-layout { display: flex; align-items: stretch; gap: 28px; margin-top: 4px; }
         .game-page { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
-        .status-strip { display: flex; align-items: center; justify-content: flex-end; gap: 18px; }
+        .status-strip { display: flex; align-items: center; justify-content: flex-end; gap: 18px; width: 100%; padding-right: 80px; box-sizing: border-box; }
         .board-panel, .game-controls { background: var(--panel); border: 1px solid var(--line); box-shadow: 8px 8px 0 #080f0b; }
         .board-panel { padding: clamp(12px, 2vw, 22px); min-width: 0; flex: 1; }
-        .board-heading { display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--green); font-size: 12px; letter-spacing: .12em; }
+        .board-heading { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 80px; width: 100%; margin-bottom: 4px; color: var(--green); font-size: 12px; letter-spacing: .12em; }
+        .board-players { grid-column: 3; justify-self: end; }
         .game-controls { display: flex; flex-direction: column; gap: 14px; width: 274px; flex-shrink: 0; padding: 22px; }
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
         .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
@@ -366,7 +367,7 @@ def main() -> None:
         .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
         .new-game-button, .board-actions .terminal-button { background: var(--green); color: #0c1510; }
         .new-game-button:hover, .board-actions .terminal-button:hover { background: #cefbd1; }
-        .chess-layout { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
+        .chess-layout { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 80px; grid-template-rows: auto 24px; width: 100%; }
         .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(2, 32px); gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
         .board-actions .terminal-button:disabled { opacity: .4; }
@@ -398,8 +399,8 @@ def main() -> None:
             .app-shell { height: 100dvh; display: flex; flex-direction: column; }
             .game-layout { flex: 1; min-height: 0; }
             .board-panel { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; }
-            .board-heading { width: 100%; }
-            .chess-layout { width: min(100%, calc(100dvh - 220px), 740px); height: max-content; justify-self: center; min-width: 0; grid-template-rows: auto 24px; }
+            .status-strip, .board-heading { width: min(100%, calc(100dvh - 158px), 740px); justify-self: center; }
+            .chess-layout { width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
@@ -456,8 +457,7 @@ def main() -> None:
                     with ui.element('div').classes('status-strip'):
                         view.render_status()
                     with ui.element('div').classes('board-heading'):
-                        ui.label('BOARD / 01')
-                        ui.label(f'WHITE / {white.upper()}  ·  BLACK / {black.upper()}')
+                        ui.label(f'WHITE / {white.upper()}  ·  BLACK / {black.upper()}').classes('board-players')
                     with ui.element('div').classes('chess-layout'):
                         view.render_evaluation()
                         with ui.element('div').classes('rank-labels'):
