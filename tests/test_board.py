@@ -1,6 +1,7 @@
 import runpy
 from base64 import b64decode
 import chess
+import chess.engine
 import pytest
 from src.game.position import Position
 from src.game.controller import GameController
@@ -392,7 +393,7 @@ def test_player_combinations_and_random_opening() -> None:
 
 def test_stockfish_plays_for_either_color_and_stops_at_game_end() -> None:
     engine = MagicMock()
-    engine.__enter__.return_value.play.return_value.move = chess.Move.from_uci('e7e5')
+    engine.play.return_value.move = chess.Move.from_uci('e7e5')
     with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine) as open_engine:
         view = BoardView(white='human', black='stockfish')
         with patch.object(view, 'sync'):
@@ -403,7 +404,7 @@ def test_stockfish_plays_for_either_color_and_stops_at_game_end() -> None:
         assert not view.controller.play_stockfish_move()
         assert open_engine.call_count == 1
 
-        engine.__enter__.return_value.play.return_value.move = chess.Move.from_uci('e2e4')
+        engine.play.return_value.move = chess.Move.from_uci('e2e4')
         opening = BoardView(white='stockfish', black='human')
         with patch.object(opening, 'sync'):
             opening.new_game()
@@ -422,6 +423,34 @@ def test_stockfish_and_random_can_play_each_other() -> None:
     assert [move.uci() for move in view.position.board.move_stack] == ['e2e4', 'e7e5']
     view.new_game()
     assert not view.random_timer.active
+
+
+def test_evaluation_bar_tracks_position_and_reuses_unchanged_score() -> None:
+    view = BoardView(white='human', black='human')
+    with patch.object(view.controller, 'white_expectation', side_effect=[0.5, 0.8, 0.2]) as evaluate:
+        view.render_evaluation()
+        assert view.eval_fill._style['height'] == '50.0%'
+        view.sync()
+        assert evaluate.call_count == 1
+        view.play_move(chess.Move.from_uci('e2e4'))
+        assert view.eval_fill._style['height'] == '80.0%'
+        view.undo()
+        assert view.eval_fill._style['height'] == '20.0%'
+    assert view.eval_bar._props['aria-valuenow'] == '20'
+
+
+def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
+    controller = GameController()
+    engine = MagicMock()
+    engine.analyse.return_value = {'score': chess.engine.PovScore(chess.engine.Cp(200), chess.WHITE)}
+    with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine):
+        assert controller.white_expectation() > 0.5
+        controller.position.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
+        assert controller.white_expectation() == 1.0
+        controller.position.set_fen('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1')
+        assert controller.white_expectation() == 0.5
+        controller.close()
+    engine.quit.assert_called_once_with()
 
 
 def test_random_vs_random_starts_pauses_and_resets() -> None:

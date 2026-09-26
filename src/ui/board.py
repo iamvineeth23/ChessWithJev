@@ -64,6 +64,9 @@ class BoardView:
         self.promotion_dialog = None
         self.status_label = None
         self.history_label = None
+        self.eval_fill = None
+        self.eval_bar = None
+        self.eval_position = None
         self.claim_button = None
         self.undo_button = None
         self.redo_button = None
@@ -181,6 +184,13 @@ class BoardView:
         self.sync()
 
     def sync(self) -> None:
+        if self.eval_fill:
+            position = (self.position.board.fen(), self.position.claimed_draw)
+            if position != self.eval_position:
+                percent = 100 * self.controller.white_expectation()
+                self.eval_fill.style(f'height: {percent:.1f}%')
+                self.eval_bar.props(f'aria-valuenow="{percent:.0f}" aria-valuetext="White expected score {percent:.0f} percent"')
+                self.eval_position = position
         if self.status_label:
             self.status_label.set_text(self.position.status())
         if self.history_label:
@@ -226,6 +236,11 @@ class BoardView:
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
+
+    def render_evaluation(self) -> None:
+        with ui.element('div').classes('eval-bar').props('role="meter" aria-label="Position evaluation" aria-valuemin="0" aria-valuemax="100"') as self.eval_bar:
+            self.eval_fill = ui.element('div').classes('eval-white')
+        self.sync()
 
     def render_status(self) -> None:
         ui.label('SYSTEM STATUS').classes('panel-kicker')
@@ -304,12 +319,14 @@ def main() -> None:
         .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
         .new-game-button, .board-actions .terminal-button { background: var(--green); color: #0c1510; }
         .new-game-button:hover, .board-actions .terminal-button:hover { background: #cefbd1; }
-        .chess-layout { display: grid; grid-template-columns: 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
-        .board-actions { grid-column: 3; grid-row: 1; align-self: end; display: flex; flex-direction: column; gap: 8px; padding-left: 8px; }
+        .chess-layout { display: grid; grid-template-columns: 36px 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
+        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: flex; flex-direction: column; gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
         .board-actions .terminal-button:disabled { opacity: .4; }
-        .rank-labels { display: grid; grid-template-rows: repeat(8, 1fr); }
-        .file-labels { grid-column: 2; display: grid; grid-template-columns: repeat(8, 1fr); }
+        .eval-bar { grid-column: 1; grid-row: 1; width: 36px; height: 100%; border: 2px solid #89b993; background: #17251c; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; }
+        .eval-white { width: 100%; background: #d7e8d6; }
+        .rank-labels { grid-column: 2; grid-row: 1; display: grid; grid-template-rows: repeat(8, 1fr); }
+        .file-labels { grid-column: 3; display: grid; grid-template-columns: repeat(8, 1fr); }
         .axis-label { display: flex; align-items: center; justify-content: center; }
         .chess-board { display: grid; grid-template-columns: repeat(8, 1fr); width: 100%; border: 2px solid #89b993; }
         .chess-square { aspect-ratio: 1; position: relative; cursor: pointer; }
@@ -366,7 +383,7 @@ def main() -> None:
                 ui.button('START GAME', on_click=lambda: show_game(white.value, black.value), color=None).classes('terminal-button new-game-button')
 
     def show_game(white: str, black: str) -> None:
-        if 'stockfish' in (white, black) and not shutil.which('stockfish'):
+        if not shutil.which('stockfish'):
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
         view = BoardView(white=white, black=black)
@@ -380,6 +397,7 @@ def main() -> None:
                         ui.label('BOARD / 01')
                         ui.label(f'WHITE / {white.upper()}  ·  BLACK / {black.upper()}')
                     with ui.element('div').classes('chess-layout'):
+                        view.render_evaluation()
                         with ui.element('div').classes('rank-labels'):
                             for rank in range(8, 0, -1):
                                 ui.label(str(rank)).classes('axis-label')
@@ -389,7 +407,7 @@ def main() -> None:
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls()
-                    ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), show_landing()), color=None).classes('terminal-button')
+                    ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing()), color=None).classes('terminal-button')
         if white != 'human' and black == 'human':
             view.random_step()
 

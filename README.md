@@ -20,6 +20,8 @@ Run with `.venv/bin/chess -d` to show the current viewport width and height in t
 
 At the start screen, choose `human`, `random`, or `stockfish` for White and Black. Stockfish moves automatically on its turns. When both players are computer controlled, use START to begin their game.
 
+The vertical bar beside the board shows Stockfish's current position estimate in every game mode. Black is at the top and White is at the bottom; a larger section means a better expected result for that color.
+
 Notes:
 
 To change the displayed position in code, keep a reference to `BoardView` and call `set_fen(fen)` or `set_board(chess_board)`. Both update the python-chess position and refresh the board. Call these methods from the NiceGUI UI context.

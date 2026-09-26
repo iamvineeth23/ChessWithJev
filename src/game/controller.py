@@ -9,6 +9,24 @@ from src.game.position import Position
 class GameController:
     def __init__(self, position: Position | None = None) -> None:
         self.position = position if position is not None else Position()
+        self.engine: chess.engine.SimpleEngine | None = None
+
+    def stockfish_engine(self) -> chess.engine.SimpleEngine:
+        if self.engine is None:
+            self.engine = chess.engine.SimpleEngine.popen_uci(shutil.which('stockfish') or 'stockfish')
+        return self.engine
+
+    def close(self) -> None:
+        if self.engine is not None:
+            self.engine.quit()
+            self.engine = None
+
+    def white_expectation(self) -> float:
+        outcome = self.position.outcome()
+        if outcome:
+            return 0.5 if outcome.winner is None else float(outcome.winner)
+        info = self.stockfish_engine().analyse(self.position.board, chess.engine.Limit(time=0.1))
+        return info['score'].white().wdl().expectation()
 
     def play(self, move: chess.Move) -> bool:
         return self.position.move(move.from_square, move.to_square, move.promotion)
@@ -25,6 +43,5 @@ class GameController:
     def play_stockfish_move(self) -> bool:
         if self.position.outcome():
             return False
-        with chess.engine.SimpleEngine.popen_uci(shutil.which('stockfish') or 'stockfish') as engine:
-            move = engine.play(self.position.board, chess.engine.Limit(time=0.1)).move
+        move = self.stockfish_engine().play(self.position.board, chess.engine.Limit(time=0.1)).move
         return self.play(move)
