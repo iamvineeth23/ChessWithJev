@@ -162,8 +162,8 @@ class BoardView:
                             ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
                         self.shown_pieces[square] = piece
         with ui.element('div').classes('board-actions'):
-            self.undo_button = ui.button('↶', on_click=self.undo).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
-            self.redo_button = ui.button('↷', on_click=self.redo).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
+            self.undo_button = ui.button('↶', on_click=self.undo, color=None).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
+            self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
 
@@ -175,7 +175,7 @@ class BoardView:
             ui.label('01 / LIVE').classes('panel-meta')
         with ui.element('div').classes('move-history-panel'):
             self.history_label = ui.label(move_history(self.position.board)).classes('move-history')
-        ui.button('NEW GAME', on_click=self.new_game).classes('terminal-button new-game-button')
+        ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
         with ui.dialog().props('persistent') as self.promotion_dialog, ui.card().classes('promotion-card'):
@@ -219,8 +219,8 @@ def main() -> None:
         .terminal-button { width: 100%; border: 1px solid var(--green); border-radius: 0; background: transparent; color: var(--green); font-family: inherit; font-weight: 700; letter-spacing: .08em; box-shadow: none; }
         .terminal-button:hover { background: #294733; }
         .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
-        .new-game-button { background: var(--green); color: #0c1510; }
-        .new-game-button:hover { background: #cefbd1; }
+        .new-game-button, .board-actions .terminal-button { background: var(--green); color: #0c1510; }
+        .new-game-button:hover, .board-actions .terminal-button:hover { background: #cefbd1; }
         .chess-layout { display: grid; grid-template-columns: 24px minmax(0, 1fr) 40px; grid-template-rows: auto 24px; width: 100%; }
         .board-actions { grid-column: 3; grid-row: 1; align-self: end; display: flex; flex-direction: column; gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }

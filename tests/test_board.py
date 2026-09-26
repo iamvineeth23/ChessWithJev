@@ -18,7 +18,7 @@ def test_board_colors() -> None:
 
 @pytest.mark.parametrize('debug', [False, True])
 def test_board_opens_native_window(debug: bool) -> None:
-    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()), patch.object(board.ui, 'run') as run:
+    with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()) as button, patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
     assert add_body_html.called == debug
     if debug:
@@ -31,6 +31,7 @@ def test_board_opens_native_window(debug: bool) -> None:
     assert labels[-7:] == ['SYSTEM STATUS', 'White to move', 'MOVE LOG', '01 / LIVE', 'No moves yet', 'CHOOSE PROMOTION', 'CHESS WITH JEV  /  LOCAL SESSION']
     assert len(labels) == 28
     assert image.call_count == 32
+    assert {call.args[0] for call in button.call_args_list if call.kwargs.get('color', 'primary') is None} == {'↶', '↷', 'NEW GAME'}
 
 
 def test_native_window_keeps_its_starting_aspect_ratio() -> None:
