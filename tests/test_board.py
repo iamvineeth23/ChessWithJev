@@ -422,6 +422,12 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     start = max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id)
     click(start)
     assert any(element.text == 'WHITE / HUMAN  ·  BLACK / HUMAN' for element in client.elements.values() if hasattr(element, 'text'))
+    status_strip = max((element for element in client.elements.values() if 'status-strip' in element._classes), key=lambda element: element.id)
+    board_panel = max((element for element in client.elements.values() if 'board-panel' in element._classes), key=lambda element: element.id)
+    controls = max((element for element in client.elements.values() if 'game-controls' in element._classes), key=lambda element: element.id)
+    assert {element.text for element in status_strip.descendants() if hasattr(element, 'text')} == {'SYSTEM STATUS', 'White to move'}
+    assert status_strip in board_panel.descendants()
+    assert not any(element.text == 'SYSTEM STATUS' for element in controls.descendants() if hasattr(element, 'text'))
     back = max((element for element in client.elements.values() if element._props.get('label') == 'MAIN MENU'), key=lambda element: element.id)
     click(back)
     assert max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id).id != start.id

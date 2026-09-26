@@ -219,9 +219,13 @@ class BoardView:
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
 
-    def render_controls(self) -> None:
+    def render_status(self) -> None:
         ui.label('SYSTEM STATUS').classes('panel-kicker')
         self.status_label = ui.label(self.position.status()).classes('status-text').props('role="status" aria-live="polite"')
+
+    def render_controls(self) -> None:
+        if self.status_label is None:
+            self.render_status()
         with ui.element('div').classes('history-heading'):
             ui.label('MOVE LOG')
             ui.label('01 / LIVE').classes('panel-meta')
@@ -272,18 +276,20 @@ def main() -> None:
         body { background: #0c1510; color: #d7e8d6; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; }
         .nicegui-content { padding: 0; }
         .app-shell { width: min(1120px, 100%); min-height: 100dvh; margin: 0 auto; padding: clamp(20px, 4vw, 44px); box-sizing: border-box; }
-        .app-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+        .app-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
         .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
         .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }
         .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
         .game-layout { display: flex; align-items: stretch; gap: 28px; }
+        .game-page { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
+        .status-strip { display: flex; align-items: center; justify-content: flex-end; gap: 18px; }
         .board-panel, .game-controls { background: var(--panel); border: 1px solid var(--line); box-shadow: 8px 8px 0 #080f0b; }
         .board-panel { padding: clamp(12px, 2vw, 22px); min-width: 0; flex: 1; }
-        .board-heading { display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--green); font-size: 12px; letter-spacing: .12em; }
+        .board-heading { display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--green); font-size: 12px; letter-spacing: .12em; }
         .game-controls { display: flex; flex-direction: column; gap: 14px; width: 274px; flex-shrink: 0; padding: 22px; }
-        .status-text { color: var(--green); font-size: 18px; line-height: 1.4; }
-        .history-heading { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
-        .move-history-panel { flex: 1; min-height: 180px; max-height: 430px; overflow-y: auto; border: 1px solid var(--line); background: #101b14; padding: 14px; }
+        .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
+        .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
+        .move-history-panel { flex: 1; min-height: 180px; overflow-y: auto; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-history { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .terminal-button { width: 100%; border: 1px solid var(--green); border-radius: 0; background: transparent; color: var(--green); font-family: inherit; font-weight: 700; letter-spacing: .08em; box-shadow: none; }
         .terminal-button:hover { background: #294733; }
@@ -308,7 +314,8 @@ def main() -> None:
         .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
         .promotion-actions .terminal-button { width: auto; }
         .footer-note { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 16px; }
-        .app-shell > main:not(.game-layout) { display: flex; flex: 1; }
+        .game-page + .footer-note { margin-top: 20px; }
+        .app-shell > main:not(.game-page) { display: flex; flex: 1; }
         .landing { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 20px; max-width: 440px; width: 100%; margin: auto; }
         .landing .q-field { width: 100%; color: var(--green); }
         .landing .q-field__label, .landing .q-field__native, .landing .q-field__marginal { color: var(--green) !important; }
@@ -318,13 +325,14 @@ def main() -> None:
         @media (min-width: 761px) {
             .app-shell { height: 100dvh; display: flex; flex-direction: column; }
             .game-layout { flex: 1; min-height: 0; }
-            .board-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+            .board-panel { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; }
             .board-heading { width: 100%; }
-            .chess-layout { width: min(100%, calc(100dvh - 280px), 640px); height: max-content; justify-self: center; min-width: 0; grid-template-rows: auto 24px; }
+            .chess-layout { width: min(100%, calc(100dvh - 220px), 640px); height: max-content; justify-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
             .app-header { align-items: start; }
+            .status-strip { flex-wrap: wrap; }
             .game-layout { flex-direction: column; }
             .game-controls { width: 100%; }
             .move-history-panel { max-height: 230px; }
@@ -341,6 +349,7 @@ def main() -> None:
 
     def show_landing() -> None:
         content.clear()
+        content.classes(remove='game-page')
         with content:
             with ui.element('section').classes('landing'):
                 ui.label('SELECT PLAYERS').classes('landing-title')
@@ -351,22 +360,25 @@ def main() -> None:
     def show_game(white: str, black: str) -> None:
         view = BoardView(white=white, black=black)
         content.clear()
-        with content.classes('game-layout'):
-            with ui.element('section').classes('board-panel'):
-                with ui.element('div').classes('board-heading'):
-                    ui.label('BOARD / 01')
-                    ui.label(f'WHITE / {white.upper()}  ·  BLACK / {black.upper()}')
-                with ui.element('div').classes('chess-layout'):
-                    with ui.element('div').classes('rank-labels'):
-                        for rank in range(8, 0, -1):
-                            ui.label(str(rank)).classes('axis-label')
-                    view.render()
-                    with ui.element('div').classes('file-labels'):
-                        for file in 'abcdefgh':
-                            ui.label(file).classes('axis-label')
-            with ui.element('aside').classes('game-controls'):
-                view.render_controls()
-                ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), content.classes(remove='game-layout'), show_landing()), color=None).classes('terminal-button')
+        with content.classes('game-page'):
+            with ui.element('div').classes('game-layout'):
+                with ui.element('section').classes('board-panel'):
+                    with ui.element('div').classes('status-strip'):
+                        view.render_status()
+                    with ui.element('div').classes('board-heading'):
+                        ui.label('BOARD / 01')
+                        ui.label(f'WHITE / {white.upper()}  ·  BLACK / {black.upper()}')
+                    with ui.element('div').classes('chess-layout'):
+                        with ui.element('div').classes('rank-labels'):
+                            for rank in range(8, 0, -1):
+                                ui.label(str(rank)).classes('axis-label')
+                        view.render()
+                        with ui.element('div').classes('file-labels'):
+                            for file in 'abcdefgh':
+                                ui.label(file).classes('axis-label')
+                with ui.element('aside').classes('game-controls'):
+                    view.render_controls()
+                    ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), show_landing()), color=None).classes('terminal-button')
         if white == 'random' and black == 'human':
             view.random_step()
 
