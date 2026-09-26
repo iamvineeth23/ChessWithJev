@@ -10,6 +10,10 @@ from src.ui import board
 from unittest.mock import MagicMock, patch
 
 
+def move_log_text(view: BoardView) -> str:
+    return '\n'.join(label.text for label in view.history_labels)
+
+
 def test_board_colors() -> None:
     colors = [[square_color(row, column) for column in range(8)] for row in range(8)]
     assert all(colors[row][column] != colors[row][column + 1] for row in range(8) for column in range(7))
@@ -155,7 +159,7 @@ def test_programmatic_move_refreshes_board_view() -> None:
     view.render_controls()
     view.fen_label = MagicMock()
     assert view.play_move(chess.Move.from_uci('e2e4'))
-    assert view.history_label.text == '1. e4'
+    assert move_log_text(view) == '1. e4'
     assert view.status_label.text == 'Black to move'
     view.fen_label.set_text.assert_called_with(view.position.board.fen())
 
@@ -310,10 +314,10 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     click(view.squares[chess.E4])
     assert view.undo_button.enabled
     click(view.undo_button)
-    assert view.history_label.text == 'No moves yet'
+    assert move_log_text(view) == 'No moves yet'
     assert view.redo_button.enabled
     click(view.redo_button)
-    assert view.history_label.text.startswith('1. e4\n1... ')
+    assert move_log_text(view).startswith('1. e4\n1... ')
 
     view.set_fen('7k/P7/8/8/8/8/8/K7 w - - 0 1')
     click(view.squares[chess.A7])
@@ -347,11 +351,11 @@ def test_move_history_and_new_game() -> None:
     view.position.move(chess.E2, chess.E4)
     view.position.move(chess.C7, chess.C5)
     view.sync()
-    assert view.history_label.text == '1. e4\n1... c5'
+    assert move_log_text(view) == '1. e4\n1... c5'
     assert view.status_label.text == 'White to move'
     view.new_game()
     assert view.position.board.fen() == chess.STARTING_FEN
-    assert view.history_label.text == 'No moves yet'
+    assert move_log_text(view) == 'No moves yet'
 
 
 def test_move_history_preserves_move_numbers_from_custom_position() -> None:
@@ -368,21 +372,21 @@ def test_undo_redo_updates_board_history_and_status() -> None:
     assert view.position.move(chess.E7, chess.E5)
     view.sync()
     view.undo()
-    assert view.history_label.text == 'No moves yet'
+    assert move_log_text(view) == 'No moves yet'
     assert view.status_label.text == 'White to move'
     assert view.position.board.piece_at(chess.E5) is None
     view.redo()
-    assert view.history_label.text == '1. e4\n1... e5'
+    assert move_log_text(view) == '1. e4\n1... e5'
     assert view.position.board.piece_at(chess.E5) == chess.Piece.from_symbol('p')
     view.undo()
     assert view.position.move(chess.E2, chess.E4)
     assert view.position.move(chess.C7, chess.C5)
     view.sync()
     view.redo()
-    assert view.history_label.text == '1. e4\n1... c5'
+    assert move_log_text(view) == '1. e4\n1... c5'
     view.new_game()
     assert not view.position.redo_stack
-    assert view.history_label.text == 'No moves yet'
+    assert move_log_text(view) == 'No moves yet'
 
 
 def test_history_buttons_preview_without_changing_live_game() -> None:
@@ -394,15 +398,21 @@ def test_history_buttons_preview_without_changing_live_game() -> None:
     view.fen_label = MagicMock()
     for move in ('e2e4', 'e7e5', 'g1f3'):
         assert view.play_move(chess.Move.from_uci(move))
+    assert 'current-move' in view.history_labels[-1]._classes
+    assert {'last-move' in view.squares[square]._classes for square in (chess.G1, chess.F3)} == {True}
     live_fen = view.position.board.fen()
     live_moves = view.position.board.move_stack.copy()
     live_redo = view.position.redo_stack.copy()
-    live_log = view.history_label.text
+    live_log = move_log_text(view)
 
     button = view.history_back_button
     listener = next(iter(button._event_listeners.values()))
     ui.context.client.handle_event({'id': button.id, 'listener_id': listener.id, 'args': []})
     assert view.preview_index == 2
+    assert 'current-move' in view.history_labels[1]._classes
+    assert 'current-move' not in view.history_labels[2]._classes
+    assert {'last-move' in view.squares[square]._classes for square in (chess.E7, chess.E5)} == {True}
+    assert 'last-move' not in view.squares[chess.G1]._classes
     view.fen_label.set_text.assert_called_with(view.preview_board.fen())
     assert view.shown_pieces[chess.G1] == chess.Piece.from_symbol('N')
     assert view.shown_pieces[chess.F3] is None
@@ -419,6 +429,8 @@ def test_history_buttons_preview_without_changing_live_game() -> None:
     view.step_history(-1)
     view.step_history(-1)
     assert view.preview_index == 0
+    assert not any('current-move' in label._classes for label in view.history_labels)
+    assert not any('last-move' in square._classes for square in view.squares.values())
     assert not view.history_back_button.enabled
     view.step_history(1)
     view.step_history(1)
@@ -430,7 +442,7 @@ def test_history_buttons_preview_without_changing_live_game() -> None:
     assert view.position.board.fen() == live_fen
     assert view.position.board.move_stack == live_moves
     assert view.position.redo_stack == live_redo
-    assert view.history_label.text == live_log
+    assert move_log_text(view) == live_log
 
 
 def test_history_preview_pauses_computer_game_and_resets_on_new_game() -> None:

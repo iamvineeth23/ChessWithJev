@@ -26,13 +26,17 @@ def piece_image(piece: chess.Piece) -> str:
 
 
 def move_history(board: chess.Board) -> str:
+    return '\n'.join(move_history_lines(board)) or 'No moves yet'
+
+
+def move_history_lines(board: chess.Board) -> list[str]:
     replay = board.root()
     lines = []
     for move in board.move_stack:
         prefix = f'{replay.fullmove_number}.' if replay.turn else f'{replay.fullmove_number}...'
         lines.append(f'{prefix} {replay.san(move)}')
         replay.push(move)
-    return '\n'.join(lines) or 'No moves yet'
+    return lines
 
 
 def lock_window_aspect_ratio() -> None:
@@ -64,7 +68,8 @@ class BoardView:
         self.promotion_dialog = None
         self.status_label = None
         self.fen_label = None
-        self.history_label = None
+        self.history_panel = None
+        self.history_labels = []
         self.eval_fill = None
         self.eval_bar = None
         self.eval_position = None
@@ -231,8 +236,8 @@ class BoardView:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:
             self.fen_label.set_text(board.fen())
-        if self.history_label:
-            self.history_label.set_text(move_history(self.position.board))
+        if self.history_panel:
+            self.render_history()
         if self.claim_button:
             self.claim_button.visible = self.preview_board is None and not self.position.outcome() and self.position.board.can_claim_draw()
         if self.undo_button:
@@ -245,9 +250,13 @@ class BoardView:
             self.history_forward_button.set_enabled(self.preview_index is not None)
         if self.random_button:
             self.random_button.set_enabled(self.preview_board is None and not bool(self.position.outcome()))
+        current_index = len(self.position.board.move_stack) if self.preview_index is None else self.preview_index
+        current_move = self.position.board.move_stack[current_index - 1] if current_index else None
         for square, element in self.squares.items():
             element.classes(add='selected' if square == self.selected else None,
                             remove='selected' if square != self.selected else None)
+            element.classes(add='last-move' if current_move and square in (current_move.from_square, current_move.to_square) else None,
+                            remove='last-move' if not current_move or square not in (current_move.from_square, current_move.to_square) else None)
             piece = board.piece_at(square)
             if piece == self.shown_pieces[square]:
                 continue
@@ -300,7 +309,8 @@ class BoardView:
             ui.label('MOVE LOG')
             ui.label('01 / LIVE').classes('panel-meta')
         with ui.element('div').classes('move-history-panel'):
-            self.history_label = ui.label(move_history(self.position.board)).classes('move-history')
+            self.history_panel = ui.element('div').classes('move-history')
+        self.render_history()
         ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
         if all(player != 'human' for player in self.players.values()):
             self.random_timer = ui.timer(0.6, self.random_step, active=False)
@@ -312,6 +322,20 @@ class BoardView:
             with ui.row().classes('promotion-actions'):
                 for piece_type in (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT):
                     ui.button(chess.piece_name(piece_type).title(), on_click=lambda _, piece_type=piece_type: self.choose_promotion(piece_type)).classes('terminal-button')
+
+    def render_history(self) -> None:
+        self.history_panel.clear()
+        self.history_labels = []
+        current_index = len(self.position.board.move_stack) if self.preview_index is None else self.preview_index
+        with self.history_panel:
+            lines = move_history_lines(self.position.board)
+            if not lines:
+                self.history_labels.append(ui.label('No moves yet').classes('move-history-entry'))
+            for index, line in enumerate(lines, 1):
+                label = ui.label(line).classes('move-history-entry')
+                if index == current_index:
+                    label.classes('current-move').props('aria-current="step"')
+                self.history_labels.append(label)
 
 
 def main() -> None:
@@ -363,7 +387,9 @@ def main() -> None:
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
         .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
         .move-history-panel { flex: 1; min-height: 180px; overflow-y: auto; border: 1px solid var(--line); background: #101b14; padding: 14px; }
-        .move-history { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
+        .move-history { overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
+        .move-history-entry { display: block; }
+        .move-history-entry.current-move { background: #e7cb7d; color: #0c1510; padding: 0 4px; margin: 0 -4px; font-weight: 700; }
         .terminal-button { width: 100%; border: 1px solid var(--green); border-radius: 0; background: transparent; color: var(--green); font-family: inherit; font-weight: 700; letter-spacing: .08em; box-shadow: none; }
         .terminal-button:hover { background: #294733; }
         .terminal-button:focus-visible { outline: 2px solid #f3d68a; outline-offset: 3px; }
@@ -384,6 +410,7 @@ def main() -> None:
         .chess-square.dark { background: #506953; }
         .chess-square:hover { box-shadow: inset 0 0 0 3px #d0eac2; }
         .chess-square.selected { outline: 4px solid #e7cb7d; outline-offset: -4px; z-index: 1; }
+        .chess-square.last-move { box-shadow: inset 0 0 0 4px #e7cb7d; }
         .chess-piece { position: absolute; inset: 5%; width: 90%; height: 90%; pointer-events: none; }
         .promotion-card { background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 24px; font-family: inherit; }
         .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
