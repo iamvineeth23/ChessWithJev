@@ -186,6 +186,20 @@ class BoardView:
 
 
 def main() -> None:
+    ui.add_body_html('''
+        <script>
+            const watchMoveLog = () => {
+                const log = document.querySelector('.move-history-panel');
+                if (!log) return;
+                attachMoveLog.disconnect();
+                new MutationObserver(() => { log.scrollTop = log.scrollHeight; })
+                    .observe(log, {childList: true, characterData: true, subtree: true});
+            };
+            const attachMoveLog = new MutationObserver(watchMoveLog);
+            attachMoveLog.observe(document.body, {childList: true, subtree: true});
+            watchMoveLog();
+        </script>
+    ''')
     if '-d' in sys.argv[1:]:
         ui.add_body_html('''
             <div id="viewport-size" style="position:fixed;right:8px;bottom:8px;z-index:1000;

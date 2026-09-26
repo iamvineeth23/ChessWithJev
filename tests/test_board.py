@@ -20,10 +20,11 @@ def test_board_colors() -> None:
 def test_board_opens_native_window(debug: bool) -> None:
     with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'add_body_html') as add_body_html, patch.object(board.ui, 'add_css'), patch.object(board.ui, 'element', return_value=MagicMock()), patch.object(board.ui, 'label') as label, patch.object(board.ui, 'image') as image, patch.object(board.ui, 'dialog', return_value=MagicMock()), patch.object(board.ui, 'card', return_value=MagicMock()), patch.object(board.ui, 'row', return_value=MagicMock()), patch.object(board.ui, 'button', return_value=MagicMock()) as button, patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
-    assert add_body_html.called == debug
+    assert add_body_html.call_count == 1 + debug
+    assert 'new MutationObserver' in add_body_html.call_args_list[0].args[0]
     if debug:
-        assert 'window.innerWidth' in add_body_html.call_args.args[0]
-        assert "addEventListener('resize', updateSize)" in add_body_html.call_args.args[0]
+        assert 'window.innerWidth' in add_body_html.call_args_list[1].args[0]
+        assert "addEventListener('resize', updateSize)" in add_body_html.call_args_list[1].args[0]
     run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643))
     labels = [call.args[0] for call in label.call_args_list]
     assert labels[5:13] == list('87654321')
