@@ -29,7 +29,7 @@ def test_board_opens_native_window(debug: bool) -> None:
         assert "addEventListener('resize', updateSize)" in add_body_html.call_args_list[1].args[0]
     run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643))
     labels = [call.args[0] for call in label.call_args_list]
-    assert labels == ['LOCAL CHESS TERMINAL / V.01', 'CHESS WITH JEV', '● SYSTEM ONLINE', 'CHESS WITH JEV  /  LOCAL SESSION', 'SELECT PLAYERS']
+    assert labels == ['LOCAL CHESS TERMINAL / V.01', 'CHESS WITH JEV', '● SYSTEM ONLINE', chess.STARTING_FEN, 'SELECT PLAYERS']
     assert [call.kwargs['label'] for call in select.call_args_list] == ['White', 'Black']
     assert all(call.args[0] == ['human', 'random', 'stockfish'] for call in select.call_args_list)
     assert image.call_count == 0
@@ -149,9 +149,11 @@ def test_human_cannot_move_black_and_mate_ends_before_reply() -> None:
 def test_programmatic_move_refreshes_board_view() -> None:
     view = BoardView()
     view.render_controls()
+    view.fen_label = MagicMock()
     assert view.play_move(chess.Move.from_uci('e2e4'))
     assert view.history_label.text == '1. e4'
     assert view.status_label.text == 'Black to move'
+    view.fen_label.set_text.assert_called_with(view.position.board.fen())
 
 
 def test_promotion_and_external_position_reset() -> None:
@@ -552,9 +554,12 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     status_strip = max((element for element in client.elements.values() if 'status-strip' in element._classes), key=lambda element: element.id)
     board_panel = max((element for element in client.elements.values() if 'board-panel' in element._classes), key=lambda element: element.id)
     controls = max((element for element in client.elements.values() if 'game-controls' in element._classes), key=lambda element: element.id)
+    footer = max((element for element in client.elements.values() if 'footer-note' in element._classes), key=lambda element: element.id)
+    assert footer.visible
     assert {element.text for element in status_strip.descendants() if hasattr(element, 'text')} == {'SYSTEM STATUS', 'White to move'}
     assert status_strip in board_panel.descendants()
     assert not any(element.text == 'SYSTEM STATUS' for element in controls.descendants() if hasattr(element, 'text'))
     back = max((element for element in client.elements.values() if element._props.get('label') == 'MAIN MENU'), key=lambda element: element.id)
     click(back)
     assert max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id).id != start.id
+    assert not footer.visible

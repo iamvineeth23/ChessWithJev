@@ -63,6 +63,7 @@ class BoardView:
         self.pending_promotion: tuple[chess.Square, chess.Square] | None = None
         self.promotion_dialog = None
         self.status_label = None
+        self.fen_label = None
         self.history_label = None
         self.eval_fill = None
         self.eval_bar = None
@@ -228,6 +229,8 @@ class BoardView:
                 self.eval_position = position
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
+        if self.fen_label:
+            self.fen_label.set_text(self.position.board.fen())
         if self.history_label:
             self.history_label.set_text(move_history(self.position.board))
         if self.claim_button:
@@ -414,9 +417,10 @@ def main() -> None:
                 ui.label('CHESS WITH JEV').classes('app-title')
             ui.label('● SYSTEM ONLINE').classes('header-mark')
         content = ui.element('main')
-        ui.label('CHESS WITH JEV  /  LOCAL SESSION').classes('footer-note')
+        footer = ui.label(chess.STARTING_FEN).classes('footer-note')
 
     def show_landing() -> None:
+        footer.visible = False
         content.clear()
         content.classes(remove='game-page')
         with content:
@@ -431,6 +435,9 @@ def main() -> None:
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
         view = BoardView(white=white, black=black)
+        view.fen_label = footer
+        footer.set_text(view.position.board.fen())
+        footer.visible = True
         content.clear()
         with content.classes('game-page'):
             with ui.element('div').classes('game-layout'):
