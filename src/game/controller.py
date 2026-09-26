@@ -1,5 +1,7 @@
 import chess
+import chess.engine
 import random
+import shutil
 
 from src.game.position import Position
 
@@ -19,3 +21,10 @@ class GameController:
 
     def play_random_black_move(self) -> bool:
         return self.position.board.turn == chess.BLACK and self.play_random_move()
+
+    def play_stockfish_move(self) -> bool:
+        if self.position.outcome():
+            return False
+        with chess.engine.SimpleEngine.popen_uci(shutil.which('stockfish') or 'stockfish') as engine:
+            move = engine.play(self.position.board, chess.engine.Limit(time=0.1)).move
+        return self.play(move)

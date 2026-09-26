@@ -1,6 +1,7 @@
 from base64 import b64encode
 from functools import lru_cache
 import sys
+import shutil
 
 import chess
 import chess.svg
@@ -51,8 +52,8 @@ def lock_window_aspect_ratio() -> None:
 
 class BoardView:
     def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random') -> None:
-        if white not in {'human', 'random'} or black not in {'human', 'random'}:
-            raise ValueError('Players must be human or random')
+        if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
+            raise ValueError('Players must be human, random, or stockfish')
         self.controller = GameController(position)
         self.position = self.controller.position
         self.players = {chess.WHITE: white, chess.BLACK: black}
@@ -105,13 +106,20 @@ class BoardView:
         if self.players[self.position.board.turn] != 'human' or not self.controller.play(move):
             return False
         self.selected = None
-        if self.players[self.position.board.turn] == 'random':
-            self.controller.play_random_move()
+        self.automatic_step()
         self.sync()
         return True
 
+    def automatic_step(self) -> None:
+        player = self.players[self.position.board.turn]
+        if player == 'random':
+            self.controller.play_random_move()
+        elif player == 'stockfish':
+            self.controller.play_stockfish_move()
+
     def random_step(self) -> None:
-        if self.players[self.position.board.turn] == 'random' and self.controller.play_random_move():
+        if not self.position.outcome() and self.players[self.position.board.turn] != 'human':
+            self.automatic_step()
             self.sync()
         if self.position.outcome() and self.random_timer:
             self.random_timer.active = False
@@ -134,12 +142,12 @@ class BoardView:
     def new_game(self) -> None:
         self.pause_random()
         self.set_board(chess.Board())
-        if self.players[chess.WHITE] == 'random' and self.players[chess.BLACK] == 'human':
+        if self.players[chess.WHITE] != 'human' and self.players[chess.BLACK] == 'human':
             self.random_step()
 
     def undo(self) -> None:
         self.pause_random()
-        if self.players[chess.WHITE] == 'random' and self.players[chess.BLACK] == 'human' and len(self.position.board.move_stack) == 1:
+        if self.players[chess.WHITE] != 'human' and self.players[chess.BLACK] == 'human' and len(self.position.board.move_stack) == 1:
             return
         if self.position.undo():
             if self.players[chess.WHITE] != self.players[chess.BLACK] and self.position.board.move_stack:
@@ -232,7 +240,7 @@ class BoardView:
         with ui.element('div').classes('move-history-panel'):
             self.history_label = ui.label(move_history(self.position.board)).classes('move-history')
         ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
-        if self.players[chess.WHITE] == self.players[chess.BLACK] == 'random':
+        if all(player != 'human' for player in self.players.values()):
             self.random_timer = ui.timer(0.6, self.random_step, active=False)
             self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
@@ -353,11 +361,14 @@ def main() -> None:
         with content:
             with ui.element('section').classes('landing'):
                 ui.label('SELECT PLAYERS').classes('landing-title')
-                white = ui.select(['human', 'random'], value='human', label='White').props('outlined popup-content-class="player-options" aria-label="White player"')
-                black = ui.select(['human', 'random'], value='random', label='Black').props('outlined popup-content-class="player-options" aria-label="Black player"')
+                white = ui.select(['human', 'random', 'stockfish'], value='human', label='White').props('outlined popup-content-class="player-options" aria-label="White player"')
+                black = ui.select(['human', 'random', 'stockfish'], value='random', label='Black').props('outlined popup-content-class="player-options" aria-label="Black player"')
                 ui.button('START GAME', on_click=lambda: show_game(white.value, black.value), color=None).classes('terminal-button new-game-button')
 
     def show_game(white: str, black: str) -> None:
+        if 'stockfish' in (white, black) and not shutil.which('stockfish'):
+            ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
+            return
         view = BoardView(white=white, black=black)
         content.clear()
         with content.classes('game-page'):
@@ -379,7 +390,7 @@ def main() -> None:
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls()
                     ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), show_landing()), color=None).classes('terminal-button')
-        if white == 'random' and black == 'human':
+        if white != 'human' and black == 'human':
             view.random_step()
 
     show_landing()

@@ -30,6 +30,7 @@ def test_board_opens_native_window(debug: bool) -> None:
     labels = [call.args[0] for call in label.call_args_list]
     assert labels == ['LOCAL CHESS TERMINAL / V.01', 'CHESS WITH JEV', '● SYSTEM ONLINE', 'CHESS WITH JEV  /  LOCAL SESSION', 'SELECT PLAYERS']
     assert [call.kwargs['label'] for call in select.call_args_list] == ['White', 'Black']
+    assert all(call.args[0] == ['human', 'random', 'stockfish'] for call in select.call_args_list)
     assert image.call_count == 0
     assert [call.args[0] for call in button.call_args_list] == ['START GAME']
 
@@ -387,6 +388,40 @@ def test_player_combinations_and_random_opening() -> None:
         assert [move.uci() for move in mixed.position.board.move_stack] == ['e2e4', 'e7e5', 'g1f3']
         mixed.undo()
         assert [move.uci() for move in mixed.position.board.move_stack] == ['e2e4']
+
+
+def test_stockfish_plays_for_either_color_and_stops_at_game_end() -> None:
+    engine = MagicMock()
+    engine.__enter__.return_value.play.return_value.move = chess.Move.from_uci('e7e5')
+    with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine) as open_engine:
+        view = BoardView(white='human', black='stockfish')
+        with patch.object(view, 'sync'):
+            assert view.play_human_move(chess.Move.from_uci('e2e4'))
+        assert [move.uci() for move in view.position.board.move_stack] == ['e2e4', 'e7e5']
+        assert open_engine.call_count == 1
+        view.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
+        assert not view.controller.play_stockfish_move()
+        assert open_engine.call_count == 1
+
+        engine.__enter__.return_value.play.return_value.move = chess.Move.from_uci('e2e4')
+        opening = BoardView(white='stockfish', black='human')
+        with patch.object(opening, 'sync'):
+            opening.new_game()
+        assert [move.uci() for move in opening.position.board.move_stack] == ['e2e4']
+        opening.undo()
+        assert len(opening.position.board.move_stack) == 1
+
+
+def test_stockfish_and_random_can_play_each_other() -> None:
+    view = BoardView(white='stockfish', black='random')
+    view.render_controls()
+    with patch.object(view.controller, 'play_stockfish_move', side_effect=lambda: view.controller.play(chess.Move.from_uci('e2e4'))), patch.object(view.controller, 'play_random_move', side_effect=lambda: view.controller.play(chess.Move.from_uci('e7e5'))):
+        view.toggle_random()
+        view.random_step()
+        view.random_step()
+    assert [move.uci() for move in view.position.board.move_stack] == ['e2e4', 'e7e5']
+    view.new_game()
+    assert not view.random_timer.active
 
 
 def test_random_vs_random_starts_pauses_and_resets() -> None:
