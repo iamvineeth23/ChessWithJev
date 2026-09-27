@@ -16,6 +16,16 @@ if [[ ! -d "$venv_dir" ]]; then
     python3 -m venv "$venv_dir"
 fi
 
+activate="$venv_dir/bin/activate"
+if ! grep -q 'ChessWithJev activation guard' "$activate"; then
+    awk -v venv_dir="$venv_dir" '/^deactivate nondestructive$/ && !inserted {
+        print "# ChessWithJev activation guard: re-sourcing this venv must preserve PATH additions."
+        print "if [ \"${VIRTUAL_ENV:-}\" = \"" venv_dir "\" ]; then return 0; fi"
+        inserted = 1
+    } { print }' "$activate" > "$activate.tmp"
+    mv "$activate.tmp" "$activate"
+fi
+
 "$venv_dir/bin/python" -m pip install python-chess stockfish 'nicegui[native]' pytest
 
 cat > "$venv_dir/bin/chess" <<'EOF'
