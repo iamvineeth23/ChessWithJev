@@ -1,9 +1,11 @@
 from base64 import b64encode
 from functools import lru_cache
+import json
 import sys
 import shutil
 import os
 from collections.abc import Callable, MutableMapping
+from pathlib import Path
 
 import chess
 import chess.svg
@@ -42,6 +44,37 @@ def move_history_lines(board: chess.Board) -> list[str]:
         lines.append(f'{prefix} {replay.san(move)}')
         replay.push(move)
     return lines
+
+
+def latest_game_evaluations(path: Path | None = None) -> list[float]:
+    """Return each logged position as a balance percentage: Black -100 to White +100."""
+    path = path or Path(__file__).resolve().parents[2] / 'gamelog' / 'latest.json'
+    try:
+        moves = json.loads(path.read_text())['moves']
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
+        return []
+    return [200 * value - 100 for move in moves
+            if isinstance(value := move.get('evaluation', {}).get('wdl_expectation_white'), (int, float)) and 0 <= value <= 1]
+
+
+def evaluation_chart_svg(evaluations: list[float]) -> str:
+    width, height, left, right, top, bottom = 1080, 520, 100, 40, 40, 72
+    plot_width, plot_height = width - left - right, height - top - bottom
+    points = ' '.join(f'{left + plot_width * index / max(len(evaluations) - 1, 1):.1f},'
+                      f'{top + plot_height * (100 - value) / 200:.1f}'
+                      for index, value in enumerate(evaluations))
+    return f'''<svg class="evaluation-chart" viewBox="0 0 {width} {height}" role="img" aria-label="Game evaluation by move step, with zero percent balanced">
+        <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" class="chart-grid"/>
+        <line x1="{left}" y1="{top + plot_height / 2}" x2="{width - right}" y2="{top + plot_height / 2}" class="chart-balance"/>
+        <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" class="chart-grid"/>
+        <polyline points="{points}" class="chart-line"/>
+        <text x="8" y="{top + 5}" class="chart-label">WHITE +100%</text>
+        <text x="8" y="{top + plot_height / 2 + 5}" class="chart-label">0% BALANCED</text>
+        <text x="8" y="{height - bottom}" class="chart-label">BLACK -100%</text>
+        <text x="{left}" y="{height - 16}" class="chart-label">1</text>
+        <text x="{width - right}" y="{height - 16}" text-anchor="end" class="chart-label">{len(evaluations)}</text>
+        <text x="{width / 2}" y="{height - 16}" text-anchor="middle" class="chart-label">MOVE STEP</text>
+    </svg>'''
 
 
 def lock_window_aspect_ratio() -> None:
@@ -319,12 +352,24 @@ class BoardView:
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
             self.history_forward_button = ui.button('→', on_click=lambda: self.step_history(1), color=None).classes('terminal-button').props('aria-label="Next move in history" title="Next move in history"')
-            with ui.button('', color=None).classes('terminal-button analysis-button').props('aria-label="Analysis"'):
+            with ui.button('', on_click=self.show_analysis, color=None).classes('terminal-button analysis-button').props('aria-label="Analysis"'):
                 ui.html('''<svg class="analysis-icon" viewBox="0 0 56 28" aria-hidden="true"><path d="M8 19 15 10M21 10l7 8M34 18l9-11"/><circle cx="5" cy="22" r="2.5"/><circle cx="18" cy="6" r="2.8"/><circle cx="31" cy="21" r="2.5"/><circle cx="47" cy="5" r="2.8"/></svg>''')
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
             self.history_back_button.set_enabled(bool(self.position.board.move_stack))
             self.history_forward_button.set_enabled(False)
+
+    def show_analysis(self) -> None:
+        evaluations = latest_game_evaluations()
+        if not evaluations:
+            ui.notify('No completed game log is available.', type='warning')
+            return
+        with ui.dialog() as dialog, ui.card().classes('analysis-card'):
+            with ui.row().classes('analysis-heading'):
+                ui.label('GAME EVALUATION').classes('panel-kicker')
+                ui.button('CLOSE', on_click=dialog.close, color=None).classes('terminal-button analysis-close')
+            ui.html(evaluation_chart_svg(evaluations)).classes('analysis-chart')
+        dialog.open()
 
     def render_evaluation(self) -> None:
         with ui.element('div').classes('eval-bar').props('role="meter" aria-label="Position evaluation" aria-valuemin="0" aria-valuemax="100"') as self.eval_bar:
@@ -463,6 +508,16 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .analysis-button .q-btn__content > div { display: flex; }
         .analysis-icon { width: 52px; height: 28px; fill: none; stroke: #0c1510; stroke-width: 2.75; stroke-linecap: round; }
         .analysis-icon circle { fill: #0c1510; stroke: none; }
+        .analysis-card { box-sizing: border-box; background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 28px; font-family: inherit; }
+        .q-dialog__inner--minimized > .analysis-card { width: calc(100vw - 128px) !important; max-width: none !important; }
+        .analysis-heading { width: 100%; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .analysis-close { width: auto; padding: 5px 9px; font-size: 11px; }
+        .analysis-chart { width: 100%; }
+        .evaluation-chart { display: block; width: 100%; height: auto; background: #101b14; }
+        .evaluation-chart .chart-grid { stroke: var(--line); stroke-width: 1; }
+        .evaluation-chart .chart-balance { stroke: #e7cb7d; stroke-width: 1.5; stroke-dasharray: 5 4; }
+        .evaluation-chart .chart-line { fill: none; stroke: var(--green); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+        .evaluation-chart .chart-label { fill: var(--muted); font: 14px 'SFMono-Regular', Consolas, monospace; letter-spacing: .06em; }
         .board-actions .record-button { grid-column: span 2; width: 72px; border-color: #f3d68a; background: #0c1510; color: #ff4b45; }
         .record-button .q-btn__content::before { content: '●'; display: inline-block; margin-right: 4px; opacity: 0; }
         .record-button.recording .q-btn__content::before { opacity: 1; animation: record-blink 1s steps(1) infinite; }

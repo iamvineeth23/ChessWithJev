@@ -8,7 +8,8 @@ import chess.engine
 import pytest
 from src.game.position import Position
 from src.game.controller import GameController
-from src.ui.board import BoardView, build_page, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
+from src.ui.board import (BoardView, build_page, evaluation_chart_svg, latest_game_evaluations,
+                          lock_window_aspect_ratio, move_history, piece_image, square_color, square_name)
 from src.ui import board
 from src.game.log import write_game_log
 from unittest.mock import MagicMock, patch
@@ -29,6 +30,22 @@ def test_board_colors() -> None:
     assert all(colors[row][column] != colors[row + 1][column] for row in range(7) for column in range(8))
     assert colors[0][0] == colors[7][7] == 'light'
     assert colors[7][0] == 'dark'  # a1
+
+
+def test_analysis_chart_uses_each_logged_evaluation_and_marks_balance(tmp_path: Path) -> None:
+    path = tmp_path / 'latest.json'
+    path.write_text(json.dumps({'moves': [
+        {'evaluation': {'wdl_expectation_white': 0.25}},
+        {'evaluation': {'wdl_expectation_white': 0.5}},
+        {'evaluation': {'wdl_expectation_white': 0.75}},
+        {'evaluation': {'wdl_expectation_white': None}},
+    ]}))
+    evaluations = latest_game_evaluations(path)
+    assert evaluations == [-50, 0, 50]
+    chart = evaluation_chart_svg(evaluations)
+    assert '0% BALANCED' in chart
+    assert '1</text>' in chart and '>3</text>' in chart
+    assert '100.0,346.0 570.0,244.0 1040.0,142.0' in chart
 
 
 @pytest.mark.parametrize('debug', [False, True])
