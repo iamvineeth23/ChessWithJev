@@ -59,12 +59,13 @@ def lock_window_aspect_ratio() -> None:
 
 
 class BoardView:
-    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', on_change: Callable[['BoardView'], None] | None = None) -> None:
+    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', white_elo: int = 1500, black_elo: int = 1500, on_change: Callable[['BoardView'], None] | None = None) -> None:
         if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
             raise ValueError('Players must be human, random, or stockfish')
         self.controller = GameController(position)
         self.position = self.controller.position
         self.players = {chess.WHITE: white, chess.BLACK: black}
+        self.stockfish_elos = {chess.WHITE: white_elo, chess.BLACK: black_elo}
         self.black_at_bottom = white != 'human' and black == 'human'
         self.on_change = on_change
         self.random_timer = None
@@ -137,7 +138,7 @@ class BoardView:
         if player == 'random':
             self.controller.play_random_move()
         elif player == 'stockfish':
-            self.controller.play_stockfish_move()
+            self.controller.play_stockfish_move(self.stockfish_elos[self.position.board.turn])
 
     def random_step(self) -> None:
         if self.preview_board is None and not self.position.outcome() and self.players[self.position.board.turn] != 'human':
@@ -351,11 +352,13 @@ def game_snapshot(view: BoardView) -> dict[str, object]:
     return {
         'white': view.players[chess.WHITE],
         'black': view.players[chess.BLACK],
+        'white_elo': view.stockfish_elos[chess.WHITE],
+        'black_elo': view.stockfish_elos[chess.BLACK],
         'position': view.position.snapshot(),
     }
 
 
-def saved_game(storage: MutableMapping[str, object]) -> tuple[Position, str, str] | None:
+def saved_game(storage: MutableMapping[str, object]) -> tuple[Position, str, str, int, int] | None:
     game = storage.get('game')
     if not isinstance(game, dict):
         return None
@@ -365,7 +368,10 @@ def saved_game(storage: MutableMapping[str, object]) -> tuple[Position, str, str
     position = Position()
     if not position.restore(game.get('position')):
         return None
-    return position, white, black
+    white_elo, black_elo = game.get('white_elo', 1500), game.get('black_elo', 1500)
+    if not isinstance(white_elo, int) or not isinstance(black_elo, int):
+        return None
+    return position, white, black, white_elo, black_elo
 
 
 def build_page(storage: MutableMapping[str, object]) -> None:
@@ -447,6 +453,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .game-page + .footer-note { margin-top: 20px; }
         .app-shell > main:not(.game-page) { display: flex; flex: 1; }
         .landing { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 20px; max-width: 440px; width: 100%; margin: auto; }
+        .player-row { position: relative; }
+        .landing .q-field.elo-select { position: absolute; top: 0; left: calc(100% + 32px); width: 150px; }
         .landing .q-field { width: 100%; color: var(--green); }
         .landing .q-field__label, .landing .q-field__native, .landing .q-field__marginal { color: var(--green) !important; }
         .landing .q-field--outlined .q-field__control:before { border-color: var(--line); }
@@ -466,6 +474,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             .game-layout { flex-direction: column; }
             .game-controls { width: 100%; }
             .move-history-panel { max-height: 230px; }
+            .landing .q-field.elo-select { position: static; width: 100%; margin-top: 20px; }
         }
     ''')
     with ui.element('div').classes('app-shell'):
@@ -497,15 +506,23 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         with content:
             with ui.element('section').classes('landing'):
                 ui.label('SELECT PLAYERS').classes('landing-title')
-                white = ui.select(['human', 'random', 'stockfish'], value='human', label='White').props('outlined popup-content-class="player-options" aria-label="White player"')
-                black = ui.select(['human', 'random', 'stockfish'], value='random', label='Black').props('outlined popup-content-class="player-options" aria-label="Black player"')
-                ui.button('START GAME', on_click=lambda: show_game(white.value, black.value), color=None).classes('terminal-button new-game-button')
+                def player_row(label: str, value: str):
+                    with ui.element('div').classes('player-row'):
+                        player = ui.select(['human', 'random', 'stockfish'], value=value, label=label).props(f'outlined popup-content-class="player-options" aria-label="{label} player"')
+                        elo = ui.select([1320, 1500, 1800, 2100, 2400, 2700, 3000, 3190], value=1500, label='ELO').classes('elo-select').props(f'outlined popup-content-class="player-options" aria-label="{label} ELO"')
+                        elo.visible = value == 'stockfish'
+                        player.on('update:model-value', lambda: setattr(elo, 'visible', player.value == 'stockfish'))
+                    return player, elo
 
-    def show_game(white: str, black: str, position: Position | None = None) -> None:
+                white, white_elo = player_row('White', 'human')
+                black, black_elo = player_row('Black', 'random')
+                ui.button('START GAME', on_click=lambda: show_game(white.value, black.value, white_elo.value, black_elo.value), color=None).classes('terminal-button new-game-button')
+
+    def show_game(white: str, black: str, white_elo: int = 1500, black_elo: int = 1500, position: Position | None = None) -> None:
         if not shutil.which('stockfish'):
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
-        view = BoardView(position=position, white=white, black=black,
+        view = BoardView(position=position, white=white, black=black, white_elo=white_elo, black_elo=black_elo,
                          on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)))
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
@@ -535,7 +552,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
 
     restored = saved_game(storage)
     if restored:
-        show_game(restored[1], restored[2], restored[0])
+        show_game(restored[1], restored[2], restored[3], restored[4], restored[0])
     else:
         storage.pop('game', None)
         show_landing()

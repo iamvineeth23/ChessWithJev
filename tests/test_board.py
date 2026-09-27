@@ -498,11 +498,12 @@ def test_stockfish_plays_for_either_color_and_stops_at_game_end() -> None:
     engine = MagicMock()
     engine.play.return_value.move = chess.Move.from_uci('e7e5')
     with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine) as open_engine:
-        view = BoardView(white='human', black='stockfish')
+        view = BoardView(white='human', black='stockfish', black_elo=2100)
         with patch.object(view, 'sync'):
             assert view.play_human_move(chess.Move.from_uci('e2e4'))
         assert [move.uci() for move in view.position.board.move_stack] == ['e2e4', 'e7e5']
         assert open_engine.call_count == 1
+        engine.configure.assert_called_once_with({'UCI_LimitStrength': True, 'UCI_Elo': 2100})
         view.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
         assert not view.controller.play_stockfish_move()
         assert open_engine.call_count == 1
@@ -519,7 +520,7 @@ def test_stockfish_plays_for_either_color_and_stops_at_game_end() -> None:
 def test_stockfish_and_random_can_play_each_other() -> None:
     view = BoardView(white='stockfish', black='random')
     view.render_controls()
-    with patch.object(view.controller, 'play_stockfish_move', side_effect=lambda: view.controller.play(chess.Move.from_uci('e2e4'))), patch.object(view.controller, 'play_random_move', side_effect=lambda: view.controller.play(chess.Move.from_uci('e7e5'))):
+    with patch.object(view.controller, 'play_stockfish_move', side_effect=lambda _elo: view.controller.play(chess.Move.from_uci('e2e4'))), patch.object(view.controller, 'play_random_move', side_effect=lambda: view.controller.play(chess.Move.from_uci('e7e5'))):
         view.toggle_random()
         view.random_step()
         view.random_step()
@@ -602,10 +603,14 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
         listener = next(iter(element._event_listeners.values()))
         client.handle_event({'id': element.id, 'listener_id': listener.id, 'args': []})
 
-    selects = [element for element in client.elements.values() if type(element).__name__ == 'Select'][-2:]
-    assert [select._props['label'] for select in selects] == ['White', 'Black']
+    selects = [element for element in client.elements.values() if type(element).__name__ == 'Select'][-4:]
+    assert [select._props['label'] for select in selects] == ['White', 'ELO', 'Black', 'ELO']
+    assert not selects[1].visible and not selects[3].visible
+    selects[2].value = 'stockfish'
+    next(listener.handler for listener in selects[2]._event_listeners.values() if listener.type == 'update:modelValue' and listener.args is None)()
+    assert selects[3].visible
     selects[0].value = 'human'
-    selects[1].value = 'human'
+    selects[2].value = 'human'
     start = max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id)
     click(start)
     assert storage['game']['position']['moves'] == []

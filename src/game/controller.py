@@ -41,8 +41,10 @@ class GameController:
     def play_random_black_move(self) -> bool:
         return self.position.board.turn == chess.BLACK and self.play_random_move()
 
-    def play_stockfish_move(self) -> bool:
+    def play_stockfish_move(self, elo: int = 1500) -> bool:
         if self.position.outcome():
             return False
-        move = self.stockfish_engine().play(self.position.board, chess.engine.Limit(time=0.1)).move
+        engine = self.stockfish_engine()
+        engine.configure({'UCI_LimitStrength': True, 'UCI_Elo': elo})
+        move = engine.play(self.position.board, chess.engine.Limit(time=0.1)).move
         return self.play(move)
