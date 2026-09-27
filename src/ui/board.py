@@ -10,6 +10,7 @@ import chess.svg
 from nicegui import app, ui
 
 from src.game.controller import GameController
+from src.game.log import write_game_log
 from src.game.position import Position
 
 
@@ -87,6 +88,8 @@ class BoardView:
         self.history_forward_button = None
         self.record_button = None
         self.recording = False
+        self.game_logged = self.position.outcome() is not None
+        self.has_played_move = bool(self.position.board.move_stack)
         self.preview_index: int | None = None
         self.preview_board: chess.Board | None = None
         self.squares = {}
@@ -97,6 +100,8 @@ class BoardView:
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
+        self.has_played_move = False
+        self.game_logged = False
         if self.promotion_dialog:
             self.promotion_dialog.close()
         self.sync()
@@ -106,6 +111,8 @@ class BoardView:
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
+        self.has_played_move = False
+        self.game_logged = False
         if self.promotion_dialog:
             self.promotion_dialog.close()
         self.sync()
@@ -122,6 +129,7 @@ class BoardView:
     def play_move(self, move: chess.Move) -> bool:
         played = self.controller.play(move)
         if played:
+            self.has_played_move = True
             self.preview_index = self.preview_board = None
             self.selected = None
             self.sync()
@@ -131,6 +139,7 @@ class BoardView:
         if self.preview_board is not None or self.players[self.position.board.turn] != 'human' or not self.controller.play(move):
             return False
         self.selected = None
+        self.has_played_move = True
         self.automatic_step()
         self.sync()
         return True
@@ -138,9 +147,9 @@ class BoardView:
     def automatic_step(self) -> None:
         player = self.players[self.position.board.turn]
         if player == 'random':
-            self.controller.play_random_move()
+            self.has_played_move |= self.controller.play_random_move()
         elif player == 'stockfish':
-            self.controller.play_stockfish_move(self.stockfish_elos[self.position.board.turn])
+            self.has_played_move |= self.controller.play_stockfish_move(self.stockfish_elos[self.position.board.turn])
 
     def random_step(self) -> None:
         if self.preview_board is None and not self.position.outcome() and self.players[self.position.board.turn] != 'human':
@@ -282,6 +291,9 @@ class BoardView:
             self.shown_pieces[square] = piece
         if self.on_change:
             self.on_change(self)
+        if self.has_played_move and self.position.outcome() and not self.game_logged:
+            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation)
+            self.game_logged = True
 
     def render(self) -> None:
         self.squares.clear()

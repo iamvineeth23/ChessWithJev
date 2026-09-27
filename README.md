@@ -18,6 +18,8 @@ Run the board:
 
 Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
 
+Completed games are saved as JSON files in `gamelog/`. Each file records the players, result, every legal-move position, move, and Stockfish evaluation. Unfinished games are not written.
+
 Notes:
 
 To change the displayed position in code, keep a reference to `BoardView` and call `set_fen(fen)` or `set_board(chess_board)`. Both update the python-chess position and refresh the board. Call these methods from the NiceGUI UI context.

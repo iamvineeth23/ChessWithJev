@@ -1,6 +1,7 @@
 import runpy
 from base64 import b64decode
 from pathlib import Path
+import json
 import chess
 import chess.engine
 import pytest
@@ -8,7 +9,13 @@ from src.game.position import Position
 from src.game.controller import GameController
 from src.ui.board import BoardView, build_page, lock_window_aspect_ratio, move_history, piece_image, square_color, square_name
 from src.ui import board
+from src.game.log import write_game_log
 from unittest.mock import MagicMock, patch
+
+
+@pytest.fixture(autouse=True)
+def prevent_game_log_writes(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(board, 'write_game_log', MagicMock())
 
 
 def move_log_text(view: BoardView) -> str:
@@ -588,6 +595,42 @@ def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
         assert controller.white_expectation() == 0.5
         controller.close()
     engine.quit.assert_called_once_with()
+
+
+def test_completed_game_log_matches_template(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    position = Position()
+    for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
+        assert position.move(chess.parse_square(move[:2]), chess.parse_square(move[2:4]))
+    monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
+    path = write_game_log(position.board, {chess.WHITE: 'human', chess.BLACK: 'stockfish'},
+                          {chess.WHITE: 1500, chess.BLACK: 2100}, lambda board: len(board.move_stack) / 10)
+    log = json.loads(path.read_text())
+    assert path.parent == tmp_path / 'repo' / 'gamelog'
+    assert log['players']['black'] == {'type': 'stockfish', 'elo': 2100, 'model': None}
+    assert log['result'] == {'winner': 'black', 'score': '0-1', 'termination': 'checkmate'}
+    assert log['evaluator'] == {'engine': 'stockfish', 'depth': 15}
+    first = chess.Board()
+    legal_moves = [first.san(move) for move in first.legal_moves]
+    first.push_uci('f2f3')
+    assert log['moves'][0] == {
+        'ply': 1, 'move_number': 1, 'color': 'white', 'fen_before': chess.STARTING_FEN,
+        'legal_moves': legal_moves, 'move': 'f3', 'fen_after': first.fen(),
+        'evaluation': {'wdl_expectation_white': 0.1},
+    }
+    assert log['moves'][-1]['evaluation'] == {'wdl_expectation_white': 0.4}
+
+
+def test_terminal_position_writes_one_game_log() -> None:
+    view = BoardView()
+    for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
+        assert view.play_move(chess.Move.from_uci(move))
+    board.write_game_log.assert_called_once()
+
+
+def test_incomplete_game_does_not_write_a_log() -> None:
+    view = BoardView()
+    assert view.play_move(chess.Move.from_uci('e2e4'))
+    board.write_game_log.assert_not_called()
 
 
 def test_random_vs_random_starts_pauses_and_resets() -> None:
