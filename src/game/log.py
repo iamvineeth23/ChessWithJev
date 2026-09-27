@@ -5,7 +5,7 @@ from pathlib import Path
 import chess
 
 
-def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate) -> Path:
+def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, recording: bool = False) -> Path:
     replay = board.root()
     moves = []
     for ply, move in enumerate(board.move_stack, 1):
@@ -27,12 +27,16 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
     assert outcome is not None
     result = '1/2-1/2' if outcome.winner is None else ('1-0' if outcome.winner else '0-1')
     log_dir = Path(__file__).resolve().parents[2] / 'gamelog'
+    if not recording:
+        path = log_dir / 'latest.json'
+    else:
+        log_dir /= 'rec'
+        game_id = date.today().isoformat()
+        sequence = 1
+        while (log_dir / f'{game_id}_{sequence:03d}.json').exists():
+            sequence += 1
+        path = log_dir / f'{game_id}_{sequence:03d}.json'
     log_dir.mkdir(parents=True, exist_ok=True)
-    game_id = date.today().isoformat()
-    sequence = 1
-    while (log_dir / f'{game_id}_{sequence:03d}.json').exists():
-        sequence += 1
-    path = log_dir / f'{game_id}_{sequence:03d}.json'
     payload = {
         'game_id': path.stem,
         'players': {

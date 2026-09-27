@@ -292,7 +292,7 @@ class BoardView:
         if self.on_change:
             self.on_change(self)
         if self.has_played_move and self.position.outcome() and not self.game_logged:
-            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation)
+            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation, self.recording)
             self.game_logged = True
 
     def render(self) -> None:

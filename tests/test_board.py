@@ -1,5 +1,6 @@
 import runpy
 from base64 import b64decode
+from datetime import date
 from pathlib import Path
 import json
 import chess
@@ -597,15 +598,19 @@ def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
     engine.quit.assert_called_once_with()
 
 
-def test_completed_game_log_matches_template(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     position = Position()
     for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
         assert position.move(chess.parse_square(move[:2]), chess.parse_square(move[2:4]))
     monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
-    path = write_game_log(position.board, {chess.WHITE: 'human', chess.BLACK: 'stockfish'},
-                          {chess.WHITE: 1500, chess.BLACK: 2100}, lambda board: len(board.move_stack) / 10)
+    args = (position.board, {chess.WHITE: 'human', chess.BLACK: 'stockfish'},
+            {chess.WHITE: 1500, chess.BLACK: 2100}, lambda board: len(board.move_stack) / 10)
+    path = write_game_log(*args)
+    recorded_path = write_game_log(*args, recording=True)
     log = json.loads(path.read_text())
-    assert path.parent == tmp_path / 'repo' / 'gamelog'
+    assert path == tmp_path / 'repo' / 'gamelog' / 'latest.json'
+    assert recorded_path.parent == tmp_path / 'repo' / 'gamelog' / 'rec'
+    assert recorded_path.name.startswith(f'{date.today().isoformat()}_001')
     assert log['players']['black'] == {'type': 'stockfish', 'elo': 2100, 'model': None}
     assert log['result'] == {'winner': 'black', 'score': '0-1', 'termination': 'checkmate'}
     assert log['evaluator'] == {'engine': 'stockfish', 'depth': 15}
@@ -624,7 +629,8 @@ def test_terminal_position_writes_one_game_log() -> None:
     view = BoardView()
     for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
         assert view.play_move(chess.Move.from_uci(move))
-    board.write_game_log.assert_called_once()
+    board.write_game_log.assert_called_once_with(view.position.board, view.players, view.stockfish_elos,
+                                                 view.controller.white_expectation, False)
 
 
 def test_incomplete_game_does_not_write_a_log() -> None:
