@@ -8,7 +8,7 @@ import chess.engine
 import pytest
 from src.game.position import Position
 from src.game.controller import GameController
-from src.ui.board import (BoardView, build_page, evaluation_chart_svg, latest_game_evaluations,
+from src.ui.board import (BoardView, build_page, evaluation_chart_svg, latest_game_evaluations, latest_game_players,
                           lock_window_aspect_ratio, move_history, piece_image, square_color, square_name)
 from src.ui import board
 from src.game.log import write_game_log
@@ -34,7 +34,7 @@ def test_board_colors() -> None:
 
 def test_analysis_chart_uses_each_logged_evaluation_and_marks_balance(tmp_path: Path) -> None:
     path = tmp_path / 'latest.json'
-    path.write_text(json.dumps({'moves': [
+    path.write_text(json.dumps({'players': {'white': {'type': 'random'}, 'black': {'type': 'stockfish', 'elo': 2100}}, 'moves': [
         {'evaluation': {'wdl_expectation_white': 0.25}},
         {'evaluation': {'wdl_expectation_white': 0.5}},
         {'evaluation': {'wdl_expectation_white': 0.75}},
@@ -42,10 +42,22 @@ def test_analysis_chart_uses_each_logged_evaluation_and_marks_balance(tmp_path: 
     ]}))
     evaluations = latest_game_evaluations(path)
     assert evaluations == [-50, 0, 50]
+    assert latest_game_players(path) == 'White: Random | Black: Stockfish [2100]'
     chart = evaluation_chart_svg(evaluations)
     assert '0% EVEN' in chart
+    assert 'chart-player-white">WHITE' in chart and 'chart-player-black">BLACK' in chart
     assert '1</text>' in chart and '>3</text>' in chart
-    assert '100.0,346.0 570.0,244.0 1040.0,142.0' in chart
+    assert '100.0,391.0 570.0,274.0 1040.0,157.0' in chart
+
+
+def test_analysis_without_a_completed_log_shows_the_requested_warning(monkeypatch: pytest.MonkeyPatch) -> None:
+    notify = MagicMock()
+    monkeypatch.setattr(board, 'latest_game_evaluations', lambda: [])
+    monkeypatch.setattr(board.ui, 'notify', notify)
+
+    BoardView().show_analysis()
+
+    notify.assert_called_once_with('Run a game. Last game log not available', type='warning')
 
 
 @pytest.mark.parametrize('debug', [False, True])

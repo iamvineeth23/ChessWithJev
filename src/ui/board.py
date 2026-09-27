@@ -57,8 +57,20 @@ def latest_game_evaluations(path: Path | None = None) -> list[float]:
             if isinstance(value := move.get('evaluation', {}).get('wdl_expectation_white'), (int, float)) and 0 <= value <= 1]
 
 
+def latest_game_players(path: Path | None = None) -> str:
+    path = path or Path(__file__).resolve().parents[2] / 'gamelog' / 'latest.json'
+    try:
+        players = json.loads(path.read_text())['players']
+        return ' | '.join(
+            f'{color.title()}: {player["type"].title()}'
+            f'{f" [{player["elo"]}]" if player["type"] == "stockfish" and player.get("elo") is not None else ""}'
+            for color in ('white', 'black') if (player := players[color]))
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
+        return ''
+
+
 def evaluation_chart_svg(evaluations: list[float]) -> str:
-    width, height, left, right, top, bottom = 1080, 520, 100, 40, 40, 72
+    width, height, left, right, top, bottom = 1080, 580, 100, 40, 40, 72
     plot_width, plot_height = width - left - right, height - top - bottom
     def x(index: int) -> float:
         return left + plot_width * index / max(len(evaluations) - 1, 1)
@@ -74,7 +86,7 @@ def evaluation_chart_svg(evaluations: list[float]) -> str:
     ticks = sorted({0, len(evaluations) - 1, *(round((len(evaluations) - 1) * step / 4) for step in range(1, 4))})
     vertical_grid = ''.join(
         f'<line x1="{x(index):.1f}" y1="{top}" x2="{x(index):.1f}" y2="{height - bottom}" class="chart-grid chart-grid-vertical"/>'
-        f'<text x="{x(index):.1f}" y="{height - 22}" text-anchor="middle" class="chart-label">{index + 1}</text>'
+        f'<text x="{x(index):.1f}" y="{height - 46}" text-anchor="middle" class="chart-label">{index + 1}</text>'
         for index in ticks)
     return f'''<svg class="evaluation-chart" viewBox="0 0 {width} {height}" role="img" aria-label="Game evaluation by move step, with zero percent balanced">
         <rect x="{left}" y="{top}" width="{plot_width}" height="{plot_height / 2}" class="chart-zone chart-zone-white"/>
@@ -84,7 +96,9 @@ def evaluation_chart_svg(evaluations: list[float]) -> str:
         <line x1="{left}" y1="{y(0):.1f}" x2="{width - right}" y2="{y(0):.1f}" class="chart-balance"/>
         <polyline points="{points}" class="chart-line"/>
         <circle cx="{x(len(evaluations) - 1):.1f}" cy="{y(evaluations[-1]):.1f}" r="7" class="chart-last-point"/>
-        <text x="{left}" y="{height - 46}" class="chart-axis-title">MOVE STEP</text>
+        <text x="{width - right - 12}" y="{top + 28}" text-anchor="end" class="chart-player-label chart-player-white">WHITE</text>
+        <text x="{width - right - 12}" y="{y(0) + 32:.1f}" text-anchor="end" class="chart-player-label chart-player-black">BLACK</text>
+        <text x="{width / 2}" y="{height - 22}" text-anchor="middle" class="chart-axis-title">MOVE STEP</text>
     </svg>'''
 
 
@@ -373,13 +387,13 @@ class BoardView:
     def show_analysis(self) -> None:
         evaluations = latest_game_evaluations()
         if not evaluations:
-            ui.notify('No completed game log is available.', type='warning')
+            ui.notify('Run a game. Last game log not available', type='warning')
             return
         with ui.dialog() as dialog, ui.card().classes('analysis-card'):
             with ui.row().classes('analysis-heading'):
                 with ui.column().classes('analysis-title'):
-                    ui.label('GAME EVALUATION').classes('panel-kicker')
-                    ui.label('White perspective · expected result').classes('analysis-meta')
+                    ui.label('Game Evaluation · last game').classes('panel-kicker')
+                    ui.label(latest_game_players()).classes('analysis-meta')
                 ui.button('CLOSE', on_click=dialog.close, color=None).classes('terminal-button analysis-close')
             ui.html(evaluation_chart_svg(evaluations)).classes('analysis-chart')
         dialog.open()
@@ -523,7 +537,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .analysis-icon circle { fill: #0c1510; stroke: none; }
         .analysis-card { box-sizing: border-box; background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 28px; font-family: inherit; }
         .q-dialog__inner--minimized > .analysis-card { width: calc(100vw - 128px) !important; max-width: none !important; }
-        .analysis-heading { width: 100%; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .analysis-heading { width: 100%; align-items: center; justify-content: space-between; margin-top: -22px; margin-bottom: 0; }
         .analysis-title { gap: 3px; }
         .analysis-meta { color: var(--muted); font-size: 12px; }
         .analysis-close { width: auto; padding: 5px 9px; font-size: 11px; }
@@ -536,6 +550,9 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .evaluation-chart .chart-balance { stroke: #e7cb7d; stroke-width: 1.5; stroke-dasharray: 5 4; }
         .evaluation-chart .chart-line { fill: none; stroke: var(--green); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 4px #72e98970); }
         .evaluation-chart .chart-last-point { fill: #e7cb7d; stroke: #101b14; stroke-width: 3; }
+        .evaluation-chart .chart-player-label { font: 700 14px 'SFMono-Regular', Consolas, monospace; letter-spacing: .12em; }
+        .evaluation-chart .chart-player-white { fill: var(--green); }
+        .evaluation-chart .chart-player-black { fill: #d7e8d6; }
         .evaluation-chart .chart-label, .evaluation-chart .chart-axis-title { fill: var(--muted); font: 14px 'SFMono-Regular', Consolas, monospace; letter-spacing: .06em; }
         .evaluation-chart .chart-axis-title { fill: var(--green); font-weight: 700; }
         .board-actions .record-button { grid-column: span 2; width: 72px; border-color: #f3d68a; background: #0c1510; color: #ff4b45; }
