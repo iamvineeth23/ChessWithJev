@@ -397,6 +397,13 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     assert view.status_label.text == 'Checkmate — White wins'
 
 
+def test_recording_can_start_enabled() -> None:
+    view = BoardView(recording=True)
+    view.render()
+    assert view.record_button._props['aria-pressed'] == 'true'
+    assert 'recording' in view.record_button._classes
+
+
 def test_move_history_and_new_game() -> None:
     view = BoardView()
     view.render_controls()

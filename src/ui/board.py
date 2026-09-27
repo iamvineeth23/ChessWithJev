@@ -118,7 +118,7 @@ def lock_window_aspect_ratio() -> None:
 
 
 class BoardView:
-    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', white_elo: int = 1500, black_elo: int = 1500, on_change: Callable[['BoardView'], None] | None = None) -> None:
+    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', white_elo: int = 1500, black_elo: int = 1500, on_change: Callable[['BoardView'], None] | None = None, recording: bool = False) -> None:
         if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
             raise ValueError('Players must be human, random, or stockfish')
         self.controller = GameController(position)
@@ -145,7 +145,7 @@ class BoardView:
         self.history_back_button = None
         self.history_forward_button = None
         self.record_button = None
-        self.recording = False
+        self.recording = recording
         self.game_logged = self.position.outcome() is not None
         self.has_played_move = bool(self.position.board.move_stack)
         self.preview_index: int | None = None
@@ -372,7 +372,7 @@ class BoardView:
                             ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
                         self.shown_pieces[square] = piece
         with ui.element('div').classes('board-actions'):
-            self.record_button = ui.button('REC', on_click=self.toggle_recording, color=None).classes('terminal-button record-button').props('aria-label="Record game log" aria-pressed="false"')
+            self.record_button = ui.button('REC', on_click=self.toggle_recording, color=None).classes(f'terminal-button record-button{" recording" if self.recording else ""}').props(f'aria-label="Record game log" aria-pressed="{str(self.recording).lower()}"')
             self.undo_button = ui.button('↶', on_click=self.undo, color=None).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
@@ -650,7 +650,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
         view = BoardView(position=position, white=white, black=black, white_elo=white_elo, black_elo=black_elo,
-                         on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)))
+                         on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)), recording='-r' in sys.argv[1:])
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
         footer.visible = True
