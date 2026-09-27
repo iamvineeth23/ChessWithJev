@@ -643,6 +643,7 @@ def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, mo
     assert path == tmp_path / 'repo' / 'gamelog' / 'latest.json'
     assert recorded_path.parent == tmp_path / 'repo' / 'gamelog' / 'rec'
     assert recorded_path.name.startswith(f'{date.today().isoformat()}_001')
+    assert json.loads((tmp_path / 'repo' / 'gamelog' / 'latest.json').read_text()) == json.loads(recorded_path.read_text())
     assert log['players']['black'] == {'type': 'stockfish', 'elo': 2100, 'model': None}
     assert log['result'] == {'winner': 'black', 'score': '0-1', 'termination': 'checkmate'}
     assert log['evaluator'] == {'engine': 'stockfish', 'time_limit_seconds': 0.1}

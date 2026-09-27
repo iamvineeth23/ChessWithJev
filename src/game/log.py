@@ -52,4 +52,6 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
         'moves': moves,
     }
     path.write_text(json.dumps(payload, indent=2) + '\n')
+    if recording:
+        (log_dir.parent / 'latest.json').write_text(json.dumps(payload, indent=2) + '\n')
     return path
