@@ -319,6 +319,8 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     assert len(view.squares) == 64
     action_panel = max((element for element in view.squares[chess.A1].client.elements.values()
                         if 'board-actions' in element._classes), key=lambda element: element.id)
+    analysis_button = next(element for element in action_panel.descendants() if element._props.get('aria-label') == 'Analysis')
+    assert 'analysis-button' in analysis_button._classes
     action_buttons = [element for element in action_panel.descendants()
                       if element._props.get('aria-label') in {'Undo move', 'Redo move', 'Previous move in history', 'Next move in history'}]
     assert [button._props['aria-label'] for button in action_buttons] == ['Undo move', 'Redo move', 'Previous move in history', 'Next move in history']

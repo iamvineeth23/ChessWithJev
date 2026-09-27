@@ -319,6 +319,8 @@ class BoardView:
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
             self.history_forward_button = ui.button('→', on_click=lambda: self.step_history(1), color=None).classes('terminal-button').props('aria-label="Next move in history" title="Next move in history"')
+            with ui.button('', color=None).classes('terminal-button analysis-button').props('aria-label="Analysis"'):
+                ui.html('''<svg class="analysis-icon" viewBox="0 0 56 28" aria-hidden="true"><path d="M8 19 15 10M21 10l7 8M34 18l9-11"/><circle cx="5" cy="22" r="2.5"/><circle cx="18" cy="6" r="2.8"/><circle cx="31" cy="21" r="2.5"/><circle cx="47" cy="5" r="2.8"/></svg>''')
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
             self.history_back_button.set_enabled(bool(self.position.board.move_stack))
@@ -454,8 +456,13 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .new-game-button, .board-actions .terminal-button { background: var(--green); color: #0c1510; }
         .new-game-button:hover, .board-actions .terminal-button:hover { background: #cefbd1; }
         .chess-layout { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 80px; grid-template-rows: auto 24px; width: 100%; }
-        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(3, 32px); gap: 8px; padding-left: 8px; }
+        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(4, 32px); gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
+        .board-actions .analysis-button { grid-column: span 2; width: 72px; }
+        .analysis-button .q-btn__content { display: flex; align-items: center; justify-content: center; }
+        .analysis-button .q-btn__content > div { display: flex; }
+        .analysis-icon { width: 52px; height: 28px; fill: none; stroke: #0c1510; stroke-width: 2.75; stroke-linecap: round; }
+        .analysis-icon circle { fill: #0c1510; stroke: none; }
         .board-actions .record-button { grid-column: span 2; width: 72px; border-color: #f3d68a; background: #0c1510; color: #ff4b45; }
         .record-button .q-btn__content::before { content: '●'; display: inline-block; margin-right: 4px; opacity: 0; }
         .record-button.recording .q-btn__content::before { opacity: 1; animation: record-blink 1s steps(1) infinite; }
