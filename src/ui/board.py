@@ -85,6 +85,8 @@ class BoardView:
         self.redo_button = None
         self.history_back_button = None
         self.history_forward_button = None
+        self.record_button = None
+        self.recording = False
         self.preview_index: int | None = None
         self.preview_board: chess.Board | None = None
         self.squares = {}
@@ -197,6 +199,12 @@ class BoardView:
             self.selected = None
             self.sync()
 
+    def toggle_recording(self) -> None:
+        self.recording = not self.recording
+        self.record_button.classes(add='recording' if self.recording else None,
+                                   remove=None if self.recording else 'recording')
+        self.record_button.props(f'aria-pressed="{str(self.recording).lower()}"')
+
     def click_square(self, square: chess.Square) -> None:
         if self.preview_board is not None or self.position.outcome() or self.pending_promotion or self.players[self.position.board.turn] != 'human':
             return
@@ -294,6 +302,7 @@ class BoardView:
                             ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
                         self.shown_pieces[square] = piece
         with ui.element('div').classes('board-actions'):
+            self.record_button = ui.button('REC', on_click=self.toggle_recording, color=None).classes('terminal-button record-button').props('aria-label="Record game log" aria-pressed="false"')
             self.undo_button = ui.button('↶', on_click=self.undo, color=None).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
@@ -377,12 +386,15 @@ def saved_game(storage: MutableMapping[str, object]) -> tuple[Position, str, str
 def build_page(storage: MutableMapping[str, object]) -> None:
     ui.add_body_html('''
         <script>
+            let moveLog;
+            let moveLogObserver;
             const watchMoveLog = () => {
                 const log = document.querySelector('.move-history-panel');
-                if (!log) return;
-                attachMoveLog.disconnect();
-                new MutationObserver(() => { log.scrollTop = log.scrollHeight; })
-                    .observe(log, {childList: true, characterData: true, subtree: true});
+                if (!log || log === moveLog) return;
+                moveLogObserver?.disconnect();
+                moveLog = log;
+                moveLogObserver = new MutationObserver(() => { log.scrollTop = log.scrollHeight; });
+                moveLogObserver.observe(log, {childList: true, characterData: true, subtree: true});
             };
             const attachMoveLog = new MutationObserver(watchMoveLog);
             attachMoveLog.observe(document.body, {childList: true, subtree: true});
@@ -430,8 +442,12 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .new-game-button, .board-actions .terminal-button { background: var(--green); color: #0c1510; }
         .new-game-button:hover, .board-actions .terminal-button:hover { background: #cefbd1; }
         .chess-layout { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 80px; grid-template-rows: auto 24px; width: 100%; }
-        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(2, 32px); gap: 8px; padding-left: 8px; }
+        .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(3, 32px); gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
+        .board-actions .record-button { grid-column: span 2; width: 72px; border-color: #f3d68a; background: #0c1510; color: #ff4b45; }
+        .record-button .q-btn__content::before { content: '●'; display: inline-block; margin-right: 4px; opacity: 0; }
+        .record-button.recording .q-btn__content::before { opacity: 1; animation: record-blink 1s steps(1) infinite; }
+        @keyframes record-blink { 50% { opacity: 0; } }
         .board-actions .terminal-button:disabled { opacity: .4; }
         .eval-bar { grid-column: 1; grid-row: 1; width: 16px; height: 100%; border: 2px solid #89b993; background: #17251c; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; }
         .eval-white { width: 100%; background: #d7e8d6; }

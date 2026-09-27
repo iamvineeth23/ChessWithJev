@@ -1,5 +1,6 @@
 import runpy
 from base64 import b64decode
+from pathlib import Path
 import chess
 import chess.engine
 import pytest
@@ -38,6 +39,13 @@ def test_native_window_keeps_its_starting_aspect_ratio() -> None:
     window.native.setContentMinSize_.assert_called_once_with((800, 600))
     window.native.setContentSize_.assert_called_once_with((900, 643))
     window.native.setContentAspectRatio_.assert_called_once_with((900, 643))
+
+
+def test_move_log_observer_follows_a_replaced_game_panel() -> None:
+    source = Path(board.__file__).read_text()
+    assert 'let moveLog;' in source
+    assert 'if (!log || log === moveLog) return;' in source
+    assert 'moveLogObserver?.disconnect();' in source
 
 
 def test_piece_images_are_distinct_svgs() -> None:
@@ -306,6 +314,11 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     action_buttons = [element for element in action_panel.descendants()
                       if element._props.get('aria-label') in {'Undo move', 'Redo move', 'Previous move in history', 'Next move in history'}]
     assert [button._props['aria-label'] for button in action_buttons] == ['Undo move', 'Redo move', 'Previous move in history', 'Next move in history']
+    record_button = next(element for element in action_panel.descendants() if element._props.get('aria-label') == 'Record game log')
+    assert record_button._props['label'] == 'REC'
+    click(record_button)
+    assert view.recording
+    assert 'recording' in record_button._classes
     assert view.status_label.text == 'White to move'
     assert not view.claim_button.visible
     assert not view.undo_button.enabled
