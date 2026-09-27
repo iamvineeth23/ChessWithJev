@@ -590,6 +590,7 @@ def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
     engine.analyse.return_value = {'score': chess.engine.PovScore(chess.engine.Cp(200), chess.WHITE)}
     with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine):
         assert controller.white_expectation() > 0.5
+        engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(time=0.1))
         controller.position.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
         assert controller.white_expectation() == 1.0
         controller.position.set_fen('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1')
@@ -613,7 +614,7 @@ def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, mo
     assert recorded_path.name.startswith(f'{date.today().isoformat()}_001')
     assert log['players']['black'] == {'type': 'stockfish', 'elo': 2100, 'model': None}
     assert log['result'] == {'winner': 'black', 'score': '0-1', 'termination': 'checkmate'}
-    assert log['evaluator'] == {'engine': 'stockfish', 'depth': 15}
+    assert log['evaluator'] == {'engine': 'stockfish', 'time_limit_seconds': 0.1}
     first = chess.Board()
     legal_moves = [first.san(move) for move in first.legal_moves]
     first.push_uci('f2f3')

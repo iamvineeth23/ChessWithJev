@@ -26,7 +26,7 @@ class GameController:
         outcome = self.position.outcome() if board is self.position.board else board.outcome()
         if outcome:
             return 0.5 if outcome.winner is None else float(outcome.winner)
-        info = self.stockfish_engine().analyse(board, chess.engine.Limit(depth=15))
+        info = self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1))
         return info['score'].white().wdl().expectation()
 
     def play(self, move: chess.Move) -> bool:
