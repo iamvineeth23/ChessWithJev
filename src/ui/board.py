@@ -66,7 +66,6 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                     ui.label('CHESS WITH JEV').classes('app-title')
                 main_menu_action = ui.element('div').classes('main-menu-action')
                 main_menu_action.visible = False
-            ui.label('● SYSTEM ONLINE').classes('header-mark')
         content = ui.element('main')
         footer = ui.label(chess.STARTING_FEN).classes('footer-note').props('title="Click to copy FEN" aria-label="Current FEN; click to copy"').on('click', js_handler='''(...args) => {
             const text = args[0].currentTarget.textContent;

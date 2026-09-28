@@ -39,7 +39,6 @@ BOARD_CSS = '''
         .header-left { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
         .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
         .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }
-        .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
         .main-menu-action { display: flex; gap: 10px; }
         .main-menu-action .terminal-button { width: auto; min-height: 30px; padding: 4px 10px; }
         .game-layout { display: flex; align-items: stretch; gap: 28px; margin-top: 4px; }
