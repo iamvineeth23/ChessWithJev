@@ -124,7 +124,8 @@ BOARD_CSS = '''
             .app-shell { height: 100dvh; display: flex; flex-direction: column; }
             .game-layout { flex: 1; min-height: 0; }
             .game-controls { margin-bottom: -38px; }
-            .board-panel { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; margin-bottom: -38px; padding-bottom: calc(clamp(12px, 2vw, 22px) + 43px); }
+            .board-panel { position: relative; display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; margin-bottom: -38px; padding-bottom: calc(clamp(12px, 2vw, 22px) + 43px); background: transparent; border-color: transparent; box-shadow: none; }
+            .board-panel::before { content: ''; position: absolute; inset: -1px 78.5px -1px -1px; z-index: -1; background: var(--panel); border: 1px solid var(--line); box-shadow: 8px 8px 0 #080f0b; }
             .status-strip, .board-heading { width: min(100%, calc(100dvh - 158px), 740px); justify-self: center; }
             .chess-layout { position: relative; width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .board-actions { position: absolute; grid-column: 1 / -1; left: calc(50% - 176px); bottom: -39px; display: flex; width: max-content; padding: 0; }
