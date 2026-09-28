@@ -407,7 +407,7 @@ class BoardView:
         ui.label('SYSTEM STATUS').classes('panel-kicker')
         self.status_label = ui.label(self.position.status()).classes('status-text').props('role="status" aria-live="polite"')
 
-    def render_controls(self) -> None:
+    def render_controls(self, header_actions=None) -> None:
         if self.status_label is None:
             self.render_status()
         with ui.element('div').classes('history-heading'):
@@ -416,7 +416,8 @@ class BoardView:
         with ui.element('div').classes('move-history-panel'):
             self.history_panel = ui.element('div').classes('move-history')
         self.render_history()
-        ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
+        with header_actions or ui.element('div'):
+            ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
         if all(player != 'human' for player in self.players.values()):
             self.random_timer = ui.timer(0.6, self.random_step, active=False)
             self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
@@ -508,6 +509,9 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
         .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }
         .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
+        .header-actions { display: flex; gap: 12px; margin-left: auto; }
+        .header-actions .terminal-button { width: auto; min-height: 30px; padding: 4px 10px; }
+        .header-actions .new-game-button { transform: translateX(-22px); }
         .game-layout { display: flex; align-items: stretch; gap: 28px; margin-top: 4px; }
         .game-page { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
         .status-strip { display: flex; align-items: center; justify-content: flex-end; gap: 18px; width: 100%; padding-right: 80px; box-sizing: border-box; }
@@ -609,6 +613,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             with ui.element('div'):
                 ui.label('LOCAL CHESS TERMINAL / V.01').classes('app-kicker')
                 ui.label('CHESS WITH JEV').classes('app-title')
+            header_actions = ui.element('div').classes('header-actions')
+            header_actions.visible = False
             ui.label('● SYSTEM ONLINE').classes('header-mark')
         content = ui.element('main')
         footer = ui.label(chess.STARTING_FEN).classes('footer-note').props('title="Click to copy FEN" aria-label="Current FEN; click to copy"').on('click', js_handler='''(...args) => {
@@ -627,6 +633,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
     def show_landing(clear_game: bool = False) -> None:
         if clear_game:
             storage.pop('game', None)
+        header_actions.clear()
+        header_actions.visible = False
         footer.visible = False
         content.clear()
         content.classes(remove='game-page')
@@ -654,6 +662,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
         footer.visible = True
+        header_actions.clear()
+        header_actions.visible = True
         content.clear()
         with content.classes('game-page'):
             with ui.element('div').classes('game-layout'):
@@ -672,7 +682,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                             for file in ('hgfedcba' if view.black_at_bottom else 'abcdefgh'):
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
-                    view.render_controls()
+                    view.render_controls(header_actions)
+                with header_actions:
                     ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')
         if white != 'human' and black == 'human':
             view.random_step()

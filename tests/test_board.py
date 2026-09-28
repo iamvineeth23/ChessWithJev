@@ -720,11 +720,14 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     status_strip = max((element for element in client.elements.values() if 'status-strip' in element._classes), key=lambda element: element.id)
     board_panel = max((element for element in client.elements.values() if 'board-panel' in element._classes), key=lambda element: element.id)
     controls = max((element for element in client.elements.values() if 'game-controls' in element._classes), key=lambda element: element.id)
+    header_actions = max((element for element in client.elements.values() if 'header-actions' in element._classes), key=lambda element: element.id)
     footer = max((element for element in client.elements.values() if 'footer-note' in element._classes), key=lambda element: element.id)
     assert footer.visible
     assert {element.text for element in status_strip.descendants() if hasattr(element, 'text')} == {'SYSTEM STATUS', 'White to move'}
     assert status_strip in board_panel.descendants()
     assert not any(element.text == 'SYSTEM STATUS' for element in controls.descendants() if hasattr(element, 'text'))
+    assert {element._props.get('label') for element in header_actions.descendants()} == {'NEW GAME', 'MAIN MENU'}
+    assert not any(element._props.get('label') in {'NEW GAME', 'MAIN MENU'} for element in controls.descendants())
     back = max((element for element in client.elements.values() if element._props.get('label') == 'MAIN MENU'), key=lambda element: element.id)
     click(back)
     assert 'game' not in storage
