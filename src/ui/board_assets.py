@@ -129,6 +129,7 @@ BOARD_CSS = '''
             .chess-layout { position: relative; width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .board-actions::before { content: ''; grid-column: span 2; }
             .board-actions .record-button { position: absolute; left: calc(18.75% - 18.5px); bottom: -39px; }
+            .board-actions [aria-label="Undo move"], .board-actions [aria-label="Redo move"] { transform: translate(-377px, 143px); }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
