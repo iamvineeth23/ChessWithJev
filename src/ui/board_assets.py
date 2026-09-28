@@ -130,6 +130,8 @@ BOARD_CSS = '''
             .board-actions::before { content: ''; grid-column: span 2; }
             .board-actions .record-button { position: absolute; left: calc(18.75% - 18.5px); bottom: -39px; }
             .board-actions [aria-label="Undo move"], .board-actions [aria-label="Redo move"] { transform: translate(-377px, 143px); }
+            .board-actions [aria-label="Previous move in history"], .board-actions [aria-label="Next move in history"] { transform: translate(-297px, 103px); }
+            .board-actions .analysis-button { transform: translate(-217px, 63px); }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
