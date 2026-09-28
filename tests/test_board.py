@@ -8,16 +8,19 @@ import chess.engine
 import pytest
 from src.game.position import Position
 from src.game.controller import GameController
-from src.ui.board import (BoardView, build_page, evaluation_chart_svg, latest_game_evaluations, latest_game_players,
-                          lock_window_aspect_ratio, move_history, piece_image, square_color, square_name)
+from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
+from src.ui.board import (BoardView, build_page, lock_window_aspect_ratio, move_history, piece_image, square_color,
+                          square_name)
 from src.ui import board
+from src.ui import board_view
+from src.ui.board_assets import MOVE_LOG_SCRIPT
 from src.game.log import write_game_log
 from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(autouse=True)
 def prevent_game_log_writes(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(board, 'write_game_log', MagicMock())
+    monkeypatch.setattr(board_view, 'write_game_log', MagicMock())
 
 
 def move_log_text(view: BoardView) -> str:
@@ -50,10 +53,24 @@ def test_analysis_chart_uses_each_logged_evaluation_and_marks_balance(tmp_path: 
     assert '100.0,391.0 570.0,274.0 1040.0,157.0' in chart
 
 
+def test_analysis_helpers_remain_available_from_board() -> None:
+    assert board.latest_game_evaluations is latest_game_evaluations
+    assert board.latest_game_players is latest_game_players
+    assert board.evaluation_chart_svg is evaluation_chart_svg
+
+
+def test_board_view_names_remain_available_from_board() -> None:
+    assert board.BoardView is board_view.BoardView
+    assert board.move_history is board_view.move_history
+    assert board.piece_image is board_view.piece_image
+    assert board.square_color is board_view.square_color
+    assert board.square_name is board_view.square_name
+
+
 def test_analysis_without_a_completed_log_shows_the_requested_warning(monkeypatch: pytest.MonkeyPatch) -> None:
     notify = MagicMock()
-    monkeypatch.setattr(board, 'latest_game_evaluations', lambda: [])
-    monkeypatch.setattr(board.ui, 'notify', notify)
+    monkeypatch.setattr(board_view, 'latest_game_evaluations', lambda: [])
+    monkeypatch.setattr(board_view.ui, 'notify', notify)
 
     BoardView().show_analysis()
 
@@ -79,7 +96,7 @@ def test_native_window_keeps_its_starting_aspect_ratio() -> None:
 
 
 def test_move_log_observer_follows_a_replaced_game_panel() -> None:
-    source = Path(board.__file__).read_text()
+    source = MOVE_LOG_SCRIPT
     assert 'let moveLog;' in source
     assert 'if (!log || log === moveLog) return;' in source
     assert 'moveLogObserver?.disconnect();' in source
@@ -669,14 +686,14 @@ def test_terminal_position_writes_one_game_log() -> None:
     view = BoardView()
     for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
         assert view.play_move(chess.Move.from_uci(move))
-    board.write_game_log.assert_called_once_with(view.position.board, view.players, view.stockfish_elos,
-                                                 view.controller.white_expectation, False)
+    board_view.write_game_log.assert_called_once_with(view.position.board, view.players, view.stockfish_elos,
+                                                      view.controller.white_expectation, False)
 
 
 def test_incomplete_game_does_not_write_a_log() -> None:
     view = BoardView()
     assert view.play_move(chess.Move.from_uci('e2e4'))
-    board.write_game_log.assert_not_called()
+    board_view.write_game_log.assert_not_called()
 
 
 def test_random_vs_random_starts_pauses_and_resets() -> None:
