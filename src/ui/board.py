@@ -60,13 +60,12 @@ def build_page(storage: MutableMapping[str, object]) -> None:
     ui.add_css(BOARD_CSS)
     with ui.element('div').classes('app-shell'):
         with ui.element('header').classes('app-header'):
-            with ui.element('div'):
-                ui.label('LOCAL CHESS TERMINAL / V.01').classes('app-kicker')
-                ui.label('CHESS WITH JEV').classes('app-title')
-            main_menu_action = ui.element('div').classes('main-menu-action')
-            main_menu_action.visible = False
-            header_actions = ui.element('div').classes('header-actions')
-            header_actions.visible = False
+            with ui.element('div').classes('header-left'):
+                with ui.element('div'):
+                    ui.label('LOCAL CHESS TERMINAL / V.01').classes('app-kicker')
+                    ui.label('CHESS WITH JEV').classes('app-title')
+                main_menu_action = ui.element('div').classes('main-menu-action')
+                main_menu_action.visible = False
             ui.label('● SYSTEM ONLINE').classes('header-mark')
         content = ui.element('main')
         footer = ui.label(chess.STARTING_FEN).classes('footer-note').props('title="Click to copy FEN" aria-label="Current FEN; click to copy"').on('click', js_handler='''(...args) => {
@@ -87,8 +86,6 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             storage.pop('game', None)
         main_menu_action.clear()
         main_menu_action.visible = False
-        header_actions.clear()
-        header_actions.visible = False
         footer.visible = False
         content.clear()
         content.classes(remove='game-page')
@@ -118,8 +115,6 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         footer.visible = True
         main_menu_action.clear()
         main_menu_action.visible = True
-        header_actions.clear()
-        header_actions.visible = True
         content.clear()
         with main_menu_action:
             ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')

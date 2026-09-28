@@ -35,13 +35,13 @@ BOARD_CSS = '''
         body { background: #0c1510; color: #d7e8d6; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; }
         .nicegui-content { padding: 0; }
         .app-shell { width: min(1120px, 100%); min-height: 100dvh; margin: 0 auto; padding: clamp(20px, 4vw, 44px); padding-top: 5px; box-sizing: border-box; }
-        .app-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+        .app-header { display: grid; grid-template-columns: minmax(0, 1fr) 274px; align-items: end; gap: 28px; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+        .header-left { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
         .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
         .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }
         .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
-        .main-menu-action { display: flex; gap: 10px; margin-left: 75px; }
-        .header-actions { display: flex; gap: 12px; margin-left: auto; }
-        .main-menu-action .terminal-button, .header-actions .terminal-button { width: auto; min-height: 30px; padding: 4px 10px; }
+        .main-menu-action { display: flex; gap: 10px; }
+        .main-menu-action .terminal-button { width: auto; min-height: 30px; padding: 4px 10px; }
         .game-layout { display: flex; align-items: stretch; gap: 28px; margin-top: 4px; }
         .game-page { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
         .status-strip { display: flex; align-items: center; justify-content: flex-end; gap: 18px; width: 100%; padding-right: 80px; box-sizing: border-box; }
@@ -130,7 +130,8 @@ BOARD_CSS = '''
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
-            .app-header { align-items: start; }
+            .app-header { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
+            .header-left { align-items: start; flex-direction: column; }
             .status-strip { flex-wrap: wrap; }
             .game-layout { flex-direction: column; }
             .game-controls { width: 100%; }
