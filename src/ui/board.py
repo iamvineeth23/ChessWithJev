@@ -115,6 +115,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         header_actions.clear()
         header_actions.visible = True
         content.clear()
+        with header_actions:
+            ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')
         with content.classes('game-page'):
             with ui.element('div').classes('game-layout'):
                 with ui.element('section').classes('board-panel'):
@@ -133,8 +135,6 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls(header_actions)
-                with header_actions:
-                    ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')
         if white != 'human' and black == 'human':
             view.random_step()
 

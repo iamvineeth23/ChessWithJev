@@ -41,7 +41,7 @@ BOARD_CSS = '''
         .header-mark { border: 1px solid var(--line); color: var(--green); padding: 7px 10px; font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
         .header-actions { display: flex; gap: 12px; margin-left: auto; }
         .header-actions .terminal-button { width: auto; min-height: 30px; padding: 4px 10px; }
-        .header-actions .new-game-button { transform: translateX(-22px); }
+        .header-actions .terminal-button:first-child { transform: translateX(-22px); }
         .game-layout { display: flex; align-items: stretch; gap: 28px; margin-top: 4px; }
         .game-page { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
         .status-strip { display: flex; align-items: center; justify-content: flex-end; gap: 18px; width: 100%; padding-right: 80px; box-sizing: border-box; }
@@ -138,4 +138,3 @@ BOARD_CSS = '''
             .landing .q-field.elo-select { position: static; width: 100%; margin-top: 20px; }
         }
     '''
-
