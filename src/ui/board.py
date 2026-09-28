@@ -63,6 +63,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             with ui.element('div'):
                 ui.label('LOCAL CHESS TERMINAL / V.01').classes('app-kicker')
                 ui.label('CHESS WITH JEV').classes('app-title')
+            main_menu_action = ui.element('div').classes('main-menu-action')
+            main_menu_action.visible = False
             header_actions = ui.element('div').classes('header-actions')
             header_actions.visible = False
             ui.label('● SYSTEM ONLINE').classes('header-mark')
@@ -83,6 +85,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
     def show_landing(clear_game: bool = False) -> None:
         if clear_game:
             storage.pop('game', None)
+        main_menu_action.clear()
+        main_menu_action.visible = False
         header_actions.clear()
         header_actions.visible = False
         footer.visible = False
@@ -112,10 +116,12 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
         footer.visible = True
+        main_menu_action.clear()
+        main_menu_action.visible = True
         header_actions.clear()
         header_actions.visible = True
         content.clear()
-        with header_actions:
+        with main_menu_action:
             ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')
         with content.classes('game-page'):
             with ui.element('div').classes('game-layout'):
