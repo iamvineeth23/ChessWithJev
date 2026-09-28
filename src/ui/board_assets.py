@@ -126,7 +126,9 @@ BOARD_CSS = '''
             .game-controls { margin-bottom: -38px; }
             .board-panel { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; margin-bottom: -38px; padding-bottom: calc(clamp(12px, 2vw, 22px) + 43px); }
             .status-strip, .board-heading { width: min(100%, calc(100dvh - 158px), 740px); justify-self: center; }
-            .chess-layout { width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
+            .chess-layout { position: relative; width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
+            .board-actions::before { content: ''; grid-column: span 2; }
+            .board-actions .record-button { position: absolute; left: calc(18.75% - 18.5px); bottom: -39px; }
             .move-history-panel { min-height: 0; }
         }
         @media (max-width: 760px) {
