@@ -64,7 +64,7 @@ def test_analysis_without_a_completed_log_shows_the_requested_warning(monkeypatc
 def test_board_opens_native_window(debug: bool) -> None:
     with patch.object(board.sys, 'argv', ['chess', '-d'] if debug else ['chess']), patch.object(board.ui, 'run') as run:
         runpy.run_path(board.__file__, run_name='__mp_main__')
-    run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(900, 643), reconnect_timeout=60,
+    run.assert_called_once_with(native=True, title='ChessWithJev', window_size=(1100, 786), reconnect_timeout=60,
                                 storage_secret='chesswithjev-local-state')
 
 
@@ -74,8 +74,8 @@ def test_native_window_keeps_its_starting_aspect_ratio() -> None:
         lock_window_aspect_ratio()
     window.events.shown.wait.assert_called_once_with()
     window.native.setContentMinSize_.assert_called_once_with((800, 600))
-    window.native.setContentSize_.assert_called_once_with((900, 643))
-    window.native.setContentAspectRatio_.assert_called_once_with((900, 643))
+    window.native.setContentSize_.assert_called_once_with((1100, 786))
+    window.native.setContentAspectRatio_.assert_called_once_with((1100, 786))
 
 
 def test_move_log_observer_follows_a_replaced_game_panel() -> None:

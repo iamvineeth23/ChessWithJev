@@ -111,8 +111,8 @@ def lock_window_aspect_ratio() -> None:
 
     def lock() -> None:
         window.native.setContentMinSize_((800, 600))
-        window.native.setContentSize_((900, 643))
-        window.native.setContentAspectRatio_((900, 643))
+        window.native.setContentSize_((1100, 786))
+        window.native.setContentAspectRatio_((1100, 786))
 
     AppHelper.callAfter(lock)
 
@@ -695,7 +695,7 @@ def main() -> None:
         Position().print_legal_moves()
     if sys.platform == 'darwin':
         app.native.start_args['func'] = lock_window_aspect_ratio
-    ui.run(native=True, title='ChessWithJev', window_size=(900, 643), reconnect_timeout=60,
+    ui.run(native=True, title='ChessWithJev', window_size=(1100, 786), reconnect_timeout=60,
            storage_secret=os.environ.get('CHESSWITHJEV_STORAGE_SECRET', 'chesswithjev-local-state'))
 
 
