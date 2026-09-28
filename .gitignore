@@ -3,6 +3,10 @@
 __pycache__/
 *.pyc
 
+.env
+.env.*
+!.env.example
+
 # macOS
 .DS_Store
 
@@ -15,3 +19,5 @@ __pycache__/
 
 # working temp files
 /temp/*
+/gamelog/latest.json
+/gamelog/rec/*.json
