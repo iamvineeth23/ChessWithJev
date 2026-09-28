@@ -577,7 +577,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
         .promotion-actions .terminal-button { width: auto; }
         .footer-note { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 16px; user-select: text; cursor: copy; }
-        .game-page + .footer-note { margin-top: 20px; }
+        .game-page + .footer-note { margin-top: 20px; transform: translateY(22px); }
         .app-shell > main:not(.game-page) { display: flex; flex: 1; }
         .landing { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 20px; max-width: 440px; width: 100%; margin: auto; }
         .player-row { position: relative; }
