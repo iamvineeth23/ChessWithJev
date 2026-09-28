@@ -1,35 +1,77 @@
 {
-  "generated_at": "2026-09-26T07:20:37.099447+00:00",
+  "generated_at": "2026-09-28T11:22:58.638901+00:00",
   "nodes": {
-    "src_game_position_position": {
-      "code_fingerprint": "194406a50cbb27e8524cb5b1d8a7e3bc4dece9a7bb620ad1fa299e4cfa645f18",
-      "label": "Position",
-      "last": "2026-09-26T07:20:13.929997+00:00",
+    "src_game_controller_gamecontroller": {
+      "code_fingerprint": "0fca4bca5d723a72981ff8922157350532cfda449e9d5dc2d24db2a5a386f6a6",
+      "label": "GameController",
+      "last": "2026-09-28T11:22:54.859136+00:00",
       "provenance": [
         {
-          "date": "2026-09-26T07:20:13.929997+00:00",
+          "date": "2026-09-28T11:22:54.859136+00:00",
           "outcome": "useful",
-          "q": "yes follow these paths"
+          "q": "Why does BoardView connect Board View Tests to Position State, Game Interaction Flow, Analysis and Page Setup, Game Controller Engines, Game Logging Tests, Piece Rendering?"
         }
       ],
-      "score": 0.999993804,
-      "source_file": "src/game/position.py",
+      "score": 0.999998989,
+      "source_file": "src/game/controller.py",
       "status": "tentative",
       "uses": 1
     },
-    "src_ui_board_boardview": {
-      "code_fingerprint": "5d8bf8db4a4e0ff2a34cc09c3ee97984bf63cee197361c8eedad7d5ef8a9778e",
+    "src_ui_board_view_boardview": {
+      "code_fingerprint": "23c033814610f477c3df09509739a26c28b84c7d3b96932cd1997747b80eeb65",
       "label": "BoardView",
-      "last": "2026-09-26T07:20:13.929997+00:00",
+      "last": "2026-09-28T11:22:54.859136+00:00",
       "provenance": [
+        {
+          "date": "2026-09-28T11:22:54.859136+00:00",
+          "outcome": "useful",
+          "q": "Why does BoardView connect Board View Tests to Position State, Game Interaction Flow, Analysis and Page Setup, Game Controller Engines, Game Logging Tests, Piece Rendering?"
+        },
+        {
+          "date": "2026-09-26T07:20:50.291855+00:00",
+          "outcome": "useful",
+          "q": "yes follow"
+        },
         {
           "date": "2026-09-26T07:20:13.929997+00:00",
           "outcome": "useful",
           "q": "yes follow these paths"
         }
       ],
-      "score": 0.999993804,
-      "source_file": "src/ui/board.py",
+      "score": 2.902267956,
+      "source_file": "src/ui/board_view.py",
+      "status": "preferred",
+      "uses": 3
+    },
+    "src_ui_board_view_move_history": {
+      "code_fingerprint": "23c033814610f477c3df09509739a26c28b84c7d3b96932cd1997747b80eeb65",
+      "label": "move_history()",
+      "last": "2026-09-26T07:20:50.291855+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-26T07:20:50.291855+00:00",
+          "outcome": "useful",
+          "q": "yes follow"
+        }
+      ],
+      "score": 0.951139108,
+      "source_file": "src/ui/board_view.py",
+      "status": "tentative",
+      "uses": 1
+    },
+    "tests_test_board": {
+      "code_fingerprint": "29a3857e04a70282db1e8c93f17dfe56ec6c9fc5babe917c7eb768868f934d98",
+      "label": "test_board.py",
+      "last": "2026-09-28T11:22:54.859136+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-28T11:22:54.859136+00:00",
+          "outcome": "useful",
+          "q": "Why does BoardView connect Board View Tests to Position State, Game Interaction Flow, Analysis and Page Setup, Game Controller Engines, Game Logging Tests, Piece Rendering?"
+        }
+      ],
+      "score": 0.999998989,
+      "source_file": "tests/test_board.py",
       "status": "tentative",
       "uses": 1
     }
