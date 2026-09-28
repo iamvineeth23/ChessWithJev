@@ -123,6 +123,7 @@ BOARD_CSS = '''
         @media (min-width: 761px) {
             .app-shell { height: 100dvh; display: flex; flex-direction: column; }
             .game-layout { flex: 1; min-height: 0; }
+            .game-controls { margin-bottom: -38px; }
             .board-panel { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; }
             .status-strip, .board-heading { width: min(100%, calc(100dvh - 158px), 740px); justify-self: center; }
             .chess-layout { width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
