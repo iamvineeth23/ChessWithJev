@@ -140,7 +140,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                             for file in ('hgfedcba' if view.black_at_bottom else 'abcdefgh'):
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
-                    view.render_controls(header_actions)
+                    view.render_controls(main_menu_action)
         if white != 'human' and black == 'human':
             view.random_step()
 

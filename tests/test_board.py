@@ -697,8 +697,12 @@ def test_incomplete_game_does_not_write_a_log() -> None:
 
 
 def test_random_vs_random_starts_pauses_and_resets() -> None:
+    from nicegui import ui
+
     view = BoardView(white='random', black='random')
-    view.render_controls()
+    header_actions = ui.element('div')
+    view.render_controls(header_actions)
+    assert view.random_button in header_actions.descendants()
     assert not view.random_timer.active
     view.toggle_random()
     assert view.random_timer.active
@@ -744,8 +748,8 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     assert {element.text for element in status_strip.descendants() if hasattr(element, 'text')} == {'SYSTEM STATUS', 'White to move'}
     assert status_strip in board_panel.descendants()
     assert not any(element.text == 'SYSTEM STATUS' for element in controls.descendants() if hasattr(element, 'text'))
-    assert [element._props.get('label') for element in main_menu_action.descendants()] == ['MAIN MENU']
-    assert [element._props.get('label') for element in header_actions.descendants()] == ['NEW GAME']
+    assert [element._props.get('label') for element in main_menu_action.descendants()] == ['MAIN MENU', 'NEW GAME']
+    assert not list(header_actions.descendants())
     assert not any(element._props.get('label') in {'NEW GAME', 'MAIN MENU'} for element in controls.descendants())
     back = max((element for element in client.elements.values() if element._props.get('label') == 'MAIN MENU'), key=lambda element: element.id)
     click(back)

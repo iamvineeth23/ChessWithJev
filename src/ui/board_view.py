@@ -345,9 +345,9 @@ class BoardView:
         self.render_history()
         with header_actions or ui.element('div'):
             ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
-        if all(player != 'human' for player in self.players.values()):
-            self.random_timer = ui.timer(0.6, self.random_step, active=False)
-            self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
+            if all(player != 'human' for player in self.players.values()):
+                self.random_timer = ui.timer(0.6, self.random_step, active=False)
+                self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
         with ui.dialog().props('persistent') as self.promotion_dialog, ui.card().classes('promotion-card'):
@@ -369,6 +369,5 @@ class BoardView:
                 if index == current_index:
                     label.classes('current-move').props('aria-current="step"')
                 self.history_labels.append(label)
-
 
 
