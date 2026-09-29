@@ -131,6 +131,7 @@ BOARD_CSS = '''
             .chess-layout { position: relative; width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .board-actions { position: absolute; grid-column: 1 / -1; left: calc(50% - 176px); bottom: -39px; display: flex; width: max-content; padding: 0; }
             .board-actions .record-button { position: static; }
+            .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
             .move-history-panel { min-height: 0; margin-left: -97.5px; }
         }
         @media (max-width: 760px) {
