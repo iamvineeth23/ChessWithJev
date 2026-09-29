@@ -371,13 +371,17 @@ class BoardView:
             with ui.element('table').classes('move-analysis-table'):
                 with ui.element('thead'):
                     with ui.element('tr'):
-                        ui.element('th').text = 'Move'
-                        ui.element('th').text = 'Eval'
+                        with ui.element('th'):
+                            ui.label('Move')
+                        with ui.element('th'):
+                            ui.label('Eval')
                 with ui.element('tbody'):
                     for move, evaluation in self.controller.top_moves(board):
                         with ui.element('tr'):
-                            ui.element('td').text = move
-                            ui.element('td').text = evaluation
+                            with ui.element('td'):
+                                ui.label(move)
+                            with ui.element('td'):
+                                ui.label(evaluation)
 
     def render_history(self) -> None:
         self.history_panel.clear()
