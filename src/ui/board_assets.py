@@ -50,8 +50,9 @@ BOARD_CSS = '''
         .board-players { grid-column: 3; justify-self: end; }
         .game-controls { display: flex; flex-direction: column; gap: 14px; width: 274px; flex-shrink: 0; padding: 22px; }
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
-        .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
-        .move-history-panel { flex: 1; min-height: 180px; overflow-y: auto; border: 1px solid var(--line); background: #101b14; padding: 14px; }
+        .move-analysis-heading, .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
+        .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
+        .move-history-panel { overflow-y: auto; }
         .move-history { overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .move-history-entry { display: block; }
         .move-history-entry.current-move { background: #e7cb7d; color: #0c1510; padding: 0 4px; margin: 0 -4px; font-weight: 700; }
@@ -131,8 +132,8 @@ BOARD_CSS = '''
             .chess-layout { position: relative; width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
             .board-actions { position: absolute; grid-column: 1 / -1; left: calc(50% - 176px); bottom: -39px; display: flex; width: max-content; padding: 0; }
             .board-actions .record-button { position: static; }
-            .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
-            .move-history-panel { flex: 0 1 50%; min-height: 0; margin-left: -97.5px; }
+            .move-analysis-heading, .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
+            .move-analysis-panel, .move-history-panel { flex: 0 1 50%; min-height: 0; margin-left: -97.5px; }
         }
         @media (max-width: 760px) {
             .app-header { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
@@ -140,7 +141,7 @@ BOARD_CSS = '''
             .status-strip { flex-wrap: wrap; }
             .game-layout { flex-direction: column; }
             .game-controls { width: 100%; }
-            .move-history-panel { max-height: 230px; }
+            .move-analysis-panel, .move-history-panel { max-height: 230px; }
             .landing .q-field.elo-select { position: static; width: 100%; margin-top: 20px; }
         }
     '''

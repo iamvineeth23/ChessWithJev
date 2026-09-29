@@ -337,6 +337,9 @@ class BoardView:
     def render_controls(self, header_actions=None) -> None:
         if self.status_label is None:
             self.render_status()
+        with ui.element('div').classes('move-analysis-heading'):
+            ui.label('Move Analysis')
+        ui.element('div').classes('move-analysis-panel')
         with ui.element('div').classes('history-heading'):
             ui.label('MOVE LOG')
         with ui.element('div').classes('move-history-panel'):
@@ -368,4 +371,3 @@ class BoardView:
                 if index == current_index:
                     label.classes('current-move').props('aria-current="step"')
                 self.history_labels.append(label)
-
