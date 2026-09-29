@@ -132,7 +132,7 @@ BOARD_CSS = '''
             .board-actions { position: absolute; grid-column: 1 / -1; left: calc(50% - 176px); bottom: -39px; display: flex; width: max-content; padding: 0; }
             .board-actions .record-button { position: static; }
             .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
-            .move-history-panel { min-height: 0; margin-left: -97.5px; }
+            .move-history-panel { flex: 0 1 50%; min-height: 0; margin-left: -97.5px; }
         }
         @media (max-width: 760px) {
             .app-header { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
