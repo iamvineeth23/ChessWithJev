@@ -62,6 +62,8 @@ class BoardView:
         self.status_label = None
         self.fen_label = None
         self.history_panel = None
+        self.move_analysis_panel = None
+        self.analysis_position = None
         self.history_labels = []
         self.eval_fill = None
         self.eval_bar = None
@@ -241,6 +243,9 @@ class BoardView:
                 self.eval_fill.style(f'height: {percent:.1f}%')
                 self.eval_bar.props(f'aria-valuenow="{percent:.0f}" aria-valuetext="White expected score {percent:.0f} percent"')
                 self.eval_position = position
+        if self.move_analysis_panel and board.fen() != self.analysis_position:
+            self.render_move_analysis(board)
+            self.analysis_position = board.fen()
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:
@@ -339,7 +344,9 @@ class BoardView:
             self.render_status()
         with ui.element('div').classes('move-analysis-heading'):
             ui.label('Move Analysis')
-        ui.element('div').classes('move-analysis-panel')
+        self.move_analysis_panel = ui.element('div').classes('move-analysis-panel')
+        self.render_move_analysis(self.preview_board or self.position.board)
+        self.analysis_position = (self.preview_board or self.position.board).fen()
         with ui.element('div').classes('history-heading'):
             ui.label('MOVE LOG')
         with ui.element('div').classes('move-history-panel'):
@@ -357,6 +364,20 @@ class BoardView:
             with ui.row().classes('promotion-actions'):
                 for piece_type in (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT):
                     ui.button(chess.piece_name(piece_type).title(), on_click=lambda _, piece_type=piece_type: self.choose_promotion(piece_type)).classes('terminal-button')
+
+    def render_move_analysis(self, board: chess.Board) -> None:
+        self.move_analysis_panel.clear()
+        with self.move_analysis_panel:
+            with ui.element('table').classes('move-analysis-table'):
+                with ui.element('thead'):
+                    with ui.element('tr'):
+                        ui.element('th').text = 'Move'
+                        ui.element('th').text = 'Eval'
+                with ui.element('tbody'):
+                    for move, evaluation in self.controller.top_moves(board):
+                        with ui.element('tr'):
+                            ui.element('td').text = move
+                            ui.element('td').text = evaluation
 
     def render_history(self) -> None:
         self.history_panel.clear()

@@ -654,6 +654,25 @@ def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
     engine.quit.assert_called_once_with()
 
 
+def test_stockfish_top_moves_uses_multipv_and_white_evaluations() -> None:
+    controller = GameController()
+    engine = MagicMock()
+    engine.analyse.return_value = [
+        {'pv': [chess.Move.from_uci('e2e4')], 'score': chess.engine.PovScore(chess.engine.Cp(20), chess.WHITE)},
+        {'pv': [chess.Move.from_uci('d2d4')], 'score': chess.engine.PovScore(chess.engine.Cp(10), chess.WHITE)},
+    ]
+    with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine):
+        assert controller.top_moves() == [('e4', '+20'), ('d4', '+10')]
+    engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(time=0.1), multipv=5)
+
+
+def test_move_analysis_panel_has_move_and_eval_columns() -> None:
+    view = BoardView()
+    with patch.object(view.controller, 'top_moves', return_value=[('e4', '+20')]):
+        view.render_controls()
+    assert {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')} == {'Move', 'Eval', 'e4', '+20'}
+
+
 def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     position = Position()
     for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):

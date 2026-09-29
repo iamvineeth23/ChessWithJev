@@ -52,6 +52,9 @@ BOARD_CSS = '''
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
         .move-analysis-heading, .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
+        .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
+        .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
+        .move-analysis-table th:last-child, .move-analysis-table td:last-child { text-align: right; }
         .move-history-panel { overflow-y: auto; }
         .move-history { overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .move-history-entry { display: block; }

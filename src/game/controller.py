@@ -29,6 +29,14 @@ class GameController:
         info = self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1))
         return info['score'].white().wdl().expectation()
 
+    def top_moves(self, board: chess.Board | None = None) -> list[tuple[str, str]]:
+        board = board if board is not None else self.position.board
+        if board.outcome():
+            return []
+        return [(board.san(info['pv'][0]), str(info['score'].white()))
+                for info in self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1), multipv=5)
+                if info.get('pv')]
+
     def play(self, move: chess.Move) -> bool:
         return self.position.move(move.from_square, move.to_square, move.promotion)
 
