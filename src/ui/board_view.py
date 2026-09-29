@@ -339,7 +339,6 @@ class BoardView:
             self.render_status()
         with ui.element('div').classes('history-heading'):
             ui.label('MOVE LOG')
-            ui.label('01 / LIVE').classes('panel-meta')
         with ui.element('div').classes('move-history-panel'):
             self.history_panel = ui.element('div').classes('move-history')
         self.render_history()
@@ -369,5 +368,4 @@ class BoardView:
                 if index == current_index:
                     label.classes('current-move').props('aria-current="step"')
                 self.history_labels.append(label)
-
 
