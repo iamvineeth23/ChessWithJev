@@ -53,8 +53,9 @@ BOARD_CSS = '''
         .board-players { grid-column: 3; justify-self: end; }
         .game-controls { display: flex; flex-direction: column; gap: 14px; width: 274px; flex-shrink: 0; padding: 22px; }
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
-        .move-analysis-heading, .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
+        .move-analysis-heading, .history-heading, .evaluation-plot-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
         .history-heading { margin-top: -10px; }
+        .move-placeholder-panel { flex: 1; min-height: 40px; border: 1px solid var(--line); background: #101b14; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
@@ -156,9 +157,12 @@ BOARD_CSS = '''
             .board-actions { position: absolute; grid-column: 1 / -1; left: calc(50% - 176px); bottom: -39px; display: flex; width: max-content; padding: 0; }
             .board-actions .record-button { position: static; }
             .move-analysis-heading, .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
+            .evaluation-plot-heading { margin-left: -97.5px; margin-top: -28px; position: relative; top: 10px; }
+            .move-analysis-heading, .move-analysis-panel { transform: translateY(-14px); }
             .move-analysis-panel, .move-history-panel { flex: 0 1 50%; min-height: 0; margin-left: -97.5px; }
             .move-analysis-panel { flex: 0 0 auto; }
             .move-history-panel { flex: 0 0 auto; }
+            .move-placeholder-panel { margin-left: -97.5px; }
         }
         @media (max-width: 760px) {
             .app-header { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }

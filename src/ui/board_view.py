@@ -354,6 +354,8 @@ class BoardView:
         self.move_analysis_panel = ui.element('div').classes('move-analysis-panel')
         self.render_move_analysis(self.preview_board or self.position.board)
         self.analysis_position = (self.preview_board or self.position.board).fen()
+        ui.label('Evaluation Plot').classes('evaluation-plot-heading')
+        ui.element('div').classes('move-placeholder-panel').props('aria-label="Placeholder window"')
         with ui.element('div').classes('history-heading'):
             ui.label('Move Log')
         with ui.element('div').classes('move-history-panel'):
