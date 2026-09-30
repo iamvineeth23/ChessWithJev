@@ -441,6 +441,21 @@ def test_move_history_preserves_move_numbers_from_custom_position() -> None:
     assert move_history(position.board) == '12... Kh7'
 
 
+def test_move_log_columns_and_current_tile() -> None:
+    view = BoardView(white='human', black='human')
+    view.render_controls()
+    for san in ('c3', 'Na6', 'Nf3', 'Nb4'):
+        view.position.board.push_san(san)
+    view.sync()
+    assert [label.text for label in view.history_labels] == ['1. c3', '1... Na6', '2. Nf3', '2... Nb4']
+    assert [label._style['grid-column'] for label in view.history_labels] == ['1', '2', '1', '2']
+    assert ['current-move' in label._classes for label in view.history_labels] == [False, False, False, True]
+    view.set_fen('7k/8/8/8/8/8/6R1/K7 b - - 0 12')
+    view.position.board.push_san('Kh7')
+    view.sync()
+    assert view.history_labels[0]._style['grid-column'] == '2'
+
+
 def test_undo_redo_updates_board_history_and_status() -> None:
     view = BoardView()
     view.render_controls()

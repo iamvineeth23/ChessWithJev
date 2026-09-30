@@ -347,9 +347,9 @@ class BoardView:
         self.move_analysis_panel = ui.element('div').classes('move-analysis-panel')
         self.render_move_analysis(self.preview_board or self.position.board)
         self.analysis_position = (self.preview_board or self.position.board).fen()
-        with ui.element('div').classes('history-heading'):
-            ui.label('MOVE LOG')
         with ui.element('div').classes('move-history-panel'):
+            with ui.element('div').classes('history-heading'):
+                ui.label('MOVE LOG')
             self.history_panel = ui.element('div').classes('move-history')
         self.render_history()
         with header_actions or ui.element('div'):
@@ -397,6 +397,7 @@ class BoardView:
                 self.history_labels.append(ui.label('No moves yet').classes('move-history-entry'))
             for index, line in enumerate(lines, 1):
                 label = ui.label(line).classes('move-history-entry')
+                label.style(f'grid-column: {2 if "..." in line.split()[0] else 1}')
                 if index == current_index:
                     label.classes('current-move').props('aria-current="step"')
                 self.history_labels.append(label)
