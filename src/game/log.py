@@ -48,7 +48,7 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
             'score': result,
             'termination': outcome.termination.name.lower(),
         },
-        'evaluator': {'engine': 'stockfish', 'time_limit_seconds': 0.1},
+        'evaluator': {'engine': 'stockfish', 'depth': 18},
         'moves': moves,
     }
     path.write_text(json.dumps(payload, indent=2) + '\n')

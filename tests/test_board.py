@@ -705,7 +705,7 @@ def test_stockfish_evaluation_handles_scores_and_finished_games() -> None:
     engine.analyse.return_value = {'score': chess.engine.PovScore(chess.engine.Cp(200), chess.WHITE)}
     with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine):
         assert controller.white_expectation() > 0.5
-        engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(time=0.1))
+        engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(depth=18))
         controller.position.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
         assert controller.white_expectation() == 1.0
         controller.position.set_fen('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1')
@@ -723,7 +723,46 @@ def test_stockfish_top_moves_uses_multipv_and_white_evaluations() -> None:
     ]
     with patch('src.game.controller.chess.engine.SimpleEngine.popen_uci', return_value=engine):
         assert controller.top_moves() == [('e4', '+20'), ('d4', '+10')]
-    engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(time=0.1), multipv=5)
+    engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(depth=18), multipv=5)
+
+
+@pytest.mark.parametrize('purpose', ['position', 'top_moves', 'loss'])
+def test_stockfish_analysis_uses_full_strength_between_elo_limited_turns(purpose: str) -> None:
+    controller = GameController()
+    engine = MagicMock()
+    controller.engine = engine
+    settings = {}
+    engine.configure.side_effect = settings.update
+    def play(board, limit):
+        assert settings['UCI_LimitStrength'] is True
+        assert settings['UCI_Elo'] == 1800
+        return chess.engine.PlayResult(board.parse_san('e4' if board.turn else 'e5'), None)
+
+    engine.play.side_effect = play
+    searches = []
+
+    def analyse(board, limit, **kwargs):
+        assert settings['UCI_LimitStrength'] is False
+        assert settings['Skill Level'] == 20
+        assert limit == chess.engine.Limit(depth=18)
+        searches.append(kwargs)
+        info = {'pv': [board.parse_san('d4' if board.turn else 'd5')],
+                'score': chess.engine.PovScore(chess.engine.Cp(20), chess.WHITE)}
+        return [info] if 'multipv' in kwargs else info
+
+    engine.analyse.side_effect = analyse
+    assert controller.play_stockfish_move(1800)
+    if purpose == 'position':
+        controller.white_expectation()
+        assert searches == [{}]
+    elif purpose == 'top_moves':
+        controller.top_moves()
+        assert searches == [{'multipv': 5}]
+    else:
+        _, _, loss = controller.move_analysis(controller.position.board)
+        assert loss == 0
+        assert searches == [{'multipv': 5}, {'root_moves': [chess.Move.from_uci('e2e4')]}]
+    assert controller.play_stockfish_move(1800)
 
 
 def test_move_analysis_compares_the_last_move_with_its_prior_options() -> None:
@@ -824,7 +863,7 @@ def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, mo
     assert json.loads((tmp_path / 'repo' / 'gamelog' / 'latest.json').read_text()) == json.loads(recorded_path.read_text())
     assert log['players']['black'] == {'type': 'stockfish', 'elo': 2100, 'model': None}
     assert log['result'] == {'winner': 'black', 'score': '0-1', 'termination': 'checkmate'}
-    assert log['evaluator'] == {'engine': 'stockfish', 'time_limit_seconds': 0.1}
+    assert log['evaluator'] == {'engine': 'stockfish', 'depth': 18}
     first = chess.Board()
     legal_moves = [first.san(move) for move in first.legal_moves]
     first.push_uci('f2f3')

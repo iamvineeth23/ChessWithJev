@@ -21,12 +21,17 @@ class GameController:
             self.engine.quit()
             self.engine = None
 
+    def analysis_engine(self) -> chess.engine.SimpleEngine:
+        engine = self.stockfish_engine()
+        engine.configure({'UCI_LimitStrength': False, 'Skill Level': 20})
+        return engine
+
     def white_expectation(self, board: chess.Board | None = None) -> float:
         board = board if board is not None else self.position.board
         outcome = self.position.outcome() if board is self.position.board else board.outcome()
         if outcome:
             return 0.5 if outcome.winner is None else float(outcome.winner)
-        info = self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1))
+        info = self.analysis_engine().analyse(board, chess.engine.Limit(depth=18))
         return info['score'].white().wdl().expectation()
 
     def top_moves(self, board: chess.Board | None = None) -> list[tuple[str, str]]:
@@ -34,18 +39,18 @@ class GameController:
         if board.outcome():
             return []
         return [(board.san(info['pv'][0]), str(info['score'].white()))
-                for info in self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1), multipv=5)
+                for info in self.analysis_engine().analyse(board, chess.engine.Limit(depth=18), multipv=5)
                 if info.get('pv')]
 
     def move_analysis(self, board: chess.Board) -> tuple[list[tuple[str, chess.engine.Score]], chess.engine.Score, float | None]:
         previous = board.copy(stack=True)
         played = previous.pop()
-        engine = self.stockfish_engine()
-        options = [info for info in engine.analyse(previous, chess.engine.Limit(time=0.1), multipv=5)
+        engine = self.analysis_engine()
+        options = [info for info in engine.analyse(previous, chess.engine.Limit(depth=18), multipv=5)
                    if info.get('pv')]
         played_info = next((info for info in options if info['pv'][0] == played), None)
         if played_info is None:
-            played_info = engine.analyse(previous, chess.engine.Limit(time=0.1), root_moves=[played])
+            played_info = engine.analyse(previous, chess.engine.Limit(depth=18), root_moves=[played])
         played_score = played_info['score'].white()
         alternatives = [(previous.san(info['pv'][0]), info['score'].white()) for info in options]
         best_cp = options[0]['score'].pov(previous.turn).score() if options else None
