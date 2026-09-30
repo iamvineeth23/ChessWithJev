@@ -569,6 +569,7 @@ def test_history_preview_pauses_computer_game_and_resets_on_new_game() -> None:
     assert view.play_move(chess.Move.from_uci('e2e4'))
     view.toggle_random()
     assert view.random_timer.active
+    assert view.history_panel._props['data-scroll-resume'] == '1'
     view.step_history(-1)
     assert not view.random_timer.active
     with patch.object(view.controller, 'play_random_move') as play_random:
@@ -578,6 +579,24 @@ def test_history_preview_pauses_computer_game_and_resets_on_new_game() -> None:
     assert view.preview_board is None
     assert view.position.board.fen() == chess.STARTING_FEN
     assert not view.history_back_button.enabled
+
+
+def test_computer_game_resumes_from_live_position_while_viewing_history() -> None:
+    view = BoardView(white='random', black='random')
+    view.render_controls()
+    for san in ('e4', 'e5', 'Nf3'):
+        view.position.board.push_san(san)
+    live_fen = view.position.board.fen()
+    view.select_history(1)
+    assert view.random_button.enabled
+    view.toggle_random()
+    assert view.preview_board is None and view.preview_index is None
+    assert view.position.board.fen() == live_fen
+    assert view.random_timer.active
+    assert view.history_panel._props['data-scroll-resume'] == '1'
+    with patch.object(view.controller, 'play_random_move', return_value=False) as play_random:
+        view.random_step()
+    play_random.assert_called_once()
 
 
 def test_undo_reopens_finished_game() -> None:
@@ -845,6 +864,7 @@ def test_random_vs_random_starts_pauses_and_resets() -> None:
     assert len(view.position.board.move_stack) == 1
     view.toggle_random()
     assert not view.random_timer.active
+    assert view.history_panel._props['data-scroll-resume'] == '1'
     view.new_game()
     assert not view.random_timer.active
     assert view.position.board.fen() == chess.STARTING_FEN

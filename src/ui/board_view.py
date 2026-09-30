@@ -127,6 +127,7 @@ class BoardView:
             return False
         self.selected = None
         self.has_played_move = True
+        self.resume_history_scroll()
         self.automatic_step()
         self.sync()
         return True
@@ -147,15 +148,24 @@ class BoardView:
             self.random_button.set_text('START')
 
     def toggle_random(self) -> None:
-        if self.preview_board is not None:
+        if self.position.outcome():
             return
+        if self.preview_board is not None:
+            self.select_history(len(self.position.board.move_stack))
         self.random_timer.active = not self.random_timer.active
+        if self.random_timer.active:
+            self.resume_history_scroll()
         self.random_button.set_text('PAUSE' if self.random_timer.active else 'START')
 
     def pause_random(self) -> None:
         if self.random_timer:
             self.random_timer.active = False
             self.random_button.set_text('START')
+
+    def resume_history_scroll(self) -> None:
+        if self.history_panel:
+            generation = int(self.history_panel._props.get('data-scroll-resume', 0)) + 1
+            self.history_panel.props(f'data-scroll-resume={generation}')
 
     def claim_draw(self) -> None:
         if self.preview_board is not None:
@@ -269,7 +279,7 @@ class BoardView:
         if self.history_forward_button:
             self.history_forward_button.set_enabled(self.preview_index is not None)
         if self.random_button:
-            self.random_button.set_enabled(self.preview_board is None and not bool(self.position.outcome()))
+            self.random_button.set_enabled(not bool(self.position.outcome()))
         current_index = len(self.position.board.move_stack) if self.preview_index is None else self.preview_index
         current_move = self.position.board.move_stack[current_index - 1] if current_index else None
         for square, element in self.squares.items():

@@ -2,16 +2,29 @@ MOVE_LOG_SCRIPT = '''
         <script>
             let moveLog;
             let moveLogObserver;
+            let followLatest = true;
+            let historyScrollTop = 0;
             const watchMoveLog = () => {
                 const log = document.querySelector('.move-history-panel');
                 if (!log || log === moveLog) return;
                 moveLogObserver?.disconnect();
                 moveLog = log;
-                moveLogObserver = new MutationObserver(() => {
-                    const history = log.querySelector('.move-history');
-                    if (history) history.scrollTop = history.scrollHeight;
+                followLatest = true;
+                historyScrollTop = 0;
+                const history = log.querySelector('.move-history');
+                history?.addEventListener('scroll', () => {
+                    if (history.scrollTop < historyScrollTop) followLatest = false;
+                    historyScrollTop = history.scrollTop;
                 });
-                moveLogObserver.observe(log, {childList: true, characterData: true, subtree: true});
+                moveLogObserver = new MutationObserver((changes) => {
+                    if (changes.some(change => change.attributeName === 'data-scroll-resume')) followLatest = true;
+                    const history = log.querySelector('.move-history');
+                    if (history) {
+                        history.scrollTop = followLatest ? history.scrollHeight : historyScrollTop;
+                        historyScrollTop = history.scrollTop;
+                    }
+                });
+                moveLogObserver.observe(log, {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['data-scroll-resume']});
             };
             const attachMoveLog = new MutationObserver(watchMoveLog);
             attachMoveLog.observe(document.body, {childList: true, subtree: true});
