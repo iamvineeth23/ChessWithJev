@@ -7,7 +7,10 @@ MOVE_LOG_SCRIPT = '''
                 if (!log || log === moveLog) return;
                 moveLogObserver?.disconnect();
                 moveLog = log;
-                moveLogObserver = new MutationObserver(() => { log.scrollTop = log.scrollHeight; });
+                moveLogObserver = new MutationObserver(() => {
+                    const history = log.querySelector('.move-history');
+                    if (history) history.scrollTop = history.scrollHeight;
+                });
                 moveLogObserver.observe(log, {childList: true, characterData: true, subtree: true});
             };
             const attachMoveLog = new MutationObserver(watchMoveLog);
@@ -51,6 +54,7 @@ BOARD_CSS = '''
         .game-controls { display: flex; flex-direction: column; gap: 14px; width: 274px; flex-shrink: 0; padding: 22px; }
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
         .move-analysis-heading, .history-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
+        .history-heading { margin-top: -10px; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
@@ -67,8 +71,8 @@ BOARD_CSS = '''
         .move-alternative-fill { height: 100%; background: var(--green); }
         .played-alternative .move-alternative-fill { background: #f1d585; }
         .move-analysis-note { margin-top: 4px; font-size: 11px; line-height: 1.4; }
-        .move-history-panel { overflow-y: auto; }
-        .move-history { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
+        .move-history-panel { flex: 0 0 auto; min-height: 0; height: calc(4 * (13px * 1.8 + 4px) + 3 * 2px + 30px); box-sizing: border-box; overflow: hidden; }
+        .move-history { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; max-height: calc(4 * (13px * 1.8 + 4px) + 3 * 2px); overflow-y: auto; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .move-history-entry { display: block; padding: 2px 8px; border-radius: 6px; background: #22372a; color: #d7e8d6; }
         .q-btn.move-history-entry { min-height: 0; font: inherit; letter-spacing: 0; text-align: left; }
         .move-history-entry .q-btn__content { justify-content: flex-start; }
@@ -154,6 +158,7 @@ BOARD_CSS = '''
             .move-analysis-heading, .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
             .move-analysis-panel, .move-history-panel { flex: 0 1 50%; min-height: 0; margin-left: -97.5px; }
             .move-analysis-panel { flex: 0 0 auto; }
+            .move-history-panel { flex: 0 0 auto; }
         }
         @media (max-width: 760px) {
             .app-header { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
