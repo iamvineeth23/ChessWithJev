@@ -56,7 +56,7 @@ BOARD_CSS = '''
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
         .move-analysis-table th:last-child, .move-analysis-table td:last-child { text-align: right; }
         .analysis-engine { padding: 0 6px; border-radius: 12px; background: #22372a; color: var(--muted); letter-spacing: 0; }
-        .move-analysis-panel { font-size: 13px; line-height: 1.25; }
+        .move-analysis-panel { flex: 0 0 auto; min-height: 0; font-size: 13px; line-height: 1.25; }
         .move-analysis-context, .move-analysis-note { color: var(--muted); }
         .played-move-card { margin: 4px 0; padding: 4px 8px; border-radius: 6px; background: #22372a; }
         .played-move-name, .played-alternative { color: #f1d585; font-weight: 700; }
@@ -153,6 +153,7 @@ BOARD_CSS = '''
             .board-actions .record-button { position: static; }
             .move-analysis-heading, .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
             .move-analysis-panel, .move-history-panel { flex: 0 1 50%; min-height: 0; margin-left: -97.5px; }
+            .move-analysis-panel { flex: 0 0 auto; }
         }
         @media (max-width: 760px) {
             .app-header { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
