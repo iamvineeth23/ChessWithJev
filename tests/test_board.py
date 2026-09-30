@@ -1029,6 +1029,8 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
         assert len(view.position.board.move_stack) == 1
         assert view.shown_pieces == {square: view.position.board.piece_at(square) for square in view.squares}
         assert view.analysis_position == chess.STARTING_FEN
+        assert 'analyzing' in view.analysis_engine_label._classes
+        assert view.analysis_engine_label._props['aria-busy'] == 'true'
         assert '1.' in move_log_text(view)
         await turn_in_context()  # a second tick cannot advance while analysis is pending
         assert len(view.position.board.move_stack) == 1
@@ -1037,6 +1039,8 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
         assert view.analysis_position == view.position.board.fen()
         assert paints == [(1, chess.STARTING_FEN), (1, view.position.board.fen())]
         assert not view.analysis_busy
+        assert 'analyzing' not in view.analysis_engine_label._classes
+        assert view.analysis_engine_label._props['aria-busy'] == 'false'
         await turn_in_context()
         assert len(view.position.board.move_stack) == 2
         assert view.analysis_position == view.position.board.fen()
@@ -1096,6 +1100,7 @@ def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, a
             await turn
         assert not view.analysis_busy
         assert not view.random_timer.active
+        assert 'analyzing' not in view.analysis_engine_label._classes
         if action in {'reset', 'history'}:
             assert view.analysis_position == chess.STARTING_FEN
             assert not list(view.move_analysis_panel.descendants())

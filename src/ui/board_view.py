@@ -65,6 +65,7 @@ class BoardView:
         self.move_analysis_panel = None
         self.analysis_position = None
         self.analysis_busy = False
+        self.analysis_engine_label = None
         self.closed = False
         self.history_labels = []
         self.eval_fill = None
@@ -159,6 +160,7 @@ class BoardView:
         self.analysis_busy = True
         try:
             self.automatic_step()
+            self.set_analysis_indicator(True)
             self.sync()
             await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
             while True:
@@ -192,6 +194,7 @@ class BoardView:
                     continue
                 self.evaluation_cache.update(cache)
                 self.sync_analysis(source, result, refresh=False)
+                self.set_analysis_indicator(False)
                 break
             await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
             if self.has_played_move and self.position.outcome() and not self.game_logged:
@@ -208,6 +211,13 @@ class BoardView:
                 raise
         finally:
             self.analysis_busy = False
+            self.set_analysis_indicator(False)
+
+    def set_analysis_indicator(self, active: bool) -> None:
+        if self.analysis_engine_label is not None:
+            self.analysis_engine_label.classes(add='analyzing' if active else None,
+                                               remove=None if active else 'analyzing')
+            self.analysis_engine_label.props(f'aria-busy="{str(active).lower()}"')
 
     def close(self) -> None:
         self.closed = True
@@ -449,7 +459,7 @@ class BoardView:
             self.render_status()
         with ui.element('div').classes('move-analysis-heading'):
             ui.label('Move Analysis')
-            ui.label('STOCKFISH').classes('analysis-engine')
+            self.analysis_engine_label = ui.label('STOCKFISH').classes('analysis-engine').props('aria-busy="false"')
         self.move_analysis_panel = ui.element('div').classes('move-analysis-panel')
         self.render_move_analysis(self.preview_board or self.position.board)
         self.analysis_position = (self.preview_board or self.position.board).fen()

@@ -75,7 +75,10 @@ BOARD_CSS = '''
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
         .move-analysis-table th:last-child, .move-analysis-table td:last-child { text-align: right; }
-        .analysis-engine { padding: 0 6px; border-radius: 12px; background: #22372a; color: var(--muted); letter-spacing: 0; }
+        .analysis-engine { position: relative; padding: 0 6px; border-radius: 12px; background: #22372a; color: var(--muted); letter-spacing: 0; }
+        .analysis-engine::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: 0; }
+        .analysis-engine.analyzing::before { opacity: 1; animation: record-blink 1s steps(1, end) infinite; }
+        @media (prefers-reduced-motion: reduce) { .analysis-engine.analyzing::before { animation: none; } }
         .move-analysis-panel { flex: 0 0 auto; min-height: 0; height: 209px; box-sizing: border-box; overflow-y: auto; font-size: 13px; line-height: 1.25; }
         .move-analysis-context, .move-analysis-note { color: var(--muted); }
         .played-move-card { margin: 4px 0; padding: 4px 8px; border-radius: 6px; background: #22372a; }
