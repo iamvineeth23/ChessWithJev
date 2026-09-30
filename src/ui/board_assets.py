@@ -71,7 +71,6 @@ BOARD_CSS = '''
         .move-placeholder-panel { flex: 1; min-height: 40px; border: 1px solid var(--line); background: #101b14; }
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
-        .live-evaluation-chart .chart-label, .live-evaluation-chart .chart-axis-title, .live-evaluation-chart .chart-player-label { font-size: 11px; letter-spacing: 0; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
@@ -129,6 +128,14 @@ BOARD_CSS = '''
         .evaluation-chart .chart-player-black { fill: #d7e8d6; }
         .evaluation-chart .chart-label, .evaluation-chart .chart-axis-title { fill: var(--muted); font: 14px 'SFMono-Regular', Consolas, monospace; letter-spacing: .06em; }
         .evaluation-chart .chart-axis-title { fill: var(--green); font-weight: 700; }
+        .live-evaluation-chart .evaluation-chart .chart-label { font-size: 9px; letter-spacing: 0; }
+        .live-evaluation-chart .evaluation-chart .chart-player-label,
+        .live-evaluation-chart .evaluation-chart .chart-axis-title { font-size: 9px; font-weight: 400; letter-spacing: .08em; fill: var(--muted); }
+        .live-evaluation-chart .chart-line { stroke-width: 1.5; filter: none; }
+        .live-evaluation-chart .chart-last-point { r: 2.5px; stroke-width: 1; }
+        .live-evaluation-chart .chart-grid { stroke-width: .6; opacity: .45; }
+        .live-evaluation-chart .chart-grid-vertical { opacity: .22; }
+        .live-evaluation-chart .chart-balance { stroke-width: .8; stroke-dasharray: 3 4; opacity: .65; }
         .board-actions .record-button { grid-column: span 2; width: 72px; border-color: #f3d68a; background: #0c1510; color: #ff4b45; }
         .record-button .q-btn__content::before { content: '●'; display: inline-block; margin-right: 4px; opacity: 0; }
         .record-button.recording .q-btn__content::before { opacity: 1; animation: record-blink 1s steps(1) infinite; }
