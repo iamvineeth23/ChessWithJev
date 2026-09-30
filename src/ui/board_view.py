@@ -390,7 +390,7 @@ class BoardView:
             ui.label(f'Position before {prefix} {played_san}').classes('move-analysis-context')
             with ui.element('div').classes('played-move-card'):
                 with ui.element('div').classes('move-analysis-detail'):
-                    ui.label(f'Played by {self.players[previous_position.turn]}').classes('move-analysis-context')
+                    ui.label(f'Played by {chess.COLOR_NAMES[previous_position.turn]} ({self.players[previous_position.turn].title()})').classes('move-analysis-context')
                     ui.label(played_san).classes('played-move-name')
                 with ui.element('div').classes('move-analysis-detail'):
                     ui.label('Eval after move')

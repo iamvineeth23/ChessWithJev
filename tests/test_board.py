@@ -716,7 +716,7 @@ def test_move_analysis_compares_the_last_move_with_its_prior_options() -> None:
         view.render_move_analysis(view.position.board)
         assert analysis.call_args.args[0].fen() == view.position.board.fen()
     text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
-    assert {'Position before 1. e4', 'Played by human', 'Eval after move', 'Eval loss', '0.00 pawns', 'Best alternatives', 'e4', '+0.20'} <= text
+    assert {'Position before 1. e4', 'Played by white (Human)', 'Eval after move', 'Eval loss', '0.00 pawns', 'Best alternatives', 'e4', '+0.20'} <= text
 
 
 @pytest.mark.parametrize('player', ['human', 'random', 'stockfish'])
@@ -728,7 +728,7 @@ def test_move_analysis_identifies_player_in_history(player: str) -> None:
             view.position.board.push_san(san)
         view.select_history(2)
     text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
-    assert {f'Played by {player}', 'Position before 1... e5', '+0.30', '0.20 pawns'} <= text
+    assert {f'Played by black ({player.title()})', 'Position before 1... e5', '+0.30', '0.20 pawns'} <= text
 
 
 @pytest.mark.parametrize('black_to_move, best_cp, played_cp, loss', [(False, 70, 20, 0.5), (True, 20, 70, 0.5), (False, 20, 70, 0.0)])
