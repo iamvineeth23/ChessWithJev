@@ -909,3 +909,46 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     assert 'game' not in storage
     assert max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id).id != start.id
     assert not footer.visible
+
+
+def test_live_plot_tracks_every_move_history_branches_and_reset() -> None:
+    from nicegui import ui
+    view = BoardView(white='human', black='human')
+    view.evaluation_plot = ui.html('')
+    with patch.object(view.controller, 'white_expectation', side_effect=lambda board: 0.5 + len(board.move_stack) * 0.1) as evaluate:
+        view.sync()
+        assert '0</text>' in view.evaluation_plot.content
+        view.play_move(chess.Move.from_uci('e2e4'))
+        view.play_move(chess.Move.from_uci('e7e5'))
+        assert evaluate.call_count == 3
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20, 40], compact=True)
+        view.sync()
+        assert evaluate.call_count == 3
+        view.select_history(1)
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20], compact=True)
+        view.select_history(2)
+        view.undo()
+        view.redo()
+        assert evaluate.call_count == 3
+        view.undo()
+        view.play_move(chess.Move.from_uci('c7c5'))
+        assert evaluate.call_count == 4
+        view.new_game()
+        assert evaluate.call_count == 5
+        assert view.evaluation_plot.content == evaluation_chart_svg([0], compact=True)
+        view.controller.close()
+
+
+def test_live_plot_fills_moves_skipped_by_automatic_reply() -> None:
+    from nicegui import ui
+    view = BoardView()
+    view.evaluation_plot = ui.html('')
+    with patch.object(view.controller, 'white_expectation', return_value=0.5) as evaluate:
+        view.sync()
+        assert view.play_human_move(chess.Move.from_uci('e2e4'))
+        assert len(view.position.board.move_stack) == 2
+        assert evaluate.call_count == 3
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 0, 0], compact=True)
+        view.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
+        view.claim_draw()
+        assert view.position.claimed_draw

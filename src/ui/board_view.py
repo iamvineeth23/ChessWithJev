@@ -68,6 +68,8 @@ class BoardView:
         self.eval_fill = None
         self.eval_bar = None
         self.eval_position = None
+        self.evaluation_plot = None
+        self.evaluation_cache = {}
         self.claim_button = None
         self.undo_button = None
         self.redo_button = None
@@ -84,6 +86,7 @@ class BoardView:
 
     def set_fen(self, fen: str) -> None:
         self.position.set_fen(fen)
+        self.evaluation_cache.clear()
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
@@ -95,6 +98,7 @@ class BoardView:
 
     def set_board(self, board: chess.Board) -> None:
         self.position.set_board(board)
+        self.evaluation_cache.clear()
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
@@ -250,15 +254,33 @@ class BoardView:
                 self.preview_board.push(move)
         self.sync()
 
+    def cached_white_expectation(self, board: chess.Board, *, refresh: bool = False) -> float:
+        key = (board.root().fen(), tuple(board.move_stack),
+               str(self.position.claimed_draw) if board is self.position.board else str(None))
+        if refresh or key not in self.evaluation_cache:
+            self.evaluation_cache[key] = self.controller.white_expectation(board)
+        return self.evaluation_cache[key]
+
+    def sync_evaluation_plot(self, board: chess.Board) -> None:
+        replay = board.root()
+        evaluations = [200 * self.cached_white_expectation(board if not board.move_stack else replay) - 100]
+        for move in board.move_stack:
+            replay.push(move)
+            evaluated = board if len(replay.move_stack) == len(board.move_stack) else replay
+            evaluations.append(200 * self.cached_white_expectation(evaluated) - 100)
+        self.evaluation_plot.set_content(evaluation_chart_svg(evaluations, compact=True))
+
     def sync(self) -> None:
         board = self.preview_board or self.position.board
         if self.eval_fill:
             position = (board.fen(), self.position.claimed_draw if self.preview_board is None else None)
             if position != self.eval_position:
-                percent = 100 * self.controller.white_expectation(board)
+                percent = 100 * self.cached_white_expectation(board, refresh=True)
                 self.eval_fill.style(f'height: {percent:.1f}%')
                 self.eval_bar.props(f'aria-valuenow="{percent:.0f}" aria-valuetext="White expected score {percent:.0f} percent"')
                 self.eval_position = position
+        if self.evaluation_plot:
+            self.sync_evaluation_plot(board)
         if self.move_analysis_panel and board.fen() != self.analysis_position:
             self.render_move_analysis(board)
             self.analysis_position = board.fen()
@@ -365,7 +387,9 @@ class BoardView:
         self.render_move_analysis(self.preview_board or self.position.board)
         self.analysis_position = (self.preview_board or self.position.board).fen()
         ui.label('Evaluation Plot').classes('evaluation-plot-heading')
-        ui.element('div').classes('move-placeholder-panel').props('aria-label="Placeholder window"')
+        with ui.element('div').classes('move-placeholder-panel').props('aria-label="Live evaluation plot"'):
+            self.evaluation_plot = ui.html('').classes('live-evaluation-chart')
+        self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):
             ui.label('Move Log')
         with ui.element('div').classes('move-history-panel'):
