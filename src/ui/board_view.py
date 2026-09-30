@@ -367,6 +367,10 @@ class BoardView:
 
     def render_move_analysis(self, board: chess.Board) -> None:
         self.move_analysis_panel.clear()
+        if not board.move_stack:
+            return
+        previous_position = board.copy(stack=True)
+        previous_position.pop()
         with self.move_analysis_panel:
             with ui.element('table').classes('move-analysis-table'):
                 with ui.element('thead'):
@@ -376,7 +380,7 @@ class BoardView:
                         with ui.element('th'):
                             ui.label('Eval')
                 with ui.element('tbody'):
-                    for move, evaluation in self.controller.top_moves(board):
+                    for move, evaluation in self.controller.top_moves(previous_position):
                         with ui.element('tr'):
                             with ui.element('td'):
                                 ui.label(move)

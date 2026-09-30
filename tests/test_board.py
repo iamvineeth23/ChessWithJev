@@ -666,10 +666,14 @@ def test_stockfish_top_moves_uses_multipv_and_white_evaluations() -> None:
     engine.analyse.assert_called_once_with(controller.position.board, chess.engine.Limit(time=0.1), multipv=5)
 
 
-def test_move_analysis_panel_has_move_and_eval_columns() -> None:
+def test_move_analysis_compares_the_last_move_with_its_prior_options() -> None:
     view = BoardView()
-    with patch.object(view.controller, 'top_moves', return_value=[('e4', '+20')]):
+    with patch.object(view.controller, 'top_moves', return_value=[('e4', '+20')]) as top_moves:
         view.render_controls()
+        assert not list(view.move_analysis_panel.descendants())
+        assert view.controller.play(chess.Move.from_uci('e2e4'))
+        view.render_move_analysis(view.position.board)
+        assert top_moves.call_args.args[0].fen() == chess.STARTING_FEN
     assert {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')} == {'Move', 'Eval', 'e4', '+20'}
 
 
