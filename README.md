@@ -20,6 +20,8 @@ Run with `.venv/bin/chess -r` to start with REC enabled. Run with `.venv/bin/che
 
 Click a move in Move Log to preview its board position and Move Analysis. Click the latest move to return to the live position. Browsing history pauses automatic play.
 
+Move Analysis shows who played the selected move, its Stockfish evaluation, evaluation loss, and five best alternatives from the preceding position. Evaluations are in pawns from White's perspective; loss is measured for the player who moved. Alternative bars show that player's expected score. Mate scores retain their `#` notation and have no pawn-loss value.
+
 Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`; with REC enabled, it is also kept in `gamelog/rec/` as `YYYY-MM-DD_001.json`. Each file records the players, result, every legal-move position, move, and Stockfish evaluation. Unfinished games are not written.
 
 Notes:

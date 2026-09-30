@@ -55,6 +55,18 @@ BOARD_CSS = '''
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
         .move-analysis-table th:last-child, .move-analysis-table td:last-child { text-align: right; }
+        .analysis-engine { padding: 0 6px; border-radius: 12px; background: #22372a; color: var(--muted); letter-spacing: 0; }
+        .move-analysis-panel { font-size: 13px; line-height: 1.25; }
+        .move-analysis-context, .move-analysis-note { color: var(--muted); }
+        .played-move-card { margin: 4px 0; padding: 4px 8px; border-radius: 6px; background: #22372a; }
+        .played-move-name, .played-alternative { color: #f1d585; font-weight: 700; }
+        .move-analysis-detail { display: flex; justify-content: space-between; gap: 8px; }
+        .move-alternative { display: grid; grid-template-columns: 18px 48px minmax(0, 1fr) 48px; gap: 6px; align-items: center; }
+        .move-alternative > :last-child { text-align: right; }
+        .move-alternative-bar { height: 5px; border-radius: 3px; background: #22372a; overflow: hidden; }
+        .move-alternative-fill { height: 100%; background: var(--green); }
+        .played-alternative .move-alternative-fill { background: #f1d585; }
+        .move-analysis-note { margin-top: 4px; font-size: 11px; line-height: 1.4; }
         .move-history-panel { overflow-y: auto; }
         .move-history { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .move-history-entry { display: block; padding: 2px 8px; border-radius: 6px; background: #22372a; color: #d7e8d6; }

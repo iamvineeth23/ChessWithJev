@@ -37,6 +37,22 @@ class GameController:
                 for info in self.stockfish_engine().analyse(board, chess.engine.Limit(time=0.1), multipv=5)
                 if info.get('pv')]
 
+    def move_analysis(self, board: chess.Board) -> tuple[list[tuple[str, chess.engine.Score]], chess.engine.Score, float | None]:
+        previous = board.copy(stack=True)
+        played = previous.pop()
+        engine = self.stockfish_engine()
+        options = [info for info in engine.analyse(previous, chess.engine.Limit(time=0.1), multipv=5)
+                   if info.get('pv')]
+        played_info = next((info for info in options if info['pv'][0] == played), None)
+        if played_info is None:
+            played_info = engine.analyse(previous, chess.engine.Limit(time=0.1), root_moves=[played])
+        played_score = played_info['score'].white()
+        alternatives = [(previous.san(info['pv'][0]), info['score'].white()) for info in options]
+        best_cp = options[0]['score'].pov(previous.turn).score() if options else None
+        played_cp = played_info['score'].pov(previous.turn).score()
+        loss = max(0, best_cp - played_cp) / 100 if best_cp is not None and played_cp is not None else None
+        return alternatives, played_score, loss
+
     def play(self, move: chess.Move) -> bool:
         return self.position.move(move.from_square, move.to_square, move.promotion)
 

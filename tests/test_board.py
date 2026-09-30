@@ -709,13 +709,63 @@ def test_stockfish_top_moves_uses_multipv_and_white_evaluations() -> None:
 
 def test_move_analysis_compares_the_last_move_with_its_prior_options() -> None:
     view = BoardView()
-    with patch.object(view.controller, 'top_moves', return_value=[('e4', '+20')]) as top_moves:
+    with patch.object(view.controller, 'move_analysis', return_value=([('e4', chess.engine.Cp(20))], chess.engine.Cp(20), 0.0)) as analysis:
         view.render_controls()
         assert not list(view.move_analysis_panel.descendants())
         assert view.controller.play(chess.Move.from_uci('e2e4'))
         view.render_move_analysis(view.position.board)
-        assert top_moves.call_args.args[0].fen() == chess.STARTING_FEN
-    assert {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')} == {'Move', 'Eval', 'e4', '+20'}
+        assert analysis.call_args.args[0].fen() == view.position.board.fen()
+    text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
+    assert {'Position before 1. e4', 'Played by human', 'Eval after move', 'Eval loss', '0.00 pawns', 'Best alternatives', 'e4', '+0.20'} <= text
+
+
+@pytest.mark.parametrize('player', ['human', 'random', 'stockfish'])
+def test_move_analysis_identifies_player_in_history(player: str) -> None:
+    view = BoardView(white='human', black=player)
+    with patch.object(view.controller, 'move_analysis', return_value=([('e5', chess.engine.Cp(10))], chess.engine.Cp(30), 0.2)):
+        view.render_controls()
+        for san in ('e4', 'e5', 'Nf3'):
+            view.position.board.push_san(san)
+        view.select_history(2)
+    text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
+    assert {f'Played by {player}', 'Position before 1... e5', '+0.30', '0.20 pawns'} <= text
+
+
+@pytest.mark.parametrize('black_to_move, best_cp, played_cp, loss', [(False, 70, 20, 0.5), (True, 20, 70, 0.5), (False, 20, 70, 0.0)])
+def test_move_analysis_loss_and_played_move_outside_top_five(black_to_move, best_cp, played_cp, loss) -> None:
+    controller = GameController()
+    position = chess.Board()
+    if black_to_move:
+        position.push_san('e4')
+    previous = position.copy()
+    played = position.parse_san('a6' if black_to_move else 'a3')
+    alternative = position.parse_san('e5' if black_to_move else 'e4')
+    position.push(played)
+    engine = MagicMock()
+    engine.analyse.side_effect = [
+        [{'pv': [alternative], 'score': chess.engine.PovScore(chess.engine.Cp(best_cp), chess.WHITE)}],
+        {'score': chess.engine.PovScore(chess.engine.Cp(played_cp), chess.WHITE)},
+    ]
+    with patch.object(controller, 'stockfish_engine', return_value=engine):
+        options, score, actual_loss = controller.move_analysis(position)
+    assert actual_loss == loss
+    assert score == chess.engine.Cp(played_cp)
+    assert options == [(previous.san(alternative), chess.engine.Cp(best_cp))]
+    assert engine.analyse.call_args.kwargs == {'root_moves': [played]}
+    assert engine.analyse.call_args.args[0].fen() == previous.fen()
+
+
+def test_move_analysis_reuses_played_option_and_preserves_mate_score() -> None:
+    controller = GameController()
+    position = chess.Board()
+    position.push_san('e4')
+    engine = MagicMock()
+    engine.analyse.return_value = [{'pv': [position.peek()], 'score': chess.engine.PovScore(chess.engine.Mate(3), chess.WHITE)}]
+    with patch.object(controller, 'stockfish_engine', return_value=engine):
+        _, score, loss = controller.move_analysis(position)
+    assert score == chess.engine.Mate(3)
+    assert loss is None
+    assert engine.analyse.call_count == 1
 
 
 def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

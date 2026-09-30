@@ -350,6 +350,7 @@ class BoardView:
             self.render_status()
         with ui.element('div').classes('move-analysis-heading'):
             ui.label('Move Analysis')
+            ui.label('STOCKFISH').classes('analysis-engine')
         self.move_analysis_panel = ui.element('div').classes('move-analysis-panel')
         self.render_move_analysis(self.preview_board or self.position.board)
         self.analysis_position = (self.preview_board or self.position.board).fen()
@@ -376,22 +377,40 @@ class BoardView:
         if not board.move_stack:
             return
         previous_position = board.copy(stack=True)
-        previous_position.pop()
+        played = previous_position.pop()
+        played_san = previous_position.san(played)
+        prefix = f'{previous_position.fullmove_number}.' if previous_position.turn else f'{previous_position.fullmove_number}...'
+        alternatives, played_score, loss = self.controller.move_analysis(board)
+
+        def evaluation_text(score: chess.engine.Score) -> str:
+            cp = score.score()
+            return f'{cp / 100:+.2f}' if cp is not None else str(score)
+
         with self.move_analysis_panel:
-            with ui.element('table').classes('move-analysis-table'):
-                with ui.element('thead'):
-                    with ui.element('tr'):
-                        with ui.element('th'):
-                            ui.label('Move')
-                        with ui.element('th'):
-                            ui.label('Eval')
-                with ui.element('tbody'):
-                    for move, evaluation in self.controller.top_moves(previous_position):
-                        with ui.element('tr'):
-                            with ui.element('td'):
-                                ui.label(move)
-                            with ui.element('td'):
-                                ui.label(evaluation)
+            ui.label(f'Position before {prefix} {played_san}').classes('move-analysis-context')
+            with ui.element('div').classes('played-move-card'):
+                with ui.element('div').classes('move-analysis-detail'):
+                    ui.label(f'Played by {self.players[previous_position.turn]}').classes('move-analysis-context')
+                    ui.label(played_san).classes('played-move-name')
+                with ui.element('div').classes('move-analysis-detail'):
+                    ui.label('Eval after move')
+                    ui.label(evaluation_text(played_score))
+                with ui.element('div').classes('move-analysis-detail'):
+                    ui.label('Eval loss')
+                    ui.label(f'{loss:.2f} pawns' if loss is not None else 'N/A (mate score)').classes('played-move-name')
+            ui.label('Best alternatives').classes('move-analysis-context')
+            with ui.element('div').classes('move-alternatives'):
+                for rank, (move, score) in enumerate(alternatives, 1):
+                    with ui.element('div').classes('move-alternative' + (' played-alternative' if move == played_san else '')):
+                        ui.label(f'{rank}.').classes('move-analysis-context')
+                        ui.label(move)
+                        expectation = score.wdl(ply=previous_position.ply()).expectation()
+                        if not previous_position.turn:
+                            expectation = 1 - expectation
+                        with ui.element('div').classes('move-alternative-bar').props('title="Mover expected score"'):
+                            ui.element('div').classes('move-alternative-fill').style(f'width: {expectation * 100:.1f}%')
+                        ui.label(evaluation_text(score))
+            ui.label("Evaluations: White's perspective").classes('move-analysis-note')
 
     def render_history(self) -> None:
         self.history_panel.clear()
