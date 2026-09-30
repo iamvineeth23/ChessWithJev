@@ -384,7 +384,10 @@ class BoardView:
 
         def evaluation_text(score: chess.engine.Score) -> str:
             cp = score.score()
-            return f'{cp / 100:+.2f}' if cp is not None else str(score)
+            if cp is not None and abs(cp) < 10:
+                return 'Equal'
+            side = 'White' if score > chess.engine.Cp(0) else 'Black'
+            return f'{side} +{abs(cp) / 100:.2f}' if cp is not None else f'{side} #{abs(score.mate())}'
 
         with self.move_analysis_panel:
             ui.label(f'Position before {prefix} {played_san}').classes('move-analysis-context')
@@ -410,7 +413,6 @@ class BoardView:
                         with ui.element('div').classes('move-alternative-bar').props('title="Mover expected score"'):
                             ui.element('div').classes('move-alternative-fill').style(f'width: {expectation * 100:.1f}%')
                         ui.label(evaluation_text(score))
-            ui.label("Evaluations: White's perspective").classes('move-analysis-note')
 
     def render_history(self) -> None:
         self.history_panel.clear()

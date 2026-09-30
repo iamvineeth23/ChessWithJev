@@ -61,8 +61,8 @@ BOARD_CSS = '''
         .played-move-card { margin: 4px 0; padding: 4px 8px; border-radius: 6px; background: #22372a; }
         .played-move-name, .played-alternative { color: #f1d585; font-weight: 700; }
         .move-analysis-detail { display: flex; justify-content: space-between; gap: 8px; }
-        .move-alternative { display: grid; grid-template-columns: 18px 48px minmax(0, 1fr) 48px; gap: 6px; align-items: center; }
-        .move-alternative > :last-child { text-align: right; }
+        .move-alternative { display: grid; grid-template-columns: 18px 48px minmax(0, 1fr) 96px; gap: 6px; align-items: center; }
+        .move-alternative > :last-child { text-align: right; white-space: nowrap; }
         .move-alternative-bar { height: 5px; border-radius: 3px; background: #22372a; overflow: hidden; }
         .move-alternative-fill { height: 100%; background: var(--green); }
         .played-alternative .move-alternative-fill { background: #f1d585; }
