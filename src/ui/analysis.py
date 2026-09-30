@@ -44,7 +44,7 @@ def evaluation_chart_svg(evaluations: list[float], *, compact: bool = False) -> 
         f'<line x1="{x(index):.1f}" y1="{top}" x2="{x(index):.1f}" y2="{height - bottom}" class="chart-grid chart-grid-vertical"/>'
         f'<text x="{x(index):.1f}" y="{height - (8 if compact else 46)}" text-anchor="middle" class="chart-label">{index if compact else index + 1}</text>'
         for index in ticks)
-    return f'''<svg class="evaluation-chart" viewBox="0 0 {width} {height}" role="img" aria-label="Game evaluation by move step, with zero percent balanced">
+    return f'''<svg class="evaluation-chart" viewBox="0 0 {width} {height}" preserveAspectRatio="{'none' if compact else 'xMidYMid meet'}" role="img" aria-label="Game evaluation by move step, with zero percent balanced">
         <rect x="{left}" y="{top}" width="{plot_width}" height="{plot_height / 2}" class="chart-zone chart-zone-white"/>
         <rect x="{left}" y="{top + plot_height / 2}" width="{plot_width}" height="{plot_height / 2}" class="chart-zone chart-zone-black"/>
         {horizontal_grid}
