@@ -56,7 +56,6 @@ BOARD_CSS = '''
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }
         .move-analysis-table th:last-child, .move-analysis-table td:last-child { text-align: right; }
         .move-history-panel { overflow-y: auto; }
-        .move-history-panel .history-heading { margin: 0 0 12px; position: static; }
         .move-history { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .move-history-entry { display: block; padding: 2px 8px; border-radius: 6px; background: #22372a; color: #d7e8d6; }
         .q-btn.move-history-entry { min-height: 0; font: inherit; letter-spacing: 0; text-align: left; }
