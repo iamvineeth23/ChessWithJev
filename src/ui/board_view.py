@@ -222,6 +222,12 @@ class BoardView:
         count = len(self.position.board.move_stack)
         index = count if self.preview_index is None else self.preview_index
         target = max(0, min(count, index + direction))
+        self.select_history(target)
+
+    def select_history(self, target: int) -> None:
+        count = len(self.position.board.move_stack)
+        index = count if self.preview_index is None else self.preview_index
+        target = max(0, min(count, target))
         if target == index:
             return
         self.pause_random()
@@ -396,7 +402,7 @@ class BoardView:
             if not lines:
                 self.history_labels.append(ui.label('No moves yet').classes('move-history-entry'))
             for index, line in enumerate(lines, 1):
-                label = ui.label(line).classes('move-history-entry')
+                label = ui.button(line, on_click=lambda _, index=index: self.select_history(index), color=None).props('no-caps unelevated').classes('move-history-entry')
                 label.style(f'grid-column: {2 if "..." in line.split()[0] else 1}')
                 if index == current_index:
                     label.classes('current-move').props('aria-current="step"')

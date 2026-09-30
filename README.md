@@ -18,6 +18,8 @@ Run the board:
 
 Run with `.venv/bin/chess -r` to start with REC enabled. Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
 
+Click a move in Move Log to preview its board position and Move Analysis. Click the latest move to return to the live position. Browsing history pauses automatic play.
+
 Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`; with REC enabled, it is also kept in `gamelog/rec/` as `YYYY-MM-DD_001.json`. Each file records the players, result, every legal-move position, move, and Stockfish evaluation. Unfinished games are not written.
 
 Notes:

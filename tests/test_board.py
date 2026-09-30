@@ -456,6 +456,32 @@ def test_move_log_columns_and_current_tile() -> None:
     assert view.history_labels[0]._style['grid-column'] == '2'
 
 
+def test_click_move_log_previews_board_and_analysis() -> None:
+    from nicegui import ui
+
+    view = BoardView(white='human', black='human')
+    view.render()
+    view.render_controls()
+    for san in ('c3', 'Na6', 'Nf3', 'Nb4'):
+        view.position.board.push_san(san)
+    view.sync()
+    live_fen = view.position.board.fen()
+    with patch.object(view, 'render_move_analysis') as analysis:
+        for index in (1, 3, 2, 4):
+            button = view.history_labels[index - 1]
+            listener = next(listener for listener in button._event_listeners.values() if listener.type == 'click')
+            ui.context.client.handle_event({'id': button.id, 'listener_id': listener.id, 'args': []})
+            expected = view.position.board.copy()
+            while len(expected.move_stack) > index:
+                expected.pop()
+            assert (view.preview_board or view.position.board).fen() == expected.fen()
+            assert view.analysis_position == expected.fen()
+            assert analysis.call_args.args[0].fen() == expected.fen()
+            assert 'current-move' in view.history_labels[index - 1]._classes
+            assert view.position.board.fen() == live_fen
+        assert view.preview_index is None
+
+
 def test_undo_redo_updates_board_history_and_status() -> None:
     view = BoardView()
     view.render_controls()

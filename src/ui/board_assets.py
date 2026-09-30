@@ -59,6 +59,9 @@ BOARD_CSS = '''
         .move-history-panel .history-heading { margin: 0 0 12px; position: static; }
         .move-history { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; overflow-wrap: anywhere; line-height: 1.8; font-size: 13px; }
         .move-history-entry { display: block; padding: 2px 8px; border-radius: 6px; background: #22372a; color: #d7e8d6; }
+        .q-btn.move-history-entry { min-height: 0; font: inherit; letter-spacing: 0; text-align: left; }
+        .move-history-entry .q-btn__content { justify-content: flex-start; }
+        .move-history-entry:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
         .move-history-entry:only-child:not([style]) { grid-column: 1 / -1; }
         .move-history-entry.current-move { background: #f1d585; color: #172116; font-weight: 700; }
         .terminal-button { width: 100%; border: 1px solid var(--green); border-radius: 0; background: transparent; color: var(--green); font-family: inherit; font-weight: 700; letter-spacing: .08em; box-shadow: none; }
