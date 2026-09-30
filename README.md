@@ -24,6 +24,8 @@ Evaluation Plot updates after each move with Stockfish balance: 0% is even, posi
 
 Stockfish uses the selected ELO when playing. Position evaluations, plots, five best alternatives, and evaluation loss always use full strength, regardless of player ELO. Analysis searches to depth 18 with no time limit, using `multipv=5` for the five alternatives. Deeper analysis can take longer to update the display. Playing moves keep a 0.1-second search budget.
 
+In computer-versus-computer games, each move appears on the board first. The app waits for its Stockfish analysis and plot to appear before making the next move. PAUSE stops further moves while the current analysis finishes.
+
 Move Analysis shows who played the selected move, its Stockfish evaluation, evaluation loss, and five best alternatives from the preceding position. Evaluations name the advantaged side and its advantage in pawns; positions within 0.10 pawns are shown as Equal. Loss is measured for the player who moved. Alternative bars show that player's expected score. Mate scores name the winning side with `#` notation and have no pawn-loss value.
 
 Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`; with REC enabled, it is also kept in `gamelog/rec/` as `YYYY-MM-DD_001.json`. Each file records the players, result, every legal-move position, move, and Stockfish evaluation. Unfinished games are not written.

@@ -4,7 +4,7 @@ from functools import lru_cache
 
 import chess
 import chess.svg
-from nicegui import ui
+from nicegui import run, ui
 
 from src.game.controller import GameController
 from src.game.log import write_game_log
@@ -64,6 +64,8 @@ class BoardView:
         self.history_panel = None
         self.move_analysis_panel = None
         self.analysis_position = None
+        self.analysis_busy = False
+        self.closed = False
         self.history_labels = []
         self.eval_fill = None
         self.eval_bar = None
@@ -150,6 +152,67 @@ class BoardView:
         if self.position.outcome() and self.random_timer:
             self.random_timer.active = False
             self.random_button.set_text('START')
+
+    async def automatic_turn(self) -> None:
+        if self.closed or self.analysis_busy or self.preview_board is not None or self.position.outcome():
+            return
+        self.analysis_busy = True
+        try:
+            self.automatic_step()
+            self.sync()
+            await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
+            while True:
+                if self.closed:
+                    return
+                source = self.preview_board or self.position.board
+                board = source.copy(stack=True)
+                cache = self.evaluation_cache.copy()
+                claimed_draw = self.position.claimed_draw if source is self.position.board else None
+
+                def analyse():
+                    replay = board.root()
+                    positions = [replay.copy(stack=True)]
+                    for move in board.move_stack:
+                        replay.push(move)
+                        positions.append(replay.copy(stack=True))
+                    for position in positions:
+                        if self.closed:
+                            return cache, None
+                        claim = claimed_draw if position.move_stack == board.move_stack else None
+                        key = (position.root().fen(), tuple(position.move_stack), str(claim))
+                        if key not in cache:
+                            cache[key] = (0.5 if claim is not None else self.controller.white_expectation(position))
+                    return cache, self.controller.move_analysis(board) if board.move_stack else None
+
+                cache, result = await run.io_bound(analyse)
+                if self.closed:
+                    return
+                if (source is not (self.preview_board or self.position.board) or source.fen() != board.fen()
+                        or (source is self.position.board and claimed_draw != self.position.claimed_draw)):
+                    continue
+                self.evaluation_cache.update(cache)
+                self.sync_analysis(source, result, refresh=False)
+                break
+            await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
+            if self.has_played_move and self.position.outcome() and not self.game_logged:
+                finished = self.position.board
+                await run.io_bound(write_game_log, finished.copy(stack=True), self.players.copy(),
+                                   self.stockfish_elos.copy(), self.controller.white_expectation, self.recording)
+                if self.position.board is finished:
+                    self.game_logged = True
+            if self.position.outcome():
+                self.pause_random()
+        except Exception:
+            self.pause_random()
+            if not self.closed:
+                raise
+        finally:
+            self.analysis_busy = False
+
+    def close(self) -> None:
+        self.closed = True
+        self.pause_random()
+        self.controller.close()
 
     def toggle_random(self) -> None:
         if self.position.outcome():
@@ -270,20 +333,24 @@ class BoardView:
             evaluations.append(200 * self.cached_white_expectation(evaluated) - 100)
         self.evaluation_plot.set_content(evaluation_chart_svg(evaluations, compact=True))
 
-    def sync(self) -> None:
-        board = self.preview_board or self.position.board
+    def sync_analysis(self, board: chess.Board, result=None, *, refresh: bool = True) -> None:
         if self.eval_fill:
             position = (board.fen(), self.position.claimed_draw if self.preview_board is None else None)
             if position != self.eval_position:
-                percent = 100 * self.cached_white_expectation(board, refresh=True)
+                percent = 100 * self.cached_white_expectation(board, refresh=refresh)
                 self.eval_fill.style(f'height: {percent:.1f}%')
                 self.eval_bar.props(f'aria-valuenow="{percent:.0f}" aria-valuetext="White expected score {percent:.0f} percent"')
                 self.eval_position = position
         if self.evaluation_plot:
             self.sync_evaluation_plot(board)
         if self.move_analysis_panel and board.fen() != self.analysis_position:
-            self.render_move_analysis(board)
+            self.render_move_analysis(board, result)
             self.analysis_position = board.fen()
+
+    def sync(self) -> None:
+        board = self.preview_board or self.position.board
+        if not self.analysis_busy:
+            self.sync_analysis(board)
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:
@@ -319,7 +386,7 @@ class BoardView:
             self.shown_pieces[square] = piece
         if self.on_change:
             self.on_change(self)
-        if self.has_played_move and self.position.outcome() and not self.game_logged:
+        if not self.analysis_busy and self.has_played_move and self.position.outcome() and not self.game_logged:
             write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation, self.recording)
             self.game_logged = True
 
@@ -398,7 +465,7 @@ class BoardView:
         with header_actions or ui.element('div'):
             ui.button('NEW GAME', on_click=self.new_game, color=None).classes('terminal-button new-game-button')
             if all(player != 'human' for player in self.players.values()):
-                self.random_timer = ui.timer(0.6, self.random_step, active=False)
+                self.random_timer = ui.timer(0.6, self.automatic_turn, active=False)
                 self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
@@ -408,7 +475,7 @@ class BoardView:
                 for piece_type in (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT):
                     ui.button(chess.piece_name(piece_type).title(), on_click=lambda _, piece_type=piece_type: self.choose_promotion(piece_type)).classes('terminal-button')
 
-    def render_move_analysis(self, board: chess.Board) -> None:
+    def render_move_analysis(self, board: chess.Board, result=None) -> None:
         self.move_analysis_panel.clear()
         if not board.move_stack:
             return
@@ -416,7 +483,7 @@ class BoardView:
         played = previous_position.pop()
         played_san = previous_position.san(played)
         prefix = f'{previous_position.fullmove_number}.' if previous_position.turn else f'{previous_position.fullmove_number}...'
-        alternatives, played_score, loss = self.controller.move_analysis(board)
+        alternatives, played_score, loss = result if result is not None else self.controller.move_analysis(board)
 
         def evaluation_text(score: chess.engine.Score) -> str:
             cp = score.score()

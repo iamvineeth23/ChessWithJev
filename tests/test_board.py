@@ -991,3 +991,116 @@ def test_live_plot_fills_moves_skipped_by_automatic_reply() -> None:
         view.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
         view.claim_draw()
         assert view.position.claimed_draw
+
+
+def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypatch) -> None:
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    container = board_view.ui.element("div")
+
+    async def check():
+        view = BoardView(white='random', black='random')
+        monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([('e4', chess.engine.Cp(0))], chess.engine.Cp(0), 0))
+        with container:
+            view.render()
+            view.render_controls()
+        view.toggle_random()
+        started, finish = asyncio.Event(), asyncio.Event()
+        paints = []
+
+        async def paint(*args, **kwargs):
+            paints.append((len(view.position.board.move_stack), view.analysis_position))
+
+        async def io_bound(callback, *args):
+            started.set()
+            await finish.wait()
+            return await asyncio.to_thread(callback, *args)
+
+        monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+        monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock(side_effect=paint))
+        async def turn_in_context():
+            with container:
+                await view.automatic_turn()
+
+        turn = asyncio.create_task(turn_in_context())
+        await started.wait()
+        assert len(view.position.board.move_stack) == 1
+        assert view.shown_pieces == {square: view.position.board.piece_at(square) for square in view.squares}
+        assert view.analysis_position == chess.STARTING_FEN
+        assert '1.' in move_log_text(view)
+        await turn_in_context()  # a second tick cannot advance while analysis is pending
+        assert len(view.position.board.move_stack) == 1
+        finish.set()
+        await turn
+        assert view.analysis_position == view.position.board.fen()
+        assert paints == [(1, chess.STARTING_FEN), (1, view.position.board.fen())]
+        assert not view.analysis_busy
+        await turn_in_context()
+        assert len(view.position.board.move_stack) == 2
+        assert view.analysis_position == view.position.board.fen()
+        view.pause_random()
+
+    asyncio.run(check())
+
+
+@pytest.mark.parametrize('action', ['pause', 'reset', 'history', 'close', 'error'])
+def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, action) -> None:
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    container = board_view.ui.element("div")
+
+    async def check():
+        view = BoardView(white='random', black='random')
+        monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([('e4', chess.engine.Cp(0))], chess.engine.Cp(0), 0))
+        monkeypatch.setattr(view.controller, 'close', lambda: None)
+        with container:
+            view.render()
+            view.render_controls()
+        view.toggle_random()
+        started, finish = asyncio.Event(), asyncio.Event()
+
+        async def io_bound(callback, *args):
+            started.set()
+            await finish.wait()
+            if action == 'error':
+                raise RuntimeError('Engine failed')
+            return await asyncio.to_thread(callback, *args)
+
+        monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+        monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+        async def turn_in_context():
+            with container:
+                await view.automatic_turn()
+
+        turn = asyncio.create_task(turn_in_context())
+        await started.wait()
+        if action == 'pause':
+            view.pause_random()
+        elif action == 'reset':
+            with container:
+                view.new_game()
+        elif action == 'history':
+            with container:
+                view.select_history(0)
+        elif action == 'close':
+            view.close()
+        finish.set()
+        if action == 'error':
+            with pytest.raises(RuntimeError, match='Engine failed'):
+                await turn
+        else:
+            await turn
+        assert not view.analysis_busy
+        assert not view.random_timer.active
+        if action in {'reset', 'history'}:
+            assert view.analysis_position == chess.STARTING_FEN
+            assert not list(view.move_analysis_panel.descendants())
+        if action == 'pause':
+            assert len(view.position.board.move_stack) == 1
+            assert view.analysis_position == view.position.board.fen()
+
+    asyncio.run(check())

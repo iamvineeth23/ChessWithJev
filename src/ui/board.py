@@ -116,7 +116,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         main_menu_action.visible = True
         content.clear()
         with main_menu_action:
-            ui.button('MAIN MENU', on_click=lambda: (view.pause_random(), view.controller.close(), show_landing(True)), color=None).classes('terminal-button')
+            ui.button('MAIN MENU', on_click=lambda: (view.close(), show_landing(True)), color=None).classes('terminal-button')
         with content.classes('game-page'):
             with ui.element('div').classes('game-layout'):
                 with ui.element('section').classes('board-panel'):
