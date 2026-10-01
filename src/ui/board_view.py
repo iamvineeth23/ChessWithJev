@@ -174,7 +174,7 @@ class BoardView:
     def random_step(self) -> None:
         if self.analysis_engine_label is not None and self.analysis_engine_label.client.has_socket_connection:
             if not self.analysis_busy:
-                ui.timer(0, self.automatic_turn, once=True)
+                self.schedule_update(self.automatic_turn)
             return
         if self.preview_board is None and not self.position.outcome() and self.players[self.position.board.turn] != 'human':
             self.automatic_step()
@@ -255,7 +255,12 @@ class BoardView:
         if (not self.closed and self.preview_board is None and not self.position.outcome()
                 and 'human' in self.players.values() and self.players[self.position.board.turn] != 'human'
                 and self.analysis_engine_label is not None and self.analysis_engine_label.client.has_socket_connection):
-            ui.timer(0, self.automatic_turn, once=True)
+            self.schedule_update(self.automatic_turn)
+
+    def schedule_update(self, callback: Callable) -> None:
+        # Event handlers can clear their own panel; keep timers in the persistent heading.
+        with self.analysis_engine_label.parent_slot:
+            ui.timer(0, callback, once=True)
 
     def set_analysis_indicator(self, active: bool) -> None:
         if self.analysis_engine_label is not None:
@@ -414,7 +419,7 @@ class BoardView:
                     and needs_analysis):
                 self.analysis_busy = True
                 self.set_analysis_indicator(True)
-                ui.timer(0, self.analyse_position, once=True)
+                self.schedule_update(self.analyse_position)
             else:
                 self.sync_analysis(board)
         if self.status_label:

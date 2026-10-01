@@ -918,7 +918,9 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
 
     def click(element) -> None:
         listener = next(iter(element._event_listeners.values()))
-        client.handle_event({'id': element.id, 'listener_id': listener.id, 'args': []})
+        with patch.object(board.app, 'handle_exception') as errors:
+            client.handle_event({'id': element.id, 'listener_id': listener.id, 'args': []})
+        errors.assert_not_called()
 
     selects = [element for element in client.elements.values() if type(element).__name__ == 'Select'][-4:]
     assert [select._props['label'] for select in selects] == ['White', 'ELO', 'Black', 'ELO']
@@ -1327,3 +1329,53 @@ def test_live_position_changes_always_queue_analysis(monkeypatch, action) -> Non
         synchronous.assert_not_called()
     assert view.analysis_busy
     assert 'analyzing' in view.analysis_engine_label._classes
+
+
+@pytest.mark.parametrize('white', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('black', ['human', 'random', 'stockfish'])
+def test_start_game_event_keeps_analysis_timer_in_live_slot(monkeypatch, white, black) -> None:
+    from nicegui import ui
+
+    monkeypatch.setattr(board.shutil, 'which', lambda name: '/usr/bin/stockfish')
+    client = ui.context.client
+    with ui.element('div'):
+        build_page({})
+    selects = [element for element in client.elements.values() if type(element).__name__ == 'Select'][-4:]
+    selects[0].value, selects[2].value = white, black
+    start = max((element for element in client.elements.values() if element._props.get('label') == 'START GAME'), key=lambda element: element.id)
+    listener = next(iter(start._event_listeners.values()))
+    with patch.object(board.app, 'handle_exception') as errors:
+        client.handle_event({'id': start.id, 'listener_id': listener.id, 'args': []})
+    errors.assert_not_called()  # NiceGUI catches event errors instead of raising them to pytest
+    assert start.is_deleted
+    timer = max((element for element in client.elements.values()
+                 if type(element).__name__ == 'Timer' and getattr(element.callback, '__name__', '') == 'analyse_position'), key=lambda element: element.id)
+    assert not timer.is_deleted
+    assert not timer.parent_slot.parent.is_deleted
+    assert timer.parent_slot.parent is timer.callback.__self__.analysis_engine_label.parent_slot.parent
+
+
+def test_move_log_redraw_does_not_delete_pending_analysis_timer(monkeypatch) -> None:
+    from nicegui import ui
+    from unittest.mock import PropertyMock
+
+    view = BoardView(white='human', black='human')
+    monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+    monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([], chess.engine.Cp(0), 0))
+    view.position.board.push_uci('e2e4')
+    view.position.board.push_uci('e7e5')
+    view.render()
+    view.render_evaluation()
+    view.render_controls()
+    entry = view.history_labels[0]
+    listener = next(iter(entry._event_listeners.values()))
+    with patch.object(type(entry.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board.app, 'handle_exception') as errors:
+        entry.client.handle_event({'id': entry.id, 'listener_id': listener.id, 'args': []})
+    errors.assert_not_called()
+    assert entry.is_deleted
+    timer = next(element for element in ui.context.client.elements.values()
+                 if type(element).__name__ == 'Timer' and element.callback == view.analyse_position)
+    assert not timer.is_deleted
+    assert timer.parent_slot.parent is view.analysis_engine_label.parent_slot.parent
+    assert view.preview_index == 1
+    assert view.analysis_busy

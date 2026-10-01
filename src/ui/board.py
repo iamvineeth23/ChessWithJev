@@ -137,7 +137,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls(main_menu_action)
         view.set_analysis_indicator(True)
-        ui.timer(0, view.analyse_position, once=True)
+        view.schedule_update(view.analyse_position)
 
     restored = saved_game(storage)
     if restored:
