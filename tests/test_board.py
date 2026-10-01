@@ -1109,3 +1109,40 @@ def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, a
             assert view.analysis_position == view.position.board.fen()
 
     asyncio.run(check())
+
+
+@pytest.mark.parametrize('fen,moves,expected', [
+    (chess.STARTING_FEN, ['e2e4', 'e7e5'], {chess.E4: chess.E2, chess.E5: chess.E7}),
+    ('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1', ['e1g1'], {chess.G1: chess.E1, chess.F1: chess.H1}),
+    ('7k/8/8/3pP3/8/8/8/K7 w - d6 0 1', ['e5d6'], {chess.D6: chess.E5}),
+    ('7k/P7/8/8/8/8/8/K7 w - - 0 1', ['a7a8q'], {chess.A8: chess.A7}),
+    ('7k/8/8/8/8/2p5/1P6/K7 w - - 0 1', ['b2c3'], {chess.C3: chess.B2}),
+])
+def test_piece_animation_tracks_actual_moves(fen, moves, expected) -> None:
+    view = BoardView(white='human', black='human')
+    view.set_fen(fen)
+    view.render()
+    for move in moves:
+        view.position.board.push_uci(move)
+    assert view.movement_origins(view.position.board) == expected
+    view.sync()
+    for target, source in expected.items():
+        image = list(view.squares[target])[0]
+        assert 'chess-piece-moving' in image._classes
+        assert '--piece-x' in image._style
+    assert view.movement_origins(view.position.board) == {}
+    view.position.board.pop()
+    assert view.movement_origins(view.position.board) == {}
+
+
+def test_piece_animation_offsets_follow_board_orientation() -> None:
+    for flipped in (False, True):
+        view = BoardView(white='human', black='human')
+        view.black_at_bottom = flipped
+        view.render()
+        view.play_move(chess.Move.from_uci('e2e4'))
+        image = list(view.squares[chess.E4])[0]
+        assert float(image._style['--piece-y'].rstrip('%')) == pytest.approx((-1 if flipped else 1) * 200 / .9)
+        view.set_fen(chess.STARTING_FEN)
+        assert all('chess-piece-moving' not in image._classes
+                   for square in view.squares.values() for image in square)

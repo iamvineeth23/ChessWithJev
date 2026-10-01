@@ -157,6 +157,14 @@ BOARD_CSS = '''
         .chess-square.selected { outline: 4px solid #e7cb7d; outline-offset: -4px; z-index: 1; }
         .chess-square.last-move { box-shadow: inset 0 0 0 4px #e7cb7d; }
         .chess-piece { position: absolute; inset: 5%; width: 90%; height: 90%; pointer-events: none; }
+        .chess-piece-moving { animation: piece-slide 550ms cubic-bezier(.4, 0, .2, 1); z-index: 2; }
+        @keyframes piece-slide {
+            from { transform: translate(var(--piece-x), var(--piece-y)); }
+            to { transform: translate(0, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .chess-piece-moving { animation: none; }
+        }
         .promotion-card { background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 24px; font-family: inherit; }
         .promotion-actions { flex-wrap: wrap; margin-top: 12px; }
         .promotion-actions .terminal-button { width: auto; }

@@ -86,6 +86,30 @@ class BoardView:
         self.preview_board: chess.Board | None = None
         self.squares = {}
         self.shown_pieces: dict[chess.Square, chess.Piece | None] = {}
+        self.shown_board: chess.Board | None = None
+
+    def movement_origins(self, board: chess.Board) -> dict[chess.Square, chess.Square]:
+        previous = self.shown_board
+        if previous is None or board.root().fen() != previous.root().fen():
+            return {}
+        count = len(previous.move_stack)
+        if board.move_stack[:count] != previous.move_stack or len(board.move_stack) <= count:
+            return {}
+        replay = previous.copy(stack=True)
+        origins = {square: square for square in replay.piece_map()}
+        for move in board.move_stack[count:]:
+            source = origins.pop(move.from_square)
+            if replay.is_en_passant(move):
+                origins.pop(move.to_square - 8 if replay.turn else move.to_square + 8, None)
+            if replay.is_castling(move):
+                rank = chess.square_rank(move.from_square)
+                kingside = replay.is_kingside_castling(move)
+                rook_from = chess.square(7 if kingside else 0, rank)
+                rook_to = chess.square(5 if kingside else 3, rank)
+                origins[rook_to] = origins.pop(rook_from)
+            origins[move.to_square] = source
+            replay.push(move)
+        return {target: source for target, source in origins.items() if target != source}
 
     def set_fen(self, fen: str) -> None:
         self.position.set_fen(fen)
@@ -381,6 +405,7 @@ class BoardView:
             self.random_button.set_enabled(not bool(self.position.outcome()))
         current_index = len(self.position.board.move_stack) if self.preview_index is None else self.preview_index
         current_move = self.position.board.move_stack[current_index - 1] if current_index else None
+        origins = self.movement_origins(board)
         for square, element in self.squares.items():
             element.classes(add='selected' if square == self.selected else None,
                             remove='selected' if square != self.selected else None)
@@ -392,8 +417,15 @@ class BoardView:
             element.clear()
             if piece:
                 with element:
-                    ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
+                    image = ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
+                    if square in origins:
+                        source = origins[square]
+                        direction = -1 if self.black_at_bottom else 1
+                        x = direction * (chess.square_file(source) - chess.square_file(square)) * 100 / .9
+                        y = direction * (chess.square_rank(square) - chess.square_rank(source)) * 100 / .9
+                        image.classes('chess-piece-moving').style(f'--piece-x: {x}%; --piece-y: {y}%')
             self.shown_pieces[square] = piece
+        self.shown_board = board.copy(stack=True)
         if self.on_change:
             self.on_change(self)
         if not self.analysis_busy and self.has_played_move and self.position.outcome() and not self.game_logged:
@@ -404,6 +436,7 @@ class BoardView:
         self.squares.clear()
         self.shown_pieces.clear()
         board = self.preview_board or self.position.board
+        self.shown_board = board.copy(stack=True)
         with ui.element('div').classes('chess-board').props('aria-label="Chess board"'):
             for row in range(8):
                 for column in range(8):
