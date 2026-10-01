@@ -216,6 +216,26 @@ def test_human_cannot_move_black_and_mate_ends_before_reply() -> None:
     assert view.selected is None
 
 
+def test_evaluation_tabs_share_the_existing_window() -> None:
+    from nicegui import ui
+    with ui.element('div') as container:
+        view = BoardView(white='human', black='human')
+        with patch.object(view, 'sync_evaluation_plot'):
+            view.render_controls()
+    tabs = next(element for element in container.descendants() if isinstance(element, ui.tabs))
+    panels = next(element for element in container.descendants() if isinstance(element, ui.tab_panels))
+    assert [element._props['label'] for element in tabs.default_slot.children] == ['Evaluation Plot', 'Jev Predictions']
+    assert panels.value is tabs.default_slot.children[0]
+    assert 'move-placeholder-panel' in panels.parent_slot.parent._classes
+    evaluation, predictions = panels.default_slot.children
+    assert view.evaluation_plot in evaluation.descendants()
+    assert not predictions.default_slot.children
+    tabs.set_value('Jev Predictions')
+    assert panels.value == 'Jev Predictions'
+    tabs.set_value('Evaluation Plot')
+    assert panels.value == 'Evaluation Plot'
+
+
 def test_programmatic_move_refreshes_board_view() -> None:
     view = BoardView()
     view.render_controls()
@@ -944,7 +964,10 @@ def test_landing_starts_game_and_returns_to_setup() -> None:
     assert {element.text for element in status_strip.descendants() if hasattr(element, 'text')} == {'SYSTEM STATUS', 'White to move'}
     assert status_strip in board_panel.descendants()
     assert not any(element.text == 'SYSTEM STATUS' for element in controls.descendants() if hasattr(element, 'text'))
-    assert [element._props.get('label') for element in main_menu_action.descendants()] == ['MAIN MENU', 'NEW GAME']
+    assert [element._props.get('label') for element in main_menu_action.descendants()] == ['MAIN MENU', 'NEW GAME', 'START']
+    reserved_start = main_menu_action.default_slot.children[-1]
+    assert reserved_start._style['visibility'] == 'hidden'
+    assert not reserved_start.enabled
     assert not any(element._props.get('label') in {'NEW GAME', 'MAIN MENU'} for element in controls.descendants())
     back = max((element for element in client.elements.values() if element._props.get('label') == 'MAIN MENU'), key=lambda element: element.id)
     click(back)

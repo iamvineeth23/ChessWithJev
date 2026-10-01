@@ -543,9 +543,15 @@ class BoardView:
         if not self.analysis_busy:
             self.render_move_analysis(self.preview_board or self.position.board)
             self.analysis_position = (self.preview_board or self.position.board).fen()
-        ui.label('Evaluation Plot').classes('evaluation-plot-heading')
-        with ui.element('div').classes('move-placeholder-panel').props('aria-label="Live evaluation plot"'):
-            self.evaluation_plot = ui.html('').classes('live-evaluation-chart')
+        with ui.tabs().classes('evaluation-plot-heading evaluation-tabs').props('dense no-caps align=left') as tabs:
+            evaluation_tab = ui.tab('Evaluation Plot')
+            predictions_tab = ui.tab('Jev Predictions')
+        with ui.element('div').classes('move-placeholder-panel'):
+            with ui.tab_panels(tabs, value=evaluation_tab).classes('evaluation-panels').props('keep-alive'):
+                with ui.tab_panel(evaluation_tab).classes('evaluation-tab-panel').props('aria-label="Live evaluation plot"'):
+                    self.evaluation_plot = ui.html('').classes('live-evaluation-chart')
+                with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel'):
+                    pass
         if not self.analysis_busy:
             self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):
@@ -558,6 +564,8 @@ class BoardView:
             if all(player != 'human' for player in self.players.values()):
                 self.random_timer = ui.timer(0.6, self.automatic_turn, active=False)
                 self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
+            elif header_actions is not None:
+                ui.button('START', color=None).classes('terminal-button').style('visibility: hidden').props('aria-hidden="true" tabindex=-1').disable()
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
         with ui.dialog().props('persistent') as self.promotion_dialog, ui.card().classes('promotion-card'):

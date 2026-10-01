@@ -69,6 +69,16 @@ BOARD_CSS = '''
         .move-analysis-heading, .history-heading, .evaluation-plot-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
         .history-heading { margin-top: -10px; }
         .move-placeholder-panel { flex: 1; min-height: 40px; border: 1px solid var(--line); background: #101b14; }
+        .evaluation-tabs { height: 18px; min-height: 18px; flex-shrink: 0; }
+        .evaluation-tabs .q-tab { min-height: 18px; padding: 0 12px; }
+        .evaluation-tabs .q-tab__indicator { display: none; }
+        .evaluation-tabs .q-tab--active::before, .evaluation-tabs .q-tab--active::after { content: ''; position: absolute; inset: 0; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%); pointer-events: none; }
+        .evaluation-tabs .q-tab--active:last-child::before, .evaluation-tabs .q-tab--active:last-child::after { clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%); }
+        .evaluation-tabs .q-tab--active::before { background: var(--line); }
+        .evaluation-tabs .q-tab--active::after { inset: 2px 3px 0 2px; background: #101b14; }
+        .evaluation-tabs .q-tab__content { z-index: 1; }
+        .evaluation-tabs .q-tab__label { font-size: 12px; line-height: 18px; letter-spacing: .1em; }
+        .evaluation-panels, .evaluation-tab-panel { width: 100%; height: 100%; padding: 0; background: transparent; color: inherit; }
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
