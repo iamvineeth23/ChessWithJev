@@ -667,7 +667,7 @@ def test_stockfish_and_random_can_play_each_other() -> None:
 
 def test_evaluation_bar_tracks_position_and_reuses_unchanged_score() -> None:
     view = BoardView(white='human', black='human')
-    with patch.object(view.controller, 'white_expectation', side_effect=[0.5, 0.8, 0.2]) as evaluate:
+    with patch.object(view.controller, 'white_expectation', side_effect=[0.5, 0.8]) as evaluate:
         view.render_evaluation()
         assert view.eval_fill._style['height'] == '50.0%'
         view.sync()
@@ -675,8 +675,9 @@ def test_evaluation_bar_tracks_position_and_reuses_unchanged_score() -> None:
         view.play_move(chess.Move.from_uci('e2e4'))
         assert view.eval_fill._style['height'] == '80.0%'
         view.undo()
-        assert view.eval_fill._style['height'] == '20.0%'
-    assert view.eval_bar._props['aria-valuenow'] == '20'
+        assert view.eval_fill._style['height'] == '50.0%'
+        assert evaluate.call_count == 2
+    assert view.eval_bar._props['aria-valuenow'] == '50'
 
 
 def test_position_snapshot_restores_moves_redo_and_claimed_draw() -> None:
@@ -1379,3 +1380,67 @@ def test_move_log_redraw_does_not_delete_pending_analysis_timer(monkeypatch) -> 
     assert timer.parent_slot.parent is view.analysis_engine_label.parent_slot.parent
     assert view.preview_index == 1
     assert view.analysis_busy
+
+
+@pytest.mark.parametrize('white', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('black', ['human', 'random', 'stockfish'])
+def test_history_reuses_analysis_without_loading_or_engine_calls(monkeypatch, white, black) -> None:
+    import asyncio
+    from unittest.mock import AsyncMock, PropertyMock
+
+    container = board_view.ui.element('div')
+    view = BoardView(white=white, black=black)
+    evaluation = MagicMock(return_value=0.5)
+    analysis = MagicMock(return_value=([('e4', chess.engine.Cp(20))], chess.engine.Cp(20), 0))
+    monkeypatch.setattr(view.controller, 'white_expectation', evaluation)
+    monkeypatch.setattr(view.controller, 'move_analysis', analysis)
+    monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+
+    async def worker(callback, *args):
+        return callback(*args)
+
+    monkeypatch.setattr(board_view.run, 'io_bound', worker)
+
+    async def play():
+        with container:
+            view.render()
+            view.render_evaluation()
+            view.render_controls()
+            for move in ['e2e4', 'e7e5']:
+                view.position.board.push_uci(move)
+                await view.analyse_position()
+
+    asyncio.run(play())
+    evaluation.reset_mock()
+    analysis.reset_mock()
+    with container, patch.object(type(view.analysis_engine_label.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board_view.ui, 'timer') as timer:
+        for target in [1, 0, 2, 1, 2]:
+            view.select_history(target)
+            assert not view.analysis_busy
+            assert 'analyzing' not in view.analysis_engine_label._classes
+            assert view.analysis_position == (view.preview_board or view.position.board).fen()
+        timer.assert_not_called()
+    evaluation.assert_not_called()
+    analysis.assert_not_called()
+    view.controller.close()
+
+
+def test_move_analysis_cache_distinguishes_history_and_clears_on_replacement() -> None:
+    view = BoardView(white='human', black='human')
+    first = chess.Board()
+    second = chess.Board()
+    for move in ['g1f3', 'g8f6', 'b1c3', 'b8c6']:
+        first.push_uci(move)
+    for move in ['b1c3', 'b8c6', 'g1f3', 'g8f6']:
+        second.push_uci(move)
+    assert first.fen() == second.fen()
+    with patch.object(view.controller, 'move_analysis', return_value=([], chess.engine.Cp(0), 0)) as analysis:
+        view.cached_move_analysis(first)
+        view.cached_move_analysis(second)
+        view.cached_move_analysis(first)
+        assert analysis.call_count == 2
+        view.set_board(first)
+        assert not view.move_analysis_cache
+        view.cached_move_analysis(first)
+        view.set_fen(chess.STARTING_FEN)
+        assert not view.move_analysis_cache

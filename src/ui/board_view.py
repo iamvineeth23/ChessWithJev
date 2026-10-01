@@ -73,6 +73,7 @@ class BoardView:
         self.eval_position = None
         self.evaluation_plot = None
         self.evaluation_cache = {}
+        self.move_analysis_cache = {}
         self.claim_button = None
         self.undo_button = None
         self.redo_button = None
@@ -114,6 +115,7 @@ class BoardView:
     def set_fen(self, fen: str) -> None:
         self.position.set_fen(fen)
         self.evaluation_cache.clear()
+        self.move_analysis_cache.clear()
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
@@ -126,6 +128,7 @@ class BoardView:
     def set_board(self, board: chess.Board) -> None:
         self.position.set_board(board)
         self.evaluation_cache.clear()
+        self.move_analysis_cache.clear()
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
@@ -222,7 +225,7 @@ class BoardView:
                         key = (position.root().fen(), tuple(position.move_stack), str(claim))
                         if key not in cache:
                             cache[key] = (0.5 if claim is not None else self.controller.white_expectation(position))
-                    return cache, self.controller.move_analysis(board) if board.move_stack else None
+                    return cache, self.cached_move_analysis(board) if board.move_stack else None
 
                 analysed = await run.io_bound(analyse)
                 if self.closed or analysed is None:
@@ -376,6 +379,12 @@ class BoardView:
                 self.preview_board.push(move)
         self.sync()
 
+    def cached_move_analysis(self, board: chess.Board):
+        key = (board.root().fen(), tuple(board.move_stack))
+        if key not in self.move_analysis_cache:
+            self.move_analysis_cache[key] = self.controller.move_analysis(board)
+        return self.move_analysis_cache[key]
+
     def cached_white_expectation(self, board: chess.Board, *, refresh: bool = False) -> float:
         key = (board.root().fen(), tuple(board.move_stack),
                str(self.position.claimed_draw) if board is self.position.board else str(None))
@@ -411,9 +420,9 @@ class BoardView:
         if not self.analysis_busy:
             position = (board.fen(), self.position.claimed_draw if self.preview_board is None else None)
             cache_key = (board.root().fen(), tuple(board.move_stack), str(position[1]))
-            needs_analysis = (board.fen() != self.analysis_position
-                              or (self.eval_fill is not None and self.eval_position != position)
-                              or (self.evaluation_plot is not None and cache_key not in self.evaluation_cache))
+            needs_analysis = ((bool(board.move_stack) and (board.root().fen(), tuple(board.move_stack)) not in self.move_analysis_cache)
+                              or ((self.eval_fill is not None or self.evaluation_plot is not None)
+                                  and cache_key not in self.evaluation_cache))
             if (self.analysis_engine_label is not None
                     and self.analysis_engine_label.client.has_socket_connection
                     and needs_analysis):
@@ -421,7 +430,7 @@ class BoardView:
                 self.set_analysis_indicator(True)
                 self.schedule_update(self.analyse_position)
             else:
-                self.sync_analysis(board)
+                self.sync_analysis(board, refresh=False)
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:
@@ -565,7 +574,7 @@ class BoardView:
         played = previous_position.pop()
         played_san = previous_position.san(played)
         prefix = f'{previous_position.fullmove_number}.' if previous_position.turn else f'{previous_position.fullmove_number}...'
-        alternatives, played_score, loss = result if result is not None else self.controller.move_analysis(board)
+        alternatives, played_score, loss = result if result is not None else self.cached_move_analysis(board)
 
         def evaluation_text(score: chess.engine.Score) -> str:
             cp = score.score()
