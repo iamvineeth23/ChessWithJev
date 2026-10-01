@@ -1146,3 +1146,59 @@ def test_piece_animation_offsets_follow_board_orientation() -> None:
         view.set_fen(chess.STARTING_FEN)
         assert all('chess-piece-moving' not in image._classes
                    for square in view.squares.values() for image in square)
+
+
+@pytest.mark.parametrize('fail', [False, True])
+def test_human_analysis_indicator_lasts_until_calculation_finishes(monkeypatch, fail) -> None:
+    import asyncio
+    from unittest.mock import AsyncMock, PropertyMock
+
+    container = board_view.ui.element('div')
+
+    async def check():
+        view = BoardView(white='human', black='human')
+        monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([], chess.engine.Cp(0), 0))
+        with container:
+            view.render()
+            view.render_controls()
+        started, finish = asyncio.Event(), asyncio.Event()
+
+        async def io_bound(callback, *args):
+            started.set()
+            await finish.wait()
+            if fail:
+                raise RuntimeError('Engine failed')
+            return callback(*args)
+
+        monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+        monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+        with patch.object(type(view.analysis_engine_label.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board_view.ui, 'timer') as timer:
+            with container:
+                assert view.play_human_move(chess.Move.from_uci('e2e4'))
+                view.sync()  # repeated updates must not start another calculation
+            timer.assert_called_once_with(0, view.analyse_position, once=True)
+        assert view.analysis_busy
+        assert 'analyzing' in view.analysis_engine_label._classes
+
+        async def calculate():
+            with container:
+                await view.analyse_position()
+
+        task = asyncio.create_task(calculate())
+        await started.wait()
+        assert 'analyzing' in view.analysis_engine_label._classes
+        assert view.analysis_engine_label._props['aria-busy'] == 'true'
+        assert len(view.position.board.move_stack) == 1
+        finish.set()
+        if fail:
+            with pytest.raises(RuntimeError, match='Engine failed'):
+                await task
+        else:
+            await task
+            assert view.analysis_position == view.position.board.fen()
+        assert not view.analysis_busy
+        assert 'analyzing' not in view.analysis_engine_label._classes
+        assert view.analysis_engine_label._props['aria-busy'] == 'false'
+
+    asyncio.run(check())

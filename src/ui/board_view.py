@@ -181,9 +181,13 @@ class BoardView:
     async def automatic_turn(self) -> None:
         if self.closed or self.analysis_busy or self.preview_board is not None or self.position.outcome():
             return
+        await self.analyse_position(advance=True)
+
+    async def analyse_position(self, *, advance: bool = False) -> None:
         self.analysis_busy = True
         try:
-            self.automatic_step()
+            if advance:
+                self.automatic_step()
             self.set_analysis_indicator(True)
             self.sync()
             await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
@@ -384,7 +388,14 @@ class BoardView:
     def sync(self) -> None:
         board = self.preview_board or self.position.board
         if not self.analysis_busy:
-            self.sync_analysis(board)
+            if (self.analysis_engine_label is not None
+                    and self.analysis_engine_label.client.has_socket_connection
+                    and board.fen() != self.analysis_position):
+                self.analysis_busy = True
+                self.set_analysis_indicator(True)
+                ui.timer(0, self.analyse_position, once=True)
+            else:
+                self.sync_analysis(board)
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:

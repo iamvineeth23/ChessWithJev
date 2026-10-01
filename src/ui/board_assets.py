@@ -78,6 +78,8 @@ BOARD_CSS = '''
         .analysis-engine { position: relative; padding: 0 6px; border-radius: 12px; background: #22372a; color: var(--muted); letter-spacing: 0; }
         .analysis-engine::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: 0; }
         .analysis-engine.analyzing::before { opacity: 1; animation: record-blink 1s steps(1, end) infinite; }
+        body:has(.game-page .analysis-engine.analyzing),
+        body:has(.game-page .analysis-engine.analyzing) * { cursor: wait !important; }
         @media (prefers-reduced-motion: reduce) { .analysis-engine.analyzing::before { animation: none; } }
         .move-analysis-panel { flex: 0 0 auto; min-height: 0; height: 209px; box-sizing: border-box; overflow-y: auto; font-size: 13px; line-height: 1.25; }
         .move-analysis-context, .move-analysis-note { color: var(--muted); }
