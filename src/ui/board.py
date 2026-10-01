@@ -109,6 +109,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             return
         view = BoardView(position=position, white=white, black=black, white_elo=white_elo, black_elo=black_elo,
                          on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)), recording='-r' in sys.argv[1:])
+        view.analysis_busy = True
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
         footer.visible = True
@@ -135,8 +136,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
                     view.render_controls(main_menu_action)
-        if white != 'human' and black == 'human':
-            view.random_step()
+        view.set_analysis_indicator(True)
+        ui.timer(0, view.analyse_position, once=True)
 
     restored = saved_game(storage)
     if restored:

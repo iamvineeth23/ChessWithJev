@@ -1049,7 +1049,7 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
     asyncio.run(check())
 
 
-@pytest.mark.parametrize('action', ['pause', 'reset', 'history', 'close', 'error'])
+@pytest.mark.parametrize('action', ['pause', 'reset', 'history', 'close', 'error', 'cancel'])
 def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, action) -> None:
     import asyncio
     from unittest.mock import AsyncMock
@@ -1072,6 +1072,8 @@ def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, a
             await finish.wait()
             if action == 'error':
                 raise RuntimeError('Engine failed')
+            if action == 'cancel':
+                return None
             return await asyncio.to_thread(callback, *args)
 
         monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
@@ -1202,3 +1204,126 @@ def test_human_analysis_indicator_lasts_until_calculation_finishes(monkeypatch, 
         assert view.analysis_engine_label._props['aria-busy'] == 'false'
 
     asyncio.run(check())
+
+
+@pytest.mark.parametrize('white', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('black', ['human', 'random', 'stockfish'])
+def test_all_player_combinations_apply_each_move_before_async_analysis(monkeypatch, white, black) -> None:
+    import asyncio
+    from unittest.mock import AsyncMock, PropertyMock
+
+    container = board_view.ui.element('div')
+
+    async def check():
+        view = BoardView(white=white, black=black, white_elo=1800, black_elo=2100)
+        monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([], chess.engine.Cp(0), 0))
+        def move():
+            return view.controller.play(chess.Move.from_uci('e2e4' if view.position.board.turn else 'e7e5'))
+        monkeypatch.setattr(view.controller, 'play_random_move', move)
+        stockfish_elos = []
+        def stockfish(elo):
+            stockfish_elos.append(elo)
+            return move()
+        monkeypatch.setattr(view.controller, 'play_stockfish_move', stockfish)
+        with container:
+            view.render()
+            view.render_evaluation()
+            view.render_controls()
+        started, finish = asyncio.Event(), asyncio.Event()
+        paints = []
+        async def paint(*args, **kwargs):
+            paints.append(len(view.position.board.move_stack))
+        async def io_bound(callback, *args):
+            assert len(view.position.board.move_stack) in paints
+            started.set()
+            await finish.wait()
+            return callback(*args)
+        monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+        monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock(side_effect=paint))
+        with patch.object(type(view.analysis_engine_label.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board_view.ui, 'timer') as timer:
+            for count, player, uci in [(1, white, 'e2e4'), (2, black, 'e7e5')]:
+                started.clear()
+                finish.clear()
+                previous_analysis = view.analysis_position
+                async def turn():
+                    with container:
+                        if player == 'human':
+                            assert view.play_human_move(chess.Move.from_uci(uci))
+                            callback = timer.call_args.args[1]
+                            assert callback == view.analyse_position
+                            await callback()
+                        else:
+                            await view.automatic_turn()
+                task = asyncio.create_task(turn())
+                await started.wait()
+                assert len(view.position.board.move_stack) == count
+                assert view.shown_pieces == {square: view.position.board.piece_at(square) for square in view.squares}
+                assert view.analysis_position == previous_analysis
+                assert 'analyzing' in view.analysis_engine_label._classes
+                assert view.analysis_engine_label._props['aria-busy'] == 'true'
+                with container:
+                    await view.automatic_turn()  # no overlapping move or engine command
+                assert len(view.position.board.move_stack) == count
+                finish.set()
+                await task
+                assert view.analysis_position == view.position.board.fen()
+                assert not view.analysis_busy
+                assert 'analyzing' not in view.analysis_engine_label._classes
+                if count == 1 and white == 'human' and black != 'human':
+                    assert timer.call_args.args[1] == view.automatic_turn
+            assert stockfish_elos == ([1800] if white == 'stockfish' else []) + ([2100] if black == 'stockfish' else [])
+
+    asyncio.run(check())
+
+
+def test_initial_analysis_does_not_block_building_the_game(monkeypatch) -> None:
+    storage = {'game': {'white': 'stockfish', 'black': 'human', 'position': Position().snapshot()}}
+    monkeypatch.setattr(board.shutil, 'which', lambda name: '/usr/bin/stockfish')
+    with patch.object(GameController, 'white_expectation') as evaluation, patch.object(GameController, 'move_analysis') as analysis, patch.object(GameController, 'play_stockfish_move') as opening, patch.object(board.ui, 'timer') as timer:
+        build_page(storage)
+    evaluation.assert_not_called()
+    analysis.assert_not_called()
+    opening.assert_not_called()
+    callback = timer.call_args.args[1]
+    assert callback.__name__ == 'analyse_position'
+    assert callback.__self__.analysis_busy
+    assert 'analyzing' in callback.__self__.analysis_engine_label._classes
+
+
+@pytest.mark.parametrize('action', ['history', 'undo', 'redo', 'reset', 'replace', 'draw'])
+def test_live_position_changes_always_queue_analysis(monkeypatch, action) -> None:
+    from unittest.mock import PropertyMock
+
+    view = BoardView(white='human', black='human')
+    monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+    monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([], chess.engine.Cp(0), 0))
+    view.position.board.push_uci('e2e4')
+    view.position.board.push_uci('e7e5')
+    if action == 'redo':
+        view.position.undo()
+    elif action == 'reset':
+        view.position.set_board(chess.Board())  # same FEN; reset still clears the evaluation cache
+    elif action == 'draw':
+        view.position.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
+    view.render()
+    view.render_evaluation()
+    view.render_controls()
+    with patch.object(type(view.analysis_engine_label.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board_view.ui, 'timer') as timer, patch.object(view, 'sync_analysis') as synchronous:
+        if action == 'history':
+            view.select_history(1)
+        elif action == 'undo':
+            view.undo()
+        elif action == 'redo':
+            view.redo()
+        elif action == 'reset':
+            view.new_game()
+        elif action == 'replace':
+            view.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 0 1')
+        else:
+            view.claim_draw()
+            assert view.position.claimed_draw
+        timer.assert_called_once_with(0, view.analyse_position, once=True)
+        synchronous.assert_not_called()
+    assert view.analysis_busy
+    assert 'analyzing' in view.analysis_engine_label._classes

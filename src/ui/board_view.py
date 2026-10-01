@@ -159,7 +159,8 @@ class BoardView:
         self.selected = None
         self.has_played_move = True
         self.resume_history_scroll()
-        self.automatic_step()
+        if self.analysis_engine_label is None or not self.analysis_engine_label.client.has_socket_connection:
+            self.automatic_step()
         self.sync()
         return True
 
@@ -171,6 +172,10 @@ class BoardView:
             self.has_played_move |= self.controller.play_stockfish_move(self.stockfish_elos[self.position.board.turn])
 
     def random_step(self) -> None:
+        if self.analysis_engine_label is not None and self.analysis_engine_label.client.has_socket_connection:
+            if not self.analysis_busy:
+                ui.timer(0, self.automatic_turn, once=True)
+            return
         if self.preview_board is None and not self.position.outcome() and self.players[self.position.board.turn] != 'human':
             self.automatic_step()
             self.sync()
@@ -179,11 +184,16 @@ class BoardView:
             self.random_button.set_text('START')
 
     async def automatic_turn(self) -> None:
-        if self.closed or self.analysis_busy or self.preview_board is not None or self.position.outcome():
+        if (self.closed or self.analysis_busy or self.preview_board is not None or self.position.outcome()
+                or self.players[self.position.board.turn] == 'human'):
             return
         await self.analyse_position(advance=True)
 
     async def analyse_position(self, *, advance: bool = False) -> None:
+        if self.closed:
+            self.analysis_busy = False
+            self.set_analysis_indicator(False)
+            return
         self.analysis_busy = True
         try:
             if advance:
@@ -214,9 +224,11 @@ class BoardView:
                             cache[key] = (0.5 if claim is not None else self.controller.white_expectation(position))
                     return cache, self.controller.move_analysis(board) if board.move_stack else None
 
-                cache, result = await run.io_bound(analyse)
-                if self.closed:
+                analysed = await run.io_bound(analyse)
+                if self.closed or analysed is None:
+                    self.pause_random()
                     return
+                cache, result = analysed
                 if (source is not (self.preview_board or self.position.board) or source.fen() != board.fen()
                         or (source is self.position.board and claimed_draw != self.position.claimed_draw)):
                     continue
@@ -240,6 +252,10 @@ class BoardView:
         finally:
             self.analysis_busy = False
             self.set_analysis_indicator(False)
+        if (not self.closed and self.preview_board is None and not self.position.outcome()
+                and 'human' in self.players.values() and self.players[self.position.board.turn] != 'human'
+                and self.analysis_engine_label is not None and self.analysis_engine_label.client.has_socket_connection):
+            ui.timer(0, self.automatic_turn, once=True)
 
     def set_analysis_indicator(self, active: bool) -> None:
         if self.analysis_engine_label is not None:
@@ -388,9 +404,14 @@ class BoardView:
     def sync(self) -> None:
         board = self.preview_board or self.position.board
         if not self.analysis_busy:
+            position = (board.fen(), self.position.claimed_draw if self.preview_board is None else None)
+            cache_key = (board.root().fen(), tuple(board.move_stack), str(position[1]))
+            needs_analysis = (board.fen() != self.analysis_position
+                              or (self.eval_fill is not None and self.eval_position != position)
+                              or (self.evaluation_plot is not None and cache_key not in self.evaluation_cache))
             if (self.analysis_engine_label is not None
                     and self.analysis_engine_label.client.has_socket_connection
-                    and board.fen() != self.analysis_position):
+                    and needs_analysis):
                 self.analysis_busy = True
                 self.set_analysis_indicator(True)
                 ui.timer(0, self.analyse_position, once=True)
@@ -505,12 +526,14 @@ class BoardView:
             ui.label('Move Analysis')
             self.analysis_engine_label = ui.label('STOCKFISH').classes('analysis-engine').props('aria-busy="false"')
         self.move_analysis_panel = ui.element('div').classes('move-analysis-panel')
-        self.render_move_analysis(self.preview_board or self.position.board)
-        self.analysis_position = (self.preview_board or self.position.board).fen()
+        if not self.analysis_busy:
+            self.render_move_analysis(self.preview_board or self.position.board)
+            self.analysis_position = (self.preview_board or self.position.board).fen()
         ui.label('Evaluation Plot').classes('evaluation-plot-heading')
         with ui.element('div').classes('move-placeholder-panel').props('aria-label="Live evaluation plot"'):
             self.evaluation_plot = ui.html('').classes('live-evaluation-chart')
-        self.sync_evaluation_plot(self.preview_board or self.position.board)
+        if not self.analysis_busy:
+            self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):
             ui.label('Move Log')
         with ui.element('div').classes('move-history-panel'):
