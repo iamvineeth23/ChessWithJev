@@ -79,6 +79,11 @@ BOARD_CSS = '''
         .evaluation-tabs .q-tab__content { z-index: 1; }
         .evaluation-tabs .q-tab__label { font-size: 12px; line-height: 18px; letter-spacing: .1em; }
         .evaluation-panels, .evaluation-tab-panel { width: 100%; height: 100%; padding: 0; background: transparent; color: inherit; }
+        .evaluation-plot-panel { position: relative; }
+        .evaluation-expand { position: absolute; top: 2px; right: 4px; width: 20px; height: 20px; min-height: 20px; color: var(--muted); z-index: 2; }
+        .evaluation-expand .q-icon { font-size: 16px; }
+        .evaluation-fullscreen { position: relative; width: 100vw; height: 100vh; padding: 24px; background: #101b14; }
+        .evaluation-fullscreen .evaluation-expand { top: 8px; right: 8px; }
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }

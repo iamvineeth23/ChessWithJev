@@ -72,6 +72,7 @@ class BoardView:
         self.eval_bar = None
         self.eval_position = None
         self.evaluation_plot = None
+        self.fullscreen_evaluation_plot = None
         self.evaluation_cache = {}
         self.move_analysis_cache = {}
         self.claim_button = None
@@ -406,7 +407,10 @@ class BoardView:
             recommended.append(200 * alternatives[0][1].wdl().expectation() - 100 if alternatives else evaluations[-1])
             evaluated = board if len(replay.move_stack) == len(board.move_stack) else replay
             evaluations.append(200 * self.cached_white_expectation(evaluated) - 100)
-        self.evaluation_plot.set_content(evaluation_chart_svg(evaluations, compact=True, recommended=recommended))
+        chart = evaluation_chart_svg(evaluations, compact=True, recommended=recommended)
+        self.evaluation_plot.set_content(chart)
+        if self.fullscreen_evaluation_plot is not None:
+            self.fullscreen_evaluation_plot.set_content(chart)
 
     def sync_analysis(self, board: chess.Board, result=None, *, refresh: bool = True) -> None:
         if self.eval_fill:
@@ -555,8 +559,17 @@ class BoardView:
             predictions_tab = ui.tab('Jev Predictions')
         with ui.element('div').classes('move-placeholder-panel'):
             with ui.tab_panels(tabs, value=evaluation_tab).classes('evaluation-panels').props('keep-alive'):
-                with ui.tab_panel(evaluation_tab).classes('evaluation-tab-panel').props('aria-label="Live evaluation plot"'):
+                with ui.tab_panel(evaluation_tab).classes('evaluation-tab-panel evaluation-plot-panel').props('aria-label="Live evaluation plot"'):
                     self.evaluation_plot = ui.html('').classes('live-evaluation-chart')
+                    with ui.dialog().props('maximized') as fullscreen_plot:
+                        with ui.element('div').classes('evaluation-fullscreen'):
+                            self.fullscreen_evaluation_plot = ui.html('').classes('live-evaluation-chart')
+                            ui.button(icon='fullscreen_exit', on_click=fullscreen_plot.close, color=None).classes(
+                                'evaluation-expand'
+                            ).props('flat dense aria-label="Exit evaluation plot fullscreen"')
+                    ui.button(icon='fullscreen', on_click=fullscreen_plot.open, color=None).classes(
+                        'evaluation-expand'
+                    ).props('flat dense aria-label="Toggle evaluation plot fullscreen"').tooltip('Fullscreen (Esc to exit)')
                 with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel'):
                     pass
         if not self.analysis_busy:

@@ -229,6 +229,15 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
     assert 'move-placeholder-panel' in panels.parent_slot.parent._classes
     evaluation, predictions = panels.default_slot.children
     assert view.evaluation_plot in evaluation.descendants()
+    expand = next(element for element in evaluation.descendants() if isinstance(element, ui.button) and element._props.get('aria-label') == 'Toggle evaluation plot fullscreen')
+    assert expand._props['aria-label'] == 'Toggle evaluation plot fullscreen'
+    dialog = view.fullscreen_evaluation_plot.parent_slot.parent.parent_slot.parent
+    assert dialog._props['maximized']
+    next(iter(expand._event_listeners.values())).handler(None)
+    assert dialog.value
+    exit_button = next(element for element in dialog.descendants() if isinstance(element, ui.button))
+    next(iter(exit_button._event_listeners.values())).handler(None)
+    assert not dialog.value
     assert not predictions.default_slot.children
     tabs.set_value('Jev Predictions')
     assert panels.value == 'Jev Predictions'
@@ -1477,6 +1486,7 @@ def test_live_plot_uses_best_alternative_in_white_perspective() -> None:
     view.evaluation_plot = ui.html('')
     view.position.board.push_uci('e2e4')
     view.position.board.push_uci('e7e5')
+    view.fullscreen_evaluation_plot = ui.html('')
     scores = [chess.engine.Cp(100), chess.engine.Cp(-100)]
     with patch.object(view.controller, 'white_expectation', return_value=0.5), patch.object(
         view.controller, 'move_analysis', side_effect=[([('best', score)], chess.engine.Cp(0), 0) for score in scores]
@@ -1487,3 +1497,4 @@ def test_live_plot_uses_best_alternative_in_white_perspective() -> None:
         view.sync_evaluation_plot(view.position.board)
         assert analyse.call_count == 2
         assert 'chart-recommended' in view.evaluation_plot.content
+        assert view.fullscreen_evaluation_plot.content == view.evaluation_plot.content
