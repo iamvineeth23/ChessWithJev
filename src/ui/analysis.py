@@ -25,8 +25,10 @@ def latest_game_players(path: Path | None = None) -> str:
         return ''
 
 
-def evaluation_chart_svg(evaluations: list[float], *, compact: bool = False) -> str:
+def evaluation_chart_svg(evaluations: list[float], *, compact: bool = False, recommended: list[float] | None = None) -> str:
     width, height, left, right, top, bottom = (380, 220, 46, 14, 10, 22) if compact else (1080, 580, 100, 40, 40, 72)
+    if compact and recommended is not None:
+        top = 26
     plot_width, plot_height = width - left - right, height - top - bottom
     def x(index: int) -> float:
         return left + plot_width * index / max(len(evaluations) - 1, 1)
@@ -35,6 +37,11 @@ def evaluation_chart_svg(evaluations: list[float], *, compact: bool = False) -> 
         return top + plot_height * (100 - value) / 200
 
     points = ' '.join(f'{x(index):.1f},{y(value):.1f}' for index, value in enumerate(evaluations))
+    comparison = ''
+    if recommended is not None:
+        best_points = ' '.join(f'{x(index):.1f},{y(value):.1f}' for index, value in enumerate(recommended))
+        comparison = (f'<polyline points="{best_points}" class="chart-recommended"><title>Stockfish best move from each actual position</title></polyline>'
+                      f'<text x="{left + 4}" y="12" class="chart-label">Solid: played · Dashed: Stockfish best</text>')
     horizontal_grid = ''.join(
         f'<line x1="{left}" y1="{y(value):.1f}" x2="{width - right}" y2="{y(value):.1f}" class="chart-grid"/>'
         f'<text x="{left - (8 if compact else 14)}" y="{y(value) + 5:.1f}" text-anchor="end" class="chart-label">{("0%" if compact else "0% EVEN") if value == 0 else f"{value:+.0f}%"}</text>'
@@ -50,6 +57,7 @@ def evaluation_chart_svg(evaluations: list[float], *, compact: bool = False) -> 
         {horizontal_grid}
         {vertical_grid}
         <line x1="{left}" y1="{y(0):.1f}" x2="{width - right}" y2="{y(0):.1f}" class="chart-balance"/>
+        {comparison}
         <polyline points="{points}" class="chart-line"/>
         <circle cx="{x(len(evaluations) - 1):.1f}" cy="{y(evaluations[-1]):.1f}" r="7" class="chart-last-point"/>
         <text x="{width - right - 12}" y="{top + (14 if compact else 28)}" text-anchor="end" class="chart-player-label chart-player-white">WHITE</text>

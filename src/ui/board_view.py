@@ -225,6 +225,10 @@ class BoardView:
                         key = (position.root().fen(), tuple(position.move_stack), str(claim))
                         if key not in cache:
                             cache[key] = (0.5 if claim is not None else self.controller.white_expectation(position))
+                    for position in positions[1:]:
+                        if self.closed:
+                            return cache, None
+                        self.cached_move_analysis(position)
                     return cache, self.cached_move_analysis(board) if board.move_stack else None
 
                 analysed = await run.io_bound(analyse)
@@ -395,11 +399,14 @@ class BoardView:
     def sync_evaluation_plot(self, board: chess.Board) -> None:
         replay = board.root()
         evaluations = [200 * self.cached_white_expectation(board if not board.move_stack else replay) - 100]
+        recommended = [evaluations[0]]
         for move in board.move_stack:
             replay.push(move)
+            alternatives, _, _ = self.cached_move_analysis(replay)
+            recommended.append(200 * alternatives[0][1].wdl().expectation() - 100 if alternatives else evaluations[-1])
             evaluated = board if len(replay.move_stack) == len(board.move_stack) else replay
             evaluations.append(200 * self.cached_white_expectation(evaluated) - 100)
-        self.evaluation_plot.set_content(evaluation_chart_svg(evaluations, compact=True))
+        self.evaluation_plot.set_content(evaluation_chart_svg(evaluations, compact=True, recommended=recommended))
 
     def sync_analysis(self, board: chess.Board, result=None, *, refresh: bool = True) -> None:
         if self.eval_fill:

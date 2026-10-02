@@ -137,6 +137,7 @@ BOARD_CSS = '''
         .evaluation-chart .chart-grid-vertical { opacity: .38; }
         .evaluation-chart .chart-balance { stroke: #e7cb7d; stroke-width: 1.5; stroke-dasharray: 5 4; }
         .evaluation-chart .chart-line { fill: none; stroke: var(--green); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 4px #72e98970); }
+        .evaluation-chart .chart-recommended { fill: none; stroke: #e7cb7d; stroke-width: 1.5; stroke-dasharray: 5 4; stroke-linejoin: round; }
         .evaluation-chart .chart-last-point { fill: #e7cb7d; stroke: #101b14; stroke-width: 3; }
         .evaluation-chart .chart-player-label { font: 700 14px 'SFMono-Regular', Consolas, monospace; letter-spacing: .12em; }
         .evaluation-chart .chart-player-white { fill: var(--green); }

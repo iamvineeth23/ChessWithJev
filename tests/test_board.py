@@ -980,17 +980,17 @@ def test_live_plot_tracks_every_move_history_branches_and_reset() -> None:
     from nicegui import ui
     view = BoardView(white='human', black='human')
     view.evaluation_plot = ui.html('')
-    with patch.object(view.controller, 'white_expectation', side_effect=lambda board: 0.5 + len(board.move_stack) * 0.1) as evaluate:
+    with patch.object(view.controller, 'move_analysis', return_value=([('best', chess.engine.Cp(0))], chess.engine.Cp(0), 0)), patch.object(view.controller, 'white_expectation', side_effect=lambda board: 0.5 + len(board.move_stack) * 0.1) as evaluate:
         view.sync()
         assert '0</text>' in view.evaluation_plot.content
         view.play_move(chess.Move.from_uci('e2e4'))
         view.play_move(chess.Move.from_uci('e7e5'))
         assert evaluate.call_count == 3
-        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20, 40], compact=True)
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20, 40], compact=True, recommended=[0, 0, 0])
         view.sync()
         assert evaluate.call_count == 3
         view.select_history(1)
-        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20], compact=True)
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20], compact=True, recommended=[0, 0])
         view.select_history(2)
         view.undo()
         view.redo()
@@ -1000,7 +1000,7 @@ def test_live_plot_tracks_every_move_history_branches_and_reset() -> None:
         assert evaluate.call_count == 4
         view.new_game()
         assert evaluate.call_count == 5
-        assert view.evaluation_plot.content == evaluation_chart_svg([0], compact=True)
+        assert view.evaluation_plot.content == evaluation_chart_svg([0], compact=True, recommended=[0])
         view.controller.close()
 
 
@@ -1008,12 +1008,12 @@ def test_live_plot_fills_moves_skipped_by_automatic_reply() -> None:
     from nicegui import ui
     view = BoardView()
     view.evaluation_plot = ui.html('')
-    with patch.object(view.controller, 'white_expectation', return_value=0.5) as evaluate:
+    with patch.object(view.controller, 'move_analysis', return_value=([('best', chess.engine.Cp(0))], chess.engine.Cp(0), 0)), patch.object(view.controller, 'white_expectation', return_value=0.5) as evaluate:
         view.sync()
         assert view.play_human_move(chess.Move.from_uci('e2e4'))
         assert len(view.position.board.move_stack) == 2
         assert evaluate.call_count == 3
-        assert view.evaluation_plot.content == evaluation_chart_svg([0, 0, 0], compact=True)
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 0, 0], compact=True, recommended=[0, 0, 0])
         view.set_fen('7k/8/8/8/8/8/6R1/K7 w - - 100 1')
         view.claim_draw()
         assert view.position.claimed_draw
@@ -1318,7 +1318,7 @@ def test_initial_analysis_does_not_block_building_the_game(monkeypatch) -> None:
 
 
 @pytest.mark.parametrize('action', ['history', 'undo', 'redo', 'reset', 'replace', 'draw'])
-def test_live_position_changes_always_queue_analysis(monkeypatch, action) -> None:
+def test_uncached_live_position_changes_queue_analysis(monkeypatch, action) -> None:
     from unittest.mock import PropertyMock
 
     view = BoardView(white='human', black='human')
@@ -1335,6 +1335,7 @@ def test_live_position_changes_always_queue_analysis(monkeypatch, action) -> Non
     view.render()
     view.render_evaluation()
     view.render_controls()
+    view.move_analysis_cache.clear()
     with patch.object(type(view.analysis_engine_label.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board_view.ui, 'timer') as timer, patch.object(view, 'sync_analysis') as synchronous:
         if action == 'history':
             view.select_history(1)
@@ -1391,6 +1392,7 @@ def test_move_log_redraw_does_not_delete_pending_analysis_timer(monkeypatch) -> 
     view.render()
     view.render_evaluation()
     view.render_controls()
+    view.move_analysis_cache.clear()
     entry = view.history_labels[0]
     listener = next(iter(entry._event_listeners.values()))
     with patch.object(type(entry.client), 'has_socket_connection', new_callable=PropertyMock, return_value=True), patch.object(board.app, 'handle_exception') as errors:
@@ -1467,3 +1469,21 @@ def test_move_analysis_cache_distinguishes_history_and_clears_on_replacement() -
         view.cached_move_analysis(first)
         view.set_fen(chess.STARTING_FEN)
         assert not view.move_analysis_cache
+
+
+def test_live_plot_uses_best_alternative_in_white_perspective() -> None:
+    from nicegui import ui
+    view = BoardView(white='human', black='human')
+    view.evaluation_plot = ui.html('')
+    view.position.board.push_uci('e2e4')
+    view.position.board.push_uci('e7e5')
+    scores = [chess.engine.Cp(100), chess.engine.Cp(-100)]
+    with patch.object(view.controller, 'white_expectation', return_value=0.5), patch.object(
+        view.controller, 'move_analysis', side_effect=[([('best', score)], chess.engine.Cp(0), 0) for score in scores]
+    ) as analyse:
+        view.sync_evaluation_plot(view.position.board)
+        expected = [0, *(200 * score.wdl().expectation() - 100 for score in scores)]
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 0, 0], compact=True, recommended=expected)
+        view.sync_evaluation_plot(view.position.board)
+        assert analyse.call_count == 2
+        assert 'chart-recommended' in view.evaluation_plot.content

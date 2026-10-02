@@ -20,7 +20,7 @@ Run with `.venv/bin/chess -r` to start with REC enabled. Run with `.venv/bin/che
 
 Click a move in Move Log to preview its board position and Move Analysis. Click the latest move to return to the live position. Browsing history pauses automatic play.
 
-Evaluation Plot updates after each move with Stockfish balance: 0% is even, positive values favor White, and negative values favor Black. Move step 0 is the starting position; each step is one player’s move. Browsing history shows the plot up to the selected move.
+Evaluation Plot updates after each move with Stockfish balance: 0% is even, positive values favor White, and negative values favor Black. Move step 0 is the starting position; each step is one player’s move. Browsing history shows the plot up to the selected move. The solid line tracks played positions; the dashed gold line shows the expected balance if Stockfish’s top recommendation had been chosen at each step, from that step’s actual preceding position.
 
 Stockfish uses the selected ELO when playing. Position evaluations, plots, five best alternatives, and evaluation loss always use full strength, regardless of player ELO. Analysis searches to depth 18 with no time limit, using `multipv=5` for the five alternatives. Deeper analysis can take longer to update the display. Playing moves keep a 0.1-second search budget.
 
