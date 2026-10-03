@@ -123,11 +123,6 @@ BOARD_CSS = '''
         .chess-layout { display: grid; grid-template-columns: 16px 24px minmax(0, 1fr) 80px; grid-template-rows: auto 24px; width: 100%; }
         .board-actions { grid-column: 4; grid-row: 1; align-self: end; display: grid; grid-template-columns: repeat(2, 32px); grid-template-rows: repeat(4, 32px); gap: 8px; padding-left: 8px; }
         .board-actions .terminal-button { width: 32px; height: 32px; min-height: 32px; padding: 0; font-size: 20px; line-height: 1; }
-        .board-actions .analysis-button { grid-column: span 2; width: 72px; }
-        .analysis-button .q-btn__content { display: flex; align-items: center; justify-content: center; }
-        .analysis-button .q-btn__content > div { display: flex; }
-        .analysis-icon { width: 52px; height: 28px; fill: none; stroke: #0c1510; stroke-width: 2.75; stroke-linecap: round; }
-        .analysis-icon circle { fill: #0c1510; stroke: none; }
         .analysis-card { box-sizing: border-box; background: var(--panel); border: 1px solid var(--green); border-radius: 0; color: var(--green); padding: 28px; font-family: inherit; }
         .q-dialog__inner--minimized > .analysis-card { width: calc(100vw - 128px) !important; max-width: none !important; }
         .analysis-heading { width: 100%; align-items: center; justify-content: space-between; margin-top: -22px; margin-bottom: 0; }

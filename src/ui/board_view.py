@@ -514,8 +514,6 @@ class BoardView:
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
             self.history_forward_button = ui.button('→', on_click=lambda: self.step_history(1), color=None).classes('terminal-button').props('aria-label="Next move in history" title="Next move in history"')
-            with ui.button('', on_click=self.show_analysis, color=None).classes('terminal-button analysis-button').props('aria-label="Analysis"'):
-                ui.html('''<svg class="analysis-icon" viewBox="0 0 56 28" aria-hidden="true"><path d="M8 19 15 10M21 10l7 8M34 18l9-11"/><circle cx="5" cy="22" r="2.5"/><circle cx="18" cy="6" r="2.8"/><circle cx="31" cy="21" r="2.5"/><circle cx="47" cy="5" r="2.8"/></svg>''')
             self.undo_button.set_enabled(bool(self.position.board.move_stack))
             self.redo_button.set_enabled(bool(self.position.redo_stack))
             self.history_back_button.set_enabled(bool(self.position.board.move_stack))
