@@ -8,7 +8,7 @@ import chess.svg
 from nicegui import run, ui
 
 from src.game.controller import GameController
-from src.game.log import write_game_log
+from src.game.log import write_game_log, write_pgn
 from src.game.position import Position
 from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
 
@@ -554,8 +554,12 @@ class BoardView:
         finally:
             self.save_button.enable()
 
-    def download_pgn(self) -> None:
-        ui.download(export_pgn(self.position.board), filename='game.pgn', media_type='application/x-chess-pgn')
+    async def save_pgn(self) -> None:
+        try:
+            path = await run.io_bound(write_pgn, self.position.board.copy(stack=True))
+            ui.notify(f'PGN exported to gamelog/pgn/{path.name}', type='positive')
+        except Exception as error:
+            ui.notify(f'Could not export PGN: {error}', type='negative')
 
     def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
@@ -589,7 +593,7 @@ class BoardView:
             self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):
             ui.label('Move Log')
-            ui.button('Export PGN', on_click=self.download_pgn, color=None).classes('terminal-button export-pgn-button').props('dense no-caps')
+            ui.button('Export PGN', on_click=self.save_pgn, color=None).classes('terminal-button export-pgn-button').props('dense no-caps')
         with ui.element('div').classes('move-history-panel'):
             self.history_panel = ui.element('div').classes('move-history')
         self.render_history()

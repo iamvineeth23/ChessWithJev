@@ -3,6 +3,19 @@ import json
 from pathlib import Path
 
 import chess
+import chess.pgn
+
+
+def write_pgn(board: chess.Board) -> Path:
+    log_dir = Path(__file__).resolve().parents[2] / 'gamelog' / 'pgn'
+    game_id = date.today().isoformat()
+    sequence = 1
+    while (log_dir / f'{game_id}_{sequence:03d}.pgn').exists():
+        sequence += 1
+    path = log_dir / f'{game_id}_{sequence:03d}.pgn'
+    log_dir.mkdir(parents=True, exist_ok=True)
+    path.write_text(f'{chess.pgn.Game.from_board(board)}\n')
+    return path
 
 
 def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, save_copy: bool = False, *, mirror_latest: bool = True) -> Path:

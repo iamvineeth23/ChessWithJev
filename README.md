@@ -26,6 +26,8 @@ Move Analysis shows who played the selected move, its Stockfish evaluation, eval
 
 Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`
 
+`Export PGN` saves the current game to `gamelog/pgn/` using date-and-sequence filenames such as `2026-10-04_001.pgn`.
+
 Notes:
 
 To change the displayed position in code, keep a reference to `BoardView` and call `set_fen(fen)` or `set_board(chess_board)`. Both update the python-chess position and refresh the board. Call these methods from the NiceGUI UI context.

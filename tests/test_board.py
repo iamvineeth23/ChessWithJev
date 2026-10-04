@@ -14,7 +14,7 @@ from src.ui.board import (BoardView, build_page, export_pgn, lock_window_aspect_
 from src.ui import board
 from src.ui import board_view
 from src.ui.board_assets import MOVE_LOG_SCRIPT
-from src.game.log import write_game_log
+from src.game.log import write_game_log, write_pgn
 from unittest.mock import MagicMock, patch
 
 
@@ -458,6 +458,7 @@ def test_move_history_preserves_move_numbers_from_custom_position() -> None:
 
 
 def test_export_pgn_and_move_log_button_use_the_live_board(monkeypatch: pytest.MonkeyPatch) -> None:
+    import asyncio
     from nicegui import ui
 
     view = BoardView()
@@ -465,15 +466,40 @@ def test_export_pgn_and_move_log_button_use_the_live_board(monkeypatch: pytest.M
     view.position.board.push_san('c5')
     assert '1. e4 c5 *' in export_pgn(view.position.board)
 
-    download = MagicMock()
-    monkeypatch.setattr(ui, 'download', download)
+    calls = 0
+
+    async def io_bound(function, board):
+        nonlocal calls
+        calls += 1
+        assert function is write_pgn
+        assert board is not view.position.board
+        assert board.fen() == view.position.board.fen()
+        if calls == 2:
+            raise OSError('disk full')
+        return Path('gamelog/pgn/2026-10-04_001.pgn')
+
+    monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+    notify = MagicMock()
+    monkeypatch.setattr(ui, 'notify', notify)
     view.render_controls()
     button = next(element for element in ui.context.client.elements.values()
                   if element._props.get('label') == 'Export PGN')
-    listener = next(iter(button._event_listeners.values()))
-    ui.context.client.handle_event({'id': button.id, 'listener_id': listener.id, 'args': []})
-    assert download.call_args.args[0] == export_pgn(view.position.board)
-    assert download.call_args.kwargs == {'filename': 'game.pgn', 'media_type': 'application/x-chess-pgn'}
+    assert button._event_listeners
+    asyncio.run(view.save_pgn())
+    notify.assert_called_once_with('PGN exported to gamelog/pgn/2026-10-04_001.pgn', type='positive')
+    asyncio.run(view.save_pgn())
+    notify.assert_called_with('Could not export PGN: disk full', type='negative')
+
+
+def test_write_pgn_uses_save_filename_convention(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
+    board = chess.Board()
+    board.push_san('e4')
+    first = write_pgn(board)
+    second = write_pgn(board)
+    assert first == tmp_path / 'repo' / 'gamelog' / 'pgn' / f'{date.today().isoformat()}_001.pgn'
+    assert second == tmp_path / 'repo' / 'gamelog' / 'pgn' / f'{date.today().isoformat()}_002.pgn'
+    assert first.read_text() == f'{export_pgn(board)}\n'
 
 
 def test_move_log_columns_and_current_tile() -> None:
