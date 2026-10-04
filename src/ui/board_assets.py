@@ -90,23 +90,26 @@ BOARD_CSS = '''
         .evaluation-fullscreen .evaluation-expand { top: 8px; right: 8px; }
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
-        .jev-predictions { display: grid; align-content: start; gap: 7px; width: 100%; height: 100%; padding: 8px; color: #d7e8d6; font-size: 11px; }
-        .jev-prediction-card, .jev-confidence-card { padding: 8px 10px; border: 1px solid #284636; border-radius: 8px; background: rgba(12, 28, 20, .45); }
+        .jev-predictions-tab { container-type: size; }
+        .jev-predictions { display: grid; grid-template-rows: minmax(0, 3fr) minmax(0, 1fr); gap: 2cqh; width: 100%; height: 100%; padding: 2cqh 6px; box-sizing: border-box; color: #d7e8d6; font-size: 13px; line-height: 1.1; }
+        .jev-prediction-card, .jev-confidence-card { min-height: 0; padding: 2cqh 8px; border: 1px solid #284636; border-radius: 6px; background: rgba(12, 28, 20, .45); }
+        .jev-prediction-card { display: grid; grid-template-rows: auto repeat(5, minmax(0, 1fr)); }
         .jev-prediction-heading, .jev-confidence-heading, .jev-confidence-title { display: flex; align-items: center; }
-        .jev-prediction-heading { gap: 5px; margin-bottom: 5px; color: var(--green); font-size: 13px; }
-        .jev-info { display: grid; place-items: center; width: 15px; height: 15px; border: 1px solid var(--muted); border-radius: 50%; color: var(--muted); font-size: 9px; }
-        .jev-prediction-row { display: grid; grid-template-columns: 50px minmax(50px, 1fr) 38px; align-items: center; gap: 7px; min-height: 22px; padding: 2px 5px; border-radius: 5px; }
-        .jev-prediction-row.selected { color: #ffe28a; background: rgba(165, 132, 35, .28); }
-        .jev-prediction-track, .jev-confidence-track { overflow: hidden; height: 8px; border-radius: 5px; background: #1b392a; }
+        .jev-prediction-heading { gap: 5px; margin-bottom: 2cqh; color: var(--green); font-size: 1.1em; white-space: nowrap; }
+        .jev-info { display: grid; place-items: center; width: 1.1em; height: 1.1em; border: 1px solid var(--muted); border-radius: 50%; color: var(--muted); font-size: .85em; }
+        .jev-prediction-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) 42px; align-items: center; gap: 6px; min-height: 0; padding: 0 5px; border-radius: 5px; }
+        .jev-prediction-row.selected { background: rgba(165, 132, 35, .28); box-shadow: inset 0 0 0 1px #ffe28a30; }
+        .jev-prediction-move, .jev-prediction-rating { white-space: nowrap; }
+        .jev-prediction-track, .jev-confidence-track { overflow: hidden; height: 3cqh; max-height: 7px; border-radius: 5px; background: #1b392a; }
         .jev-prediction-fill, .jev-confidence-fill { height: 100%; border-radius: inherit; background: var(--green); }
         .jev-prediction-row.selected .jev-prediction-fill, .jev-confidence-fill { background: #ffe28a; }
         .jev-prediction-rating { text-align: right; font-variant-numeric: tabular-nums; }
-        .jev-confidence-card { padding-block: 9px; }
-        .jev-confidence-heading { justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-        .jev-confidence-title { gap: 5px; color: var(--muted); }
+        .jev-confidence-card { display: flex; flex-direction: column; justify-content: space-between; }
+        .jev-confidence-heading { justify-content: space-between; gap: 8px; }
+        .jev-confidence-title { gap: 5px; color: var(--muted); white-space: nowrap; }
         .jev-confidence-value { display: flex; gap: 5px; white-space: nowrap; }
-        .jev-confidence-percent { color: #ffe28a; }
-        .jev-confidence-track { height: 9px; }
+        .jev-confidence-percent { color: #ffe28a; font-weight: 700; }
+        .jev-confidence-track { height: 4cqh; max-height: 10px; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }

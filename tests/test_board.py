@@ -297,6 +297,7 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
     exit_button = next(element for element in dialog.descendants() if isinstance(element, ui.button))
     next(iter(exit_button._event_listeners.values())).handler(None)
     assert not dialog.value
+    assert 'jev-predictions-tab' in predictions._classes
     assert predictions.default_slot.children == [view.jev_predictions_panel]
     assert not view.jev_predictions_panel.default_slot.children
     tabs.set_value('Jev Predictions')

@@ -642,7 +642,7 @@ class BoardView:
                     ui.button(icon='fullscreen', on_click=fullscreen_plot.open, color=None).classes(
                         'evaluation-expand'
                     ).props('flat dense aria-label="Toggle evaluation plot fullscreen"').tooltip('Fullscreen (Esc to exit)')
-                with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel'):
+                with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel jev-predictions-tab'):
                     self.jev_predictions_panel = ui.element('div').classes('jev-predictions')
                     self.render_jev_predictions()
         if not self.analysis_busy:
