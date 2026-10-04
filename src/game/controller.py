@@ -1,7 +1,9 @@
 import chess
 import chess.engine
+import os
 import random
 import shutil
+from typesafe_sdk import Choice, TypeSafeClient
 
 from src.game.position import Position
 
@@ -77,3 +79,22 @@ class GameController:
         engine.configure({'UCI_LimitStrength': True, 'UCI_Elo': elo})
         move = engine.play(self.position.board, chess.engine.Limit(depth=18)).move
         return self.play(move)
+
+    def play_jev_move(self) -> bool:
+        board = self.position.board
+        if self.position.outcome():
+            return False
+        api_key = os.getenv('JEV_API_KEY')
+        if not api_key:
+            raise RuntimeError('JEV_API_KEY is not set')
+        legal_moves = list(board.legal_moves)
+        question = Choice(
+            instructions='Choose the best chess move for the player to move.',
+            criteria={move.uci(): board.san(move) for move in legal_moves},
+        )
+        with TypeSafeClient(api_key=api_key) as client:
+            response = client.system_one(state={'fen': board.fen()}, questions={'move': question})
+        selected = chess.Move.from_uci(response.answers['move'].choice)
+        if selected not in legal_moves:
+            raise RuntimeError(f'Jev selected an illegal move: {selected.uci()}')
+        return self.play(selected)

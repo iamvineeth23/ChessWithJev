@@ -189,6 +189,53 @@ def test_controller_accepts_moves_from_any_caller() -> None:
     assert [move.uci() for move in controller.position.board.move_stack] == ['e2e4', 'e7e5']
 
 
+def test_jev_chooses_from_every_legal_move_for_current_fen(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = GameController()
+    client = MagicMock()
+    client.__enter__.return_value = client
+    client.system_one.return_value.answers = {'move': MagicMock(choice='e2e4')}
+    monkeypatch.setenv('JEV_API_KEY', 'test-key')
+
+    with patch('src.game.controller.TypeSafeClient', return_value=client) as client_type:
+        assert controller.play_jev_move()
+
+    client_type.assert_called_once_with(api_key='test-key')
+    state = client.system_one.call_args.kwargs['state']
+    question = client.system_one.call_args.kwargs['questions']['move']
+    assert state == {'fen': chess.STARTING_FEN}
+    assert set(question.criteria) == {move.uci() for move in chess.Board().legal_moves}
+    assert question.criteria['e2e4'] == 'e4'
+    assert controller.position.board.peek() == chess.Move.from_uci('e2e4')
+
+
+def test_jev_requires_api_key_and_rejects_an_illegal_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = GameController()
+    monkeypatch.delenv('JEV_API_KEY', raising=False)
+    with pytest.raises(RuntimeError, match='JEV_API_KEY is not set'):
+        controller.play_jev_move()
+
+    response = MagicMock()
+    response.answers = {'move': MagicMock(choice='e2e5')}
+    client = MagicMock()
+    client.__enter__.return_value = client
+    client.system_one.return_value = response
+    monkeypatch.setenv('JEV_API_KEY', 'test-key')
+    with patch('src.game.controller.TypeSafeClient', return_value=client), pytest.raises(RuntimeError, match='illegal move'):
+        controller.play_jev_move()
+    assert controller.position.board.fen() == chess.STARTING_FEN
+
+
+def test_jev_failure_is_shown_without_changing_the_board(monkeypatch: pytest.MonkeyPatch) -> None:
+    view = BoardView(white='jev', black='human')
+    notify = MagicMock()
+    monkeypatch.setattr(view.controller, 'play_jev_move', MagicMock(side_effect=RuntimeError('service unavailable')))
+    monkeypatch.setattr(board_view.ui, 'notify', notify)
+
+    assert not view.automatic_step()
+    assert view.position.board.fen() == chess.STARTING_FEN
+    notify.assert_called_once_with('Jev could not choose a move: service unavailable', type='negative')
+
+
 def test_random_black_move_uses_legal_moves_and_stops_at_game_end() -> None:
     controller = GameController()
     assert not controller.play_random_black_move()
@@ -842,7 +889,7 @@ def test_move_analysis_compares_the_last_move_with_its_prior_options() -> None:
     assert {'Position before 1. e4', 'Played by white (Human)', 'Eval after move', 'Eval loss', '0.00 pawns', 'Best alternatives', 'e4', 'White +0.20'} <= text
 
 
-@pytest.mark.parametrize('player', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('player', ['human', 'random', 'stockfish', 'jev'])
 def test_move_analysis_identifies_player_in_history(player: str) -> None:
     view = BoardView(white='human', black=player)
     with patch.object(view.controller, 'move_analysis', return_value=([('e5', chess.engine.Cp(10))], chess.engine.Cp(30), 0.2)):
@@ -1276,8 +1323,8 @@ def test_human_analysis_indicator_lasts_until_calculation_finishes(monkeypatch, 
     asyncio.run(check())
 
 
-@pytest.mark.parametrize('white', ['human', 'random', 'stockfish'])
-@pytest.mark.parametrize('black', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('white', ['human', 'random', 'stockfish', 'jev'])
+@pytest.mark.parametrize('black', ['human', 'random', 'stockfish', 'jev'])
 def test_all_player_combinations_apply_each_move_before_async_analysis(monkeypatch, white, black) -> None:
     import asyncio
     from unittest.mock import AsyncMock, PropertyMock
@@ -1296,6 +1343,7 @@ def test_all_player_combinations_apply_each_move_before_async_analysis(monkeypat
             stockfish_elos.append(elo)
             return move()
         monkeypatch.setattr(view.controller, 'play_stockfish_move', stockfish)
+        monkeypatch.setattr(view.controller, 'play_jev_move', move)
         with container:
             view.render()
             view.render_evaluation()
@@ -1400,8 +1448,8 @@ def test_uncached_live_position_changes_queue_analysis(monkeypatch, action) -> N
     assert 'analyzing' in view.analysis_engine_label._classes
 
 
-@pytest.mark.parametrize('white', ['human', 'random', 'stockfish'])
-@pytest.mark.parametrize('black', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('white', ['human', 'random', 'stockfish', 'jev'])
+@pytest.mark.parametrize('black', ['human', 'random', 'stockfish', 'jev'])
 def test_start_game_event_keeps_analysis_timer_in_live_slot(monkeypatch, white, black) -> None:
     from nicegui import ui
 
@@ -1451,8 +1499,8 @@ def test_move_log_redraw_does_not_delete_pending_analysis_timer(monkeypatch) -> 
     assert view.analysis_busy
 
 
-@pytest.mark.parametrize('white', ['human', 'random', 'stockfish'])
-@pytest.mark.parametrize('black', ['human', 'random', 'stockfish'])
+@pytest.mark.parametrize('white', ['human', 'random', 'stockfish', 'jev'])
+@pytest.mark.parametrize('black', ['human', 'random', 'stockfish', 'jev'])
 def test_history_reuses_analysis_without_loading_or_engine_calls(monkeypatch, white, black) -> None:
     import asyncio
     from unittest.mock import AsyncMock, PropertyMock

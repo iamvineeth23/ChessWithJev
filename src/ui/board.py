@@ -42,7 +42,7 @@ def saved_game(storage: MutableMapping[str, object]) -> tuple[Position, str, str
     if not isinstance(game, dict):
         return None
     white, black = game.get('white'), game.get('black')
-    if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
+    if white not in {'human', 'random', 'stockfish', 'jev'} or black not in {'human', 'random', 'stockfish', 'jev'}:
         return None
     position = Position()
     if not position.restore(game.get('position')):
@@ -95,7 +95,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                 ui.label('SELECT PLAYERS').classes('landing-title')
                 def player_row(label: str, value: str):
                     with ui.element('div').classes('player-row'):
-                        player = ui.select(['human', 'random', 'stockfish'], value=value, label=label).props(f'outlined popup-content-class="player-options" aria-label="{label} player"')
+                        player = ui.select(['human', 'random', 'stockfish', 'jev'], value=value, label=label).props(f'outlined popup-content-class="player-options" aria-label="{label} player"')
                         elo = ui.select([1320, 1500, 1800, 2100, 2400, 2700, 3000, 3190], value=1500, label='ELO').classes('elo-select').props(f'outlined popup-content-class="player-options" aria-label="{label} ELO"')
                         elo.visible = value == 'stockfish'
                         player.on('update:model-value', lambda: setattr(elo, 'visible', player.value == 'stockfish'))

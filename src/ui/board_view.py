@@ -51,8 +51,8 @@ def export_pgn(board: chess.Board) -> str:
 
 class BoardView:
     def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', white_elo: int = 1500, black_elo: int = 1500, on_change: Callable[['BoardView'], None] | None = None) -> None:
-        if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
-            raise ValueError('Players must be human, random, or stockfish')
+        if white not in {'human', 'random', 'stockfish', 'jev'} or black not in {'human', 'random', 'stockfish', 'jev'}:
+            raise ValueError('Players must be human, random, stockfish, or jev')
         self.controller = GameController(position)
         self.position = self.controller.position
         self.players = {chess.WHITE: white, chess.BLACK: black}
@@ -171,12 +171,23 @@ class BoardView:
         self.sync()
         return True
 
-    def automatic_step(self) -> None:
+    def automatic_step(self) -> bool:
         player = self.players[self.position.board.turn]
         if player == 'random':
-            self.has_played_move |= self.controller.play_random_move()
+            played = self.controller.play_random_move()
         elif player == 'stockfish':
-            self.has_played_move |= self.controller.play_stockfish_move(self.stockfish_elos[self.position.board.turn])
+            played = self.controller.play_stockfish_move(self.stockfish_elos[self.position.board.turn])
+        elif player == 'jev':
+            try:
+                played = self.controller.play_jev_move()
+            except Exception as error:
+                self.pause_random()
+                ui.notify(f'Jev could not choose a move: {error}', type='negative')
+                return False
+        else:
+            return False
+        self.has_played_move |= played
+        return played
 
     def random_step(self) -> None:
         if self.analysis_engine_label is not None and self.analysis_engine_label.client.has_socket_connection:
@@ -204,7 +215,8 @@ class BoardView:
         self.analysis_busy = True
         try:
             if advance:
-                self.automatic_step()
+                if not self.automatic_step():
+                    return
             self.set_analysis_indicator(True)
             self.sync()
             await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
