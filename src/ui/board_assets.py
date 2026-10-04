@@ -152,9 +152,6 @@ BOARD_CSS = '''
         .live-evaluation-chart .chart-grid { stroke-width: .6; opacity: .45; }
         .live-evaluation-chart .chart-grid-vertical { opacity: .22; }
         .live-evaluation-chart .chart-balance { stroke-width: .8; stroke-dasharray: 3 4; opacity: .65; }
-        .board-actions .record-button { grid-column: span 2; width: 72px; border-color: #f3d68a; background: #0c1510; color: #ff4b45; }
-        .record-button .q-btn__content::before { content: '●'; display: inline-block; margin-right: 4px; opacity: 0; }
-        .record-button.recording .q-btn__content::before { opacity: 1; animation: record-blink 1s steps(1) infinite; }
         @keyframes record-blink { 50% { opacity: 0; } }
         .board-actions .terminal-button:disabled { opacity: .4; }
         .eval-bar { grid-column: 1; grid-row: 1; width: 16px; height: 100%; border: 2px solid #89b993; background: #17251c; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; }
@@ -201,8 +198,7 @@ BOARD_CSS = '''
             .board-panel::before { content: ''; position: absolute; inset: -1px 78.5px -1px -1px; z-index: -1; background: var(--panel); border: 1px solid var(--line); box-shadow: 8px 8px 0 #080f0b; }
             .status-strip, .board-heading { width: min(100%, calc(100dvh - 158px), 740px); justify-self: center; }
             .chess-layout { position: relative; width: min(100%, calc(100dvh - 158px), 740px); height: max-content; place-self: center; min-width: 0; grid-template-rows: auto 24px; }
-            .board-actions { position: absolute; grid-column: 1 / -1; left: calc(50% - 176px); bottom: -39px; display: flex; width: max-content; padding: 0; }
-            .board-actions .record-button { position: static; }
+            .board-actions { position: absolute; grid-column: 3 / 4; left: 50%; transform: translateX(-50%); bottom: -39px; display: flex; width: max-content; padding: 0; }
             .move-analysis-heading, .history-heading { margin-left: -97.5px; position: relative; top: 10px; }
             .evaluation-plot-heading { margin-left: -97.5px; margin-top: -28px; position: relative; top: 10px; }
             .move-analysis-heading, .move-analysis-panel { transform: translateY(-14px); }

@@ -398,11 +398,7 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     action_buttons = [element for element in action_panel.descendants()
                       if element._props.get('aria-label') in {'Undo move', 'Redo move', 'Previous move in history', 'Next move in history'}]
     assert [button._props['aria-label'] for button in action_buttons] == ['Undo move', 'Redo move', 'Previous move in history', 'Next move in history']
-    record_button = next(element for element in action_panel.descendants() if element._props.get('aria-label') == 'Record game log')
-    assert record_button._props['label'] == 'REC'
-    click(record_button)
-    assert view.recording
-    assert 'recording' in record_button._classes
+    assert not any(element._props.get('aria-label') == 'Record game log' for element in action_panel.descendants())
     assert view.status_label.text == 'White to move'
     assert not view.claim_button.visible
     assert not view.undo_button.enabled
@@ -445,8 +441,8 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
 def test_recording_can_start_enabled() -> None:
     view = BoardView(recording=True)
     view.render()
-    assert view.record_button._props['aria-pressed'] == 'true'
-    assert 'recording' in view.record_button._classes
+    assert view.recording
+    assert not any(element._props.get('aria-label') == 'Record game log' for element in view.squares[chess.A1].client.elements.values())
 
 
 def test_move_history_and_new_game() -> None:

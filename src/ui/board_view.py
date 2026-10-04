@@ -80,7 +80,6 @@ class BoardView:
         self.redo_button = None
         self.history_back_button = None
         self.history_forward_button = None
-        self.record_button = None
         self.recording = recording
         self.game_logged = self.position.outcome() is not None
         self.has_played_move = bool(self.position.board.move_stack)
@@ -339,12 +338,6 @@ class BoardView:
             self.selected = None
             self.sync()
 
-    def toggle_recording(self) -> None:
-        self.recording = not self.recording
-        self.record_button.classes(add='recording' if self.recording else None,
-                                   remove=None if self.recording else 'recording')
-        self.record_button.props(f'aria-pressed="{str(self.recording).lower()}"')
-
     def click_square(self, square: chess.Square) -> None:
         if self.preview_board is not None or self.position.outcome() or self.pending_promotion or self.players[self.position.board.turn] != 'human':
             return
@@ -509,7 +502,6 @@ class BoardView:
                             ui.image(piece_image(piece)).classes('chess-piece').props(f'alt="{"white" if piece.color else "black"} {chess.piece_name(piece.piece_type)}"')
                         self.shown_pieces[square] = piece
         with ui.element('div').classes('board-actions'):
-            self.record_button = ui.button('REC', on_click=self.toggle_recording, color=None).classes(f'terminal-button record-button{" recording" if self.recording else ""}').props(f'aria-label="Record game log" aria-pressed="{str(self.recording).lower()}"')
             self.undo_button = ui.button('↶', on_click=self.undo, color=None).classes('terminal-button').props('aria-label="Undo move" title="Undo move"')
             self.redo_button = ui.button('↷', on_click=self.redo, color=None).classes('terminal-button').props('aria-label="Redo move" title="Redo move"')
             self.history_back_button = ui.button('←', on_click=lambda: self.step_history(-1), color=None).classes('terminal-button').props('aria-label="Previous move in history" title="Previous move in history"')
