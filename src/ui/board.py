@@ -66,6 +66,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                     ui.label('CHESS WITH JEV').classes('app-title')
                 main_menu_action = ui.element('div').classes('main-menu-action')
                 main_menu_action.visible = False
+            save_action = ui.element('div').classes('header-save-action')
         content = ui.element('main')
         footer = ui.label(chess.STARTING_FEN).classes('footer-note').props('title="Click to copy FEN" aria-label="Current FEN; click to copy"').on('click', js_handler='''(...args) => {
             const text = args[0].currentTarget.textContent;
@@ -83,6 +84,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
     def show_landing(clear_game: bool = False) -> None:
         if clear_game:
             storage.pop('game', None)
+        save_action.clear()
         main_menu_action.clear()
         main_menu_action.visible = False
         footer.visible = False
@@ -113,6 +115,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
         footer.visible = True
+        save_action.clear()
         main_menu_action.clear()
         main_menu_action.visible = True
         content.clear()
@@ -135,7 +138,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                             for file in ('hgfedcba' if view.black_at_bottom else 'abcdefgh'):
                                 ui.label(file).classes('axis-label')
                 with ui.element('aside').classes('game-controls'):
-                    view.render_controls(main_menu_action)
+                    view.render_controls(main_menu_action, save_action)
         view.set_analysis_indicator(True)
         view.schedule_update(view.analyse_position)
 

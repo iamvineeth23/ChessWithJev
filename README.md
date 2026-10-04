@@ -28,7 +28,7 @@ In computer-versus-computer games, each move appears on the board first. The app
 
 Move Analysis shows who played the selected move, its Stockfish evaluation, evaluation loss, and five best alternatives from the preceding position. Evaluations name the advantaged side and its advantage in pawns; positions within 0.10 pawns are shown as Equal. Loss is measured for the player who moved. Alternative bars show that player's expected score. Mate scores name the winning side with `#` notation and have no pawn-loss value.
 
-Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`; with REC enabled, it is also kept in `gamelog/rec/` as `YYYY-MM-DD_001.json`. Each file records the players, result, every legal-move position, move, and Stockfish evaluation. Unfinished games are not written.
+Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`; with REC enabled, it is also kept in `gamelog/rec/` as `YYYY-MM-DD_001.json`. Each file records the players, result, every legal-move position, move, and Stockfish evaluation. Use the save icon at the far right of the game header to save the current game, including unfinished games, into `gamelog/rec/` using the structure in `temp/log.json`. Each save creates a new dated file; unfinished results and evaluations still being calculated are null.
 
 Notes:
 

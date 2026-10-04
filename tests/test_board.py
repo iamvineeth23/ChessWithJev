@@ -1493,3 +1493,60 @@ def test_live_plot_uses_best_alternative_in_white_perspective() -> None:
         assert analyse.call_count == 2
         assert 'chart-recommended' in view.evaluation_plot.content
         assert view.fullscreen_evaluation_plot.content == view.evaluation_plot.content
+
+
+@pytest.mark.parametrize('moves', [[], ['e2e4', 'e7e5']])
+def test_manual_save_unfinished_game_matches_template_and_keeps_each_save(tmp_path, monkeypatch, moves):
+    monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
+    position = chess.Board()
+    for move in moves:
+        position.push_uci(move)
+    args = (position, {chess.WHITE: 'human', chess.BLACK: 'random'},
+            {chess.WHITE: 1500, chess.BLACK: 1500}, lambda board: 0.5)
+    first = write_game_log(*args, recording=True, mirror_latest=False)
+    assert not (first.parent.parent / 'latest.json').exists()
+    second = write_game_log(*args, recording=True)
+    payload = json.loads(first.read_text())
+    template = json.loads(Path('temp/log.json').read_text())
+    assert payload.keys() == template.keys()
+    assert payload['result'] == template['result']
+    assert len(payload['moves']) == len(moves)
+    if moves:
+        assert payload['moves'][0].keys() == template['moves'][0].keys()
+        assert payload['moves'][-1]['fen_after'] == position.fen()
+    assert first.parent == tmp_path / 'repo' / 'gamelog' / 'rec'
+    assert second != first and first.exists() and second.exists()
+
+
+def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatch):
+    import asyncio
+    from nicegui import ui
+
+    view = BoardView(white='random', black='random')
+    actions, save_actions = ui.element('div'), ui.element('div')
+    view.render_controls(actions, save_actions)
+    assert view.save_button in save_actions.descendants()
+    assert view.save_button.props['aria-label'] == 'Save game'
+    view.position.board.push_uci('e2e4')
+    view.preview_board = chess.Board()
+    key = (view.position.board.root().fen(), tuple(view.position.board.move_stack), str(None))
+    view.evaluation_cache[key] = 0.6
+    calls = []
+    async def io_bound(function, *args, **kwargs):
+        assert kwargs == {'mirror_latest': False}
+        calls.append(args)
+        if len(calls) == 2:
+            raise OSError('disk full')
+        assert args[3](args[0]) == 0.6
+        return Path('gamelog/rec/2026-10-04_001.json')
+    monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+    notify = MagicMock()
+    monkeypatch.setattr(ui, 'notify', notify)
+    asyncio.run(view.save_game())
+    assert calls[0][0] is not view.position.board
+    assert calls[0][0].fen() == view.position.board.fen()
+    assert calls[0][-1] is True
+    assert view.save_button.enabled
+    asyncio.run(view.save_game())
+    assert view.save_button.enabled
+    assert notify.call_args.kwargs['type'] == 'negative'

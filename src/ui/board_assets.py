@@ -52,6 +52,8 @@ BOARD_CSS = '''
         .nicegui-content { padding: 0; }
         .app-shell { width: min(1120px, 100%); min-height: 100dvh; margin: 0 auto; padding: clamp(20px, 4vw, 44px); padding-top: 5px; box-sizing: border-box; }
         .app-header { display: grid; grid-template-columns: minmax(0, 1fr) 274px; align-items: end; gap: 28px; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+        .header-save-action { display: flex; justify-content: flex-end; }
+        .header-save-action .save-game-button { width: auto; min-height: 30px; padding: 4px 10px; }
         .header-left { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
         .app-kicker, .panel-kicker, .panel-meta, .axis-label, .footer-note { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
         .app-title { color: var(--green); font-size: clamp(28px, 4vw, 46px); font-weight: 700; line-height: 1.1; letter-spacing: -.06em; text-shadow: 0 0 24px #72e98940; }

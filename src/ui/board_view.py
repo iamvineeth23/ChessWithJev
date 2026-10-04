@@ -534,7 +534,23 @@ class BoardView:
         ui.label('SYSTEM STATUS').classes('panel-kicker')
         self.status_label = ui.label(self.position.status()).classes('status-text').props('role="status" aria-live="polite"')
 
-    def render_controls(self, header_actions=None) -> None:
+    async def save_game(self) -> None:
+        self.save_button.disable()
+        board = self.position.board.copy(stack=True)
+        evaluations = self.evaluation_cache.copy()
+
+        def evaluate(position):
+            return evaluations.get((position.root().fen(), tuple(position.move_stack), str(None)))
+        try:
+            path = await run.io_bound(write_game_log, board, self.players.copy(),
+                                      self.stockfish_elos.copy(), evaluate, True, mirror_latest=False)
+            ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
+        except Exception as error:
+            ui.notify(f'Could not save game: {error}', type='negative')
+        finally:
+            self.save_button.enable()
+
+    def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
             self.render_status()
         with ui.element('div').classes('move-analysis-heading'):
@@ -576,6 +592,10 @@ class BoardView:
                 self.random_button = ui.button('START', on_click=self.toggle_random, color=None).classes('terminal-button')
             elif header_actions is not None:
                 ui.button('START', color=None).classes('terminal-button').style('visibility: hidden').props('aria-hidden="true" tabindex=-1').disable()
+        with save_actions if save_actions is not None else (header_actions if header_actions is not None else ui.element('div')):
+            self.save_button = ui.button(icon='save', on_click=self.save_game, color=None).classes(
+                'terminal-button save-game-button'
+            ).props('flat dense aria-label="Save game"').tooltip('Save game')
         self.claim_button = ui.button('CLAIM DRAW', on_click=self.claim_draw).classes('terminal-button claim-button')
         self.claim_button.visible = not self.position.outcome() and self.position.board.can_claim_draw()
         with ui.dialog().props('persistent') as self.promotion_dialog, ui.card().classes('promotion-card'):

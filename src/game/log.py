@@ -5,7 +5,7 @@ from pathlib import Path
 import chess
 
 
-def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, recording: bool = False) -> Path:
+def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, recording: bool = False, *, mirror_latest: bool = True) -> Path:
     replay = board.root()
     moves = []
     for ply, move in enumerate(board.move_stack, 1):
@@ -24,8 +24,7 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
         moves[-1]['evaluation']['wdl_expectation_white'] = evaluate(replay)
 
     outcome = board.outcome(claim_draw=True)
-    assert outcome is not None
-    result = '1/2-1/2' if outcome.winner is None else ('1-0' if outcome.winner else '0-1')
+    result = None if outcome is None else ('1/2-1/2' if outcome.winner is None else ('1-0' if outcome.winner else '0-1'))
     log_dir = Path(__file__).resolve().parents[2] / 'gamelog'
     if not recording:
         path = log_dir / 'latest.json'
@@ -44,14 +43,14 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
             for color, value in (('white', chess.WHITE), ('black', chess.BLACK))
         },
         'result': {
-            'winner': None if outcome.winner is None else ('white' if outcome.winner else 'black'),
+            'winner': None if outcome is None or outcome.winner is None else ('white' if outcome.winner else 'black'),
             'score': result,
-            'termination': outcome.termination.name.lower(),
+            'termination': outcome.termination.name.lower() if outcome else None,
         },
         'evaluator': {'engine': 'stockfish', 'depth': 18},
         'moves': moves,
     }
     path.write_text(json.dumps(payload, indent=2) + '\n')
-    if recording:
+    if recording and mirror_latest:
         (log_dir.parent / 'latest.json').write_text(json.dumps(payload, indent=2) + '\n')
     return path
