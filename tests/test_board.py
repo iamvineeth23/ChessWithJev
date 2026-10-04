@@ -299,7 +299,9 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
     assert not dialog.value
     assert 'jev-predictions-tab' in predictions._classes
     assert predictions.default_slot.children == [view.jev_predictions_panel]
-    assert not view.jev_predictions_panel.default_slot.children
+    message = view.jev_predictions_panel.default_slot.children[0]
+    assert message.text == 'Select Jev as one of the players for Jev predictions'
+    assert 'jev-predictions-empty' in message._classes
     tabs.set_value('Jev Predictions')
     assert panels.value == 'Jev Predictions'
     tabs.set_value('Evaluation Plot')

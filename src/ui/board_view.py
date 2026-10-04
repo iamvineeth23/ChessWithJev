@@ -590,6 +590,10 @@ class BoardView:
         board = board or self.preview_board or self.position.board
         cached = self.jev_prediction_cache.get((board.root().fen(), tuple(board.move_stack)))
         self.jev_predictions_panel.clear()
+        if 'jev' not in self.players.values():
+            with self.jev_predictions_panel:
+                ui.label('Select Jev as one of the players for Jev predictions').classes('jev-predictions-empty')
+            return
         if cached is None:
             return
         predictions, confidence = cached
