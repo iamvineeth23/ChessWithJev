@@ -70,6 +70,8 @@ BOARD_CSS = '''
         .status-text { color: var(--green); font-size: 11px; line-height: 1.4; letter-spacing: .16em; }
         .move-analysis-heading, .history-heading, .evaluation-plot-heading { display: flex; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; letter-spacing: .1em; }
         .history-heading { margin-top: -10px; }
+        .terminal-button.export-pgn-button { width: auto; min-width: 0; min-height: 0; padding: 2px 5px; border: 1px solid var(--green); font-size: 9px; font-weight: 400; line-height: 1; }
+        .terminal-button.export-pgn-button:hover { background: transparent; text-decoration: underline; }
         .move-placeholder-panel { flex: 1; min-height: 40px; border: 1px solid var(--line); background: #101b14; }
         .evaluation-tabs { height: 18px; min-height: 18px; flex-shrink: 0; }
         .evaluation-tabs .q-tab { min-height: 18px; padding: 0 12px; }

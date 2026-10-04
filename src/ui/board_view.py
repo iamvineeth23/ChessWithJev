@@ -3,6 +3,7 @@ from collections.abc import Callable
 from functools import lru_cache
 
 import chess
+import chess.pgn
 import chess.svg
 from nicegui import run, ui
 
@@ -40,6 +41,10 @@ def move_history_lines(board: chess.Board) -> list[str]:
         lines.append(f'{prefix} {replay.san(move)}')
         replay.push(move)
     return lines
+
+
+def export_pgn(board: chess.Board) -> str:
+    return str(chess.pgn.Game.from_board(board))
 
 
 
@@ -549,6 +554,9 @@ class BoardView:
         finally:
             self.save_button.enable()
 
+    def download_pgn(self) -> None:
+        ui.download(export_pgn(self.position.board), filename='game.pgn', media_type='application/x-chess-pgn')
+
     def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
             self.render_status()
@@ -581,6 +589,7 @@ class BoardView:
             self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):
             ui.label('Move Log')
+            ui.button('Export PGN', on_click=self.download_pgn, color=None).classes('terminal-button export-pgn-button').props('dense no-caps')
         with ui.element('div').classes('move-history-panel'):
             self.history_panel = ui.element('div').classes('move-history')
         self.render_history()

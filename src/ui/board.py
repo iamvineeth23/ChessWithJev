@@ -9,7 +9,7 @@ from nicegui import app, ui
 from src.game.position import Position
 from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
 from src.ui.board_assets import BOARD_CSS, DEBUG_VIEWPORT_HTML, MOVE_LOG_SCRIPT
-from src.ui.board_view import BoardView, move_history, piece_image, square_color, square_name
+from src.ui.board_view import BoardView, export_pgn, move_history, piece_image, square_color, square_name
 
 
 def lock_window_aspect_ratio() -> None:

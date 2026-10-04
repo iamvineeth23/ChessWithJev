@@ -9,7 +9,7 @@ import pytest
 from src.game.position import Position
 from src.game.controller import GameController
 from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
-from src.ui.board import (BoardView, build_page, lock_window_aspect_ratio, move_history, piece_image, square_color,
+from src.ui.board import (BoardView, build_page, export_pgn, lock_window_aspect_ratio, move_history, piece_image, square_color,
                           square_name)
 from src.ui import board
 from src.ui import board_view
@@ -455,6 +455,25 @@ def test_move_history_preserves_move_numbers_from_custom_position() -> None:
     position.set_fen('7k/8/8/8/8/8/6R1/K7 b - - 0 12')
     position.move(chess.H8, chess.H7)
     assert move_history(position.board) == '12... Kh7'
+
+
+def test_export_pgn_and_move_log_button_use_the_live_board(monkeypatch: pytest.MonkeyPatch) -> None:
+    from nicegui import ui
+
+    view = BoardView()
+    view.position.board.push_san('e4')
+    view.position.board.push_san('c5')
+    assert '1. e4 c5 *' in export_pgn(view.position.board)
+
+    download = MagicMock()
+    monkeypatch.setattr(ui, 'download', download)
+    view.render_controls()
+    button = next(element for element in ui.context.client.elements.values()
+                  if element._props.get('label') == 'Export PGN')
+    listener = next(iter(button._event_listeners.values()))
+    ui.context.client.handle_event({'id': button.id, 'listener_id': listener.id, 'args': []})
+    assert download.call_args.args[0] == export_pgn(view.position.board)
+    assert download.call_args.kwargs == {'filename': 'game.pgn', 'media_type': 'application/x-chess-pgn'}
 
 
 def test_move_log_columns_and_current_tile() -> None:
