@@ -78,6 +78,7 @@ class BoardView:
         self.eval_position = None
         self.evaluation_plot = None
         self.fullscreen_evaluation_plot = None
+        self.jev_predictions_panel = None
         self.evaluation_cache = {}
         self.move_analysis_cache = {}
         self.claim_button = None
@@ -118,6 +119,7 @@ class BoardView:
 
     def set_fen(self, fen: str) -> None:
         self.position.set_fen(fen)
+        self.controller.last_jev_prediction.clear()
         self.evaluation_cache.clear()
         self.move_analysis_cache.clear()
         self.preview_index = self.preview_board = None
@@ -131,6 +133,7 @@ class BoardView:
 
     def set_board(self, board: chess.Board) -> None:
         self.position.set_board(board)
+        self.controller.last_jev_prediction.clear()
         self.evaluation_cache.clear()
         self.move_analysis_cache.clear()
         self.preview_index = self.preview_board = None
@@ -184,6 +187,7 @@ class BoardView:
                 self.pause_random()
                 ui.notify(f'Jev could not choose a move: {error}', type='negative')
                 return False
+            self.render_jev_predictions()
         else:
             return False
         self.has_played_move |= played
@@ -574,6 +578,16 @@ class BoardView:
         except Exception as error:
             ui.notify(f'Could not export PGN: {error}', type='negative')
 
+    def render_jev_predictions(self) -> None:
+        if self.jev_predictions_panel is None:
+            return
+        self.jev_predictions_panel.clear()
+        with self.jev_predictions_panel:
+            for rank, (uci, san, probability, selected) in enumerate(self.controller.last_jev_prediction, 1):
+                with ui.element('div').classes('jev-prediction-row' + (' selected' if selected else '')):
+                    ui.label(f'{rank}. {san}').classes('jev-prediction-move').props(f'title="{uci}"')
+                    ui.label(f'{probability:.1%}').classes('jev-prediction-rating')
+
     def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
             self.render_status()
@@ -601,7 +615,8 @@ class BoardView:
                         'evaluation-expand'
                     ).props('flat dense aria-label="Toggle evaluation plot fullscreen"').tooltip('Fullscreen (Esc to exit)')
                 with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel'):
-                    pass
+                    self.jev_predictions_panel = ui.element('div').classes('jev-predictions')
+                    self.render_jev_predictions()
         if not self.analysis_busy:
             self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):

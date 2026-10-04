@@ -90,6 +90,11 @@ BOARD_CSS = '''
         .evaluation-fullscreen .evaluation-expand { top: 8px; right: 8px; }
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
+        .jev-predictions { display: grid; align-content: start; width: 100%; height: 100%; padding: 8px 12px; color: #d7e8d6; font-size: 12px; }
+        .jev-prediction-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 4px; }
+        .jev-prediction-row.selected { color: var(--green); background: #22372a; }
+        .jev-prediction-row.selected .jev-prediction-move::after { content: '  SELECTED'; font-size: 9px; letter-spacing: .08em; }
+        .jev-prediction-rating { font-variant-numeric: tabular-nums; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }

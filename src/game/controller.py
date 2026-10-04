@@ -12,6 +12,7 @@ class GameController:
     def __init__(self, position: Position | None = None) -> None:
         self.position = position if position is not None else Position()
         self.engine: chess.engine.SimpleEngine | None = None
+        self.last_jev_prediction: list[tuple[str, str, float, bool]] = []
 
     def stockfish_engine(self) -> chess.engine.SimpleEngine:
         if self.engine is None:
@@ -88,13 +89,22 @@ class GameController:
         if not api_key:
             raise RuntimeError('JEV_API_KEY is not set')
         legal_moves = list(board.legal_moves)
+        criteria = {move.uci(): board.san(move) for move in legal_moves}
         question = Choice(
             instructions='Choose the best chess move for the player to move.',
-            criteria={move.uci(): board.san(move) for move in legal_moves},
+            criteria=criteria,
         )
         with TypeSafeClient(api_key=api_key) as client:
             response = client.system_one(state={'fen': board.fen()}, questions={'move': question})
-        selected = chess.Move.from_uci(response.answers['move'].choice)
+        answer = response.answers['move']
+        selected = chess.Move.from_uci(answer.choice)
         if selected not in legal_moves:
             raise RuntimeError(f'Jev selected an illegal move: {selected.uci()}')
+        self.last_jev_prediction = [
+            (uci, criteria[uci], probability, uci == answer.choice)
+            for uci, probability in sorted(
+                ((uci, probability) for uci, probability in answer.probabilities.items() if uci in criteria),
+                key=lambda item: item[1], reverse=True,
+            )[:5]
+        ]
         return self.play(selected)
