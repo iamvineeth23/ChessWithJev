@@ -26,7 +26,7 @@ Move Analysis shows who played the selected move, its Stockfish evaluation, eval
 
 Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`
 
-`Export PGN` saves the current game to `gamelog/pgn/` using date-and-sequence filenames such as `2026-10-04_001.pgn`.
+`Export PGN` saves the current game to `gamelog/pgn/` using date-and-sequence filenames such as `2026-10-04_001.pgn`. The Save button stores matching `.json` and `.pgn` files in `gamelog/rec/`.
 
 Notes:
 

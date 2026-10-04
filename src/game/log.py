@@ -6,14 +6,15 @@ import chess
 import chess.pgn
 
 
-def write_pgn(board: chess.Board) -> Path:
-    log_dir = Path(__file__).resolve().parents[2] / 'gamelog' / 'pgn'
-    game_id = date.today().isoformat()
-    sequence = 1
-    while (log_dir / f'{game_id}_{sequence:03d}.pgn').exists():
-        sequence += 1
-    path = log_dir / f'{game_id}_{sequence:03d}.pgn'
-    log_dir.mkdir(parents=True, exist_ok=True)
+def write_pgn(board: chess.Board, path: Path | None = None) -> Path:
+    if path is None:
+        log_dir = Path(__file__).resolve().parents[2] / 'gamelog' / 'pgn'
+        game_id = date.today().isoformat()
+        sequence = 1
+        while (log_dir / f'{game_id}_{sequence:03d}.pgn').exists():
+            sequence += 1
+        path = log_dir / f'{game_id}_{sequence:03d}.pgn'
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(f'{chess.pgn.Game.from_board(board)}\n')
     return path
 

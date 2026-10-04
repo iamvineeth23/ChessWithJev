@@ -500,6 +500,8 @@ def test_write_pgn_uses_save_filename_convention(tmp_path: Path, monkeypatch: py
     assert first == tmp_path / 'repo' / 'gamelog' / 'pgn' / f'{date.today().isoformat()}_001.pgn'
     assert second == tmp_path / 'repo' / 'gamelog' / 'pgn' / f'{date.today().isoformat()}_002.pgn'
     assert first.read_text() == f'{export_pgn(board)}\n'
+    companion = write_pgn(board, tmp_path / 'repo' / 'gamelog' / 'rec' / 'saved-game.pgn')
+    assert companion.read_text() == first.read_text()
 
 
 def test_move_log_columns_and_current_tile() -> None:
@@ -1570,19 +1572,30 @@ def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatc
     key = (view.position.board.root().fen(), tuple(view.position.board.move_stack), str(None))
     view.evaluation_cache[key] = 0.6
     calls = []
+    log_calls = 0
+
     async def io_bound(function, *args, **kwargs):
-        assert kwargs == {'save_copy': True, 'mirror_latest': False}
+        nonlocal log_calls
         calls.append(args)
-        if len(calls) == 2:
-            raise OSError('disk full')
-        assert args[3](args[0]) == 0.6
-        return Path('gamelog/rec/2026-10-04_001.json')
+        if function is board_view.write_game_log:
+            log_calls += 1
+            assert kwargs == {'save_copy': True, 'mirror_latest': False}
+            if log_calls == 2:
+                raise OSError('disk full')
+            assert args[3](args[0]) == 0.6
+            return Path('gamelog/rec/2026-10-04_001.json')
+        assert function is write_pgn
+        assert kwargs == {}
+        assert args[1] == Path('gamelog/rec/2026-10-04_001.pgn')
+        return args[1]
+
     monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
     notify = MagicMock()
     monkeypatch.setattr(ui, 'notify', notify)
     asyncio.run(view.save_game())
     assert calls[0][0] is not view.position.board
     assert calls[0][0].fen() == view.position.board.fen()
+    assert calls[1][0] is calls[0][0]
     assert view.save_button.enabled
     asyncio.run(view.save_game())
     assert view.save_button.enabled

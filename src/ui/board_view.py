@@ -548,6 +548,7 @@ class BoardView:
         try:
             path = await run.io_bound(write_game_log, board, self.players.copy(),
                                       self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False)
+            await run.io_bound(write_pgn, board, path.with_suffix('.pgn'))
             ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
         except Exception as error:
             ui.notify(f'Could not save game: {error}', type='negative')
