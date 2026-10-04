@@ -13,6 +13,7 @@ class GameController:
         self.position = position if position is not None else Position()
         self.engine: chess.engine.SimpleEngine | None = None
         self.last_jev_prediction: list[tuple[str, str, float, bool]] = []
+        self.last_jev_confidence = 0.0
 
     def stockfish_engine(self) -> chess.engine.SimpleEngine:
         if self.engine is None:
@@ -107,4 +108,5 @@ class GameController:
                 key=lambda item: item[1], reverse=True,
             )[:5]
         ]
+        self.last_jev_confidence = answer.confidence
         return self.play(selected)

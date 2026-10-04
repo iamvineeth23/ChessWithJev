@@ -90,11 +90,23 @@ BOARD_CSS = '''
         .evaluation-fullscreen .evaluation-expand { top: 8px; right: 8px; }
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
-        .jev-predictions { display: grid; align-content: start; width: 100%; height: 100%; padding: 8px 12px; color: #d7e8d6; font-size: 12px; }
-        .jev-prediction-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 4px; }
-        .jev-prediction-row.selected { color: var(--green); background: #22372a; }
-        .jev-prediction-row.selected .jev-prediction-move::after { content: '  SELECTED'; font-size: 9px; letter-spacing: .08em; }
-        .jev-prediction-rating { font-variant-numeric: tabular-nums; }
+        .jev-predictions { display: grid; align-content: start; gap: 7px; width: 100%; height: 100%; padding: 8px; color: #d7e8d6; font-size: 11px; }
+        .jev-prediction-card, .jev-confidence-card { padding: 8px 10px; border: 1px solid #284636; border-radius: 8px; background: rgba(12, 28, 20, .45); }
+        .jev-prediction-heading, .jev-confidence-heading, .jev-confidence-title { display: flex; align-items: center; }
+        .jev-prediction-heading { gap: 5px; margin-bottom: 5px; color: var(--green); font-size: 13px; }
+        .jev-info { display: grid; place-items: center; width: 15px; height: 15px; border: 1px solid var(--muted); border-radius: 50%; color: var(--muted); font-size: 9px; }
+        .jev-prediction-row { display: grid; grid-template-columns: 50px minmax(50px, 1fr) 38px; align-items: center; gap: 7px; min-height: 22px; padding: 2px 5px; border-radius: 5px; }
+        .jev-prediction-row.selected { color: #ffe28a; background: rgba(165, 132, 35, .28); }
+        .jev-prediction-track, .jev-confidence-track { overflow: hidden; height: 8px; border-radius: 5px; background: #1b392a; }
+        .jev-prediction-fill, .jev-confidence-fill { height: 100%; border-radius: inherit; background: var(--green); }
+        .jev-prediction-row.selected .jev-prediction-fill, .jev-confidence-fill { background: #ffe28a; }
+        .jev-prediction-rating { text-align: right; font-variant-numeric: tabular-nums; }
+        .jev-confidence-card { padding-block: 9px; }
+        .jev-confidence-heading { justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+        .jev-confidence-title { gap: 5px; color: var(--muted); }
+        .jev-confidence-value { display: flex; gap: 5px; white-space: nowrap; }
+        .jev-confidence-percent { color: #ffe28a; }
+        .jev-confidence-track { height: 9px; }
         .move-analysis-panel, .move-history-panel { flex: 1; min-height: 180px; border: 1px solid var(--line); background: #101b14; padding: 14px; }
         .move-analysis-table { width: 100%; border-collapse: collapse; color: #d7e8d6; font-size: 13px; line-height: 1.8; }
         .move-analysis-table th { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-align: left; }

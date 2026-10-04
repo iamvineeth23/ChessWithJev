@@ -195,6 +195,7 @@ def test_jev_chooses_from_every_legal_move_for_current_fen(monkeypatch: pytest.M
     client.__enter__.return_value = client
     client.system_one.return_value.answers = {'move': MagicMock(
         choice='e2e4',
+        confidence=.72,
         probabilities={'g1f3': .1, 'e2e4': .4, 'd2d4': .3, 'c2c4': .15, 'g2g3': .04, 'b1c3': .01},
     )}
     monkeypatch.setenv('JEV_API_KEY', 'test-key')
@@ -215,6 +216,7 @@ def test_jev_chooses_from_every_legal_move_for_current_fen(monkeypatch: pytest.M
         ('g1f3', 'Nf3', .1, False),
         ('g2g3', 'g3', .04, False),
     ]
+    assert controller.last_jev_confidence == .72
     assert controller.position.board.peek() == chess.Move.from_uci('e2e4')
 
 
@@ -307,22 +309,38 @@ def test_jev_predictions_tab_shows_top_five_and_selected_move() -> None:
     from nicegui import ui
 
     view = BoardView(white='jev', black='human')
-    view.controller.last_jev_prediction = [
+    view.position.board.push_uci('e2e4')
+    prediction = [
         ('e2e4', 'e4', .4, True),
         ('d2d4', 'd4', .3, False),
         ('c2c4', 'c4', .15, False),
         ('g1f3', 'Nf3', .1, False),
         ('g2g3', 'g3', .05, False),
     ]
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (prediction, .72)
+    view.position.board.push_uci('e7e5')
     with patch.object(view, 'sync_evaluation_plot'):
         view.render_controls()
 
-    rows = view.jev_predictions_panel.default_slot.children
+    assert not view.jev_predictions_panel.default_slot.children  # latest Move Log entry was Human
+    view.select_history(1)
+    descendants = list(view.jev_predictions_panel.descendants())
+    rows = [element for element in descendants if 'jev-prediction-row' in element._classes]
     assert len(rows) == 5
     assert ['selected' in row._classes for row in rows] == [True, False, False, False, False]
-    assert [(row.default_slot.children[0].text, row.default_slot.children[1].text) for row in rows] == [
+    assert [(row.default_slot.children[0].text, row.default_slot.children[2].text) for row in rows] == [
         ('1. e4', '40.0%'), ('2. d4', '30.0%'), ('3. c4', '15.0%'), ('4. Nf3', '10.0%'), ('5. g3', '5.0%'),
     ]
+    labels = [element.text for element in descendants if hasattr(element, 'text')]
+    assert {'Top 5 moves by Jev', 'Jev confidence', '72%', 'for e4'} <= set(labels)
+    fills = [element for element in descendants if 'jev-prediction-fill' in element._classes]
+    assert [fill._style['width'] for fill in fills] == ['40.0%', '30.0%', '15.0%', '10.0%', '5.0%']
+    confidence_fill = next(element for element in descendants if 'jev-confidence-fill' in element._classes)
+    assert confidence_fill._style['width'] == '72.0%'
+    view.select_history(0)
+    assert not view.jev_predictions_panel.default_slot.children
+    view.select_history(2)
+    assert not view.jev_predictions_panel.default_slot.children
 
 
 def test_programmatic_move_refreshes_board_view() -> None:
@@ -1589,11 +1607,15 @@ def test_move_analysis_cache_distinguishes_history_and_clears_on_replacement() -
         view.cached_move_analysis(second)
         view.cached_move_analysis(first)
         assert analysis.call_count == 2
+        view.jev_prediction_cache[('root', ('move',))] = ([('e2e4', 'e4', 1.0, True)], 1.0)
         view.set_board(first)
         assert not view.move_analysis_cache
+        assert not view.jev_prediction_cache
         view.cached_move_analysis(first)
+        view.jev_prediction_cache[('root', ('move',))] = ([('e2e4', 'e4', 1.0, True)], 1.0)
         view.set_fen(chess.STARTING_FEN)
         assert not view.move_analysis_cache
+        assert not view.jev_prediction_cache
 
 
 def test_live_plot_uses_best_alternative_in_white_perspective() -> None:

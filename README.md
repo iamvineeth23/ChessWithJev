@@ -16,7 +16,7 @@ Run the board:
 .venv/bin/chess
 ```
 
-To play with Jev, set `JEV_API_KEY` in the environment before starting the app, then select `jev` for White or Black. Jev receives the current FEN and chooses from every legal move in that position. After each Jev move, the Jev Predictions tab shows its selected move and the five highest-rated legal moves from that Choice response.
+To play with Jev, set `JEV_API_KEY` in the environment before starting the app, then select `jev` for White or Black. Jev receives the current FEN and chooses from every legal move in that position. The Jev Predictions tab shows its selected move and the five highest-rated legal moves from that Choice response; moving through Move Log shows the cached predictions for the selected Jev move.
 
 Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
 

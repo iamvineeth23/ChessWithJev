@@ -81,6 +81,7 @@ class BoardView:
         self.jev_predictions_panel = None
         self.evaluation_cache = {}
         self.move_analysis_cache = {}
+        self.jev_prediction_cache = {}
         self.claim_button = None
         self.undo_button = None
         self.redo_button = None
@@ -122,6 +123,7 @@ class BoardView:
         self.controller.last_jev_prediction.clear()
         self.evaluation_cache.clear()
         self.move_analysis_cache.clear()
+        self.jev_prediction_cache.clear()
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
@@ -136,6 +138,7 @@ class BoardView:
         self.controller.last_jev_prediction.clear()
         self.evaluation_cache.clear()
         self.move_analysis_cache.clear()
+        self.jev_prediction_cache.clear()
         self.preview_index = self.preview_board = None
         self.selected = None
         self.pending_promotion = None
@@ -187,7 +190,9 @@ class BoardView:
                 self.pause_random()
                 ui.notify(f'Jev could not choose a move: {error}', type='negative')
                 return False
-            self.render_jev_predictions()
+            if played:
+                self.jev_prediction_cache[(self.position.board.root().fen(), tuple(self.position.board.move_stack))] = \
+                    (self.controller.last_jev_prediction.copy(), self.controller.last_jev_confidence)
         else:
             return False
         self.has_played_move |= played
@@ -461,6 +466,7 @@ class BoardView:
             self.fen_label.set_text(board.fen())
         if self.history_panel:
             self.render_history()
+        self.render_jev_predictions(board)
         if self.claim_button:
             self.claim_button.visible = self.preview_board is None and not self.position.outcome() and self.position.board.can_claim_draw()
         if self.undo_button:
@@ -578,15 +584,37 @@ class BoardView:
         except Exception as error:
             ui.notify(f'Could not export PGN: {error}', type='negative')
 
-    def render_jev_predictions(self) -> None:
+    def render_jev_predictions(self, board: chess.Board | None = None) -> None:
         if self.jev_predictions_panel is None:
             return
+        board = board or self.preview_board or self.position.board
+        cached = self.jev_prediction_cache.get((board.root().fen(), tuple(board.move_stack)))
         self.jev_predictions_panel.clear()
+        if cached is None:
+            return
+        predictions, confidence = cached
+        selected_move = next((san for _, san, _, selected in predictions if selected), '')
         with self.jev_predictions_panel:
-            for rank, (uci, san, probability, selected) in enumerate(self.controller.last_jev_prediction, 1):
-                with ui.element('div').classes('jev-prediction-row' + (' selected' if selected else '')):
-                    ui.label(f'{rank}. {san}').classes('jev-prediction-move').props(f'title="{uci}"')
-                    ui.label(f'{probability:.1%}').classes('jev-prediction-rating')
+            with ui.element('div').classes('jev-prediction-card'):
+                with ui.element('div').classes('jev-prediction-heading'):
+                    ui.label('Top 5 moves by Jev')
+                    ui.label('i').classes('jev-info').props('title="Choice probabilities for the five highest-rated legal moves"')
+                for rank, (uci, san, probability, selected) in enumerate(predictions, 1):
+                    with ui.element('div').classes('jev-prediction-row' + (' selected' if selected else '')):
+                        ui.label(f'{rank}. {san}').classes('jev-prediction-move').props(f'title="{uci}"')
+                        with ui.element('div').classes('jev-prediction-track'):
+                            ui.element('div').classes('jev-prediction-fill').style(f'width: {probability:.1%}')
+                        ui.label(f'{probability:.1%}').classes('jev-prediction-rating')
+            with ui.element('div').classes('jev-confidence-card'):
+                with ui.element('div').classes('jev-confidence-heading'):
+                    with ui.element('div').classes('jev-confidence-title'):
+                        ui.label('Jev confidence')
+                        ui.label('i').classes('jev-info').props('title="TypeSafe confidence in the selected Choice"')
+                    with ui.element('div').classes('jev-confidence-value'):
+                        ui.label(f'{confidence:.0%}').classes('jev-confidence-percent')
+                        ui.label(f'for {selected_move}')
+                with ui.element('div').classes('jev-confidence-track'):
+                    ui.element('div').classes('jev-confidence-fill').style(f'width: {confidence:.1%}')
 
     def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
