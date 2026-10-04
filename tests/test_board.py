@@ -761,6 +761,7 @@ def test_stockfish_analysis_uses_full_strength_between_elo_limited_turns(purpose
     def play(board, limit):
         assert settings['UCI_LimitStrength'] is True
         assert settings['UCI_Elo'] == 1800
+        assert limit == chess.engine.Limit(depth=18)
         return chess.engine.PlayResult(board.parse_san('e4' if board.turn else 'e5'), None)
 
     engine.play.side_effect = play

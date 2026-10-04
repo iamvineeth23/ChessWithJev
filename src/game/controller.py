@@ -75,5 +75,5 @@ class GameController:
             return False
         engine = self.stockfish_engine()
         engine.configure({'UCI_LimitStrength': True, 'UCI_Elo': elo})
-        move = engine.play(self.position.board, chess.engine.Limit(time=0.1)).move
+        move = engine.play(self.position.board, chess.engine.Limit(depth=18)).move
         return self.play(move)
