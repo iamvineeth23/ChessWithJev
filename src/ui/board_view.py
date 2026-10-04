@@ -45,7 +45,7 @@ def move_history_lines(board: chess.Board) -> list[str]:
 
 
 class BoardView:
-    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', white_elo: int = 1500, black_elo: int = 1500, on_change: Callable[['BoardView'], None] | None = None, recording: bool = False) -> None:
+    def __init__(self, position: Position | None = None, white: str = 'human', black: str = 'random', white_elo: int = 1500, black_elo: int = 1500, on_change: Callable[['BoardView'], None] | None = None) -> None:
         if white not in {'human', 'random', 'stockfish'} or black not in {'human', 'random', 'stockfish'}:
             raise ValueError('Players must be human, random, or stockfish')
         self.controller = GameController(position)
@@ -80,7 +80,6 @@ class BoardView:
         self.redo_button = None
         self.history_back_button = None
         self.history_forward_button = None
-        self.recording = recording
         self.game_logged = self.position.outcome() is not None
         self.has_played_move = bool(self.position.board.move_stack)
         self.preview_index: int | None = None
@@ -247,7 +246,7 @@ class BoardView:
             if self.has_played_move and self.position.outcome() and not self.game_logged:
                 finished = self.position.board
                 await run.io_bound(write_game_log, finished.copy(stack=True), self.players.copy(),
-                                   self.stockfish_elos.copy(), self.controller.white_expectation, self.recording)
+                                   self.stockfish_elos.copy(), self.controller.white_expectation)
                 if self.position.board is finished:
                     self.game_logged = True
             if self.position.outcome():
@@ -479,7 +478,7 @@ class BoardView:
         if self.on_change:
             self.on_change(self)
         if not self.analysis_busy and self.has_played_move and self.position.outcome() and not self.game_logged:
-            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation, self.recording)
+            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation)
             self.game_logged = True
 
     def render(self) -> None:
@@ -543,7 +542,7 @@ class BoardView:
             return evaluations.get((position.root().fen(), tuple(position.move_stack), str(None)))
         try:
             path = await run.io_bound(write_game_log, board, self.players.copy(),
-                                      self.stockfish_elos.copy(), evaluate, True, mirror_latest=False)
+                                      self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False)
             ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
         except Exception as error:
             ui.notify(f'Could not save game: {error}', type='negative')

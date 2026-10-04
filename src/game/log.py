@@ -5,7 +5,7 @@ from pathlib import Path
 import chess
 
 
-def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, recording: bool = False, *, mirror_latest: bool = True) -> Path:
+def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, save_copy: bool = False, *, mirror_latest: bool = True) -> Path:
     replay = board.root()
     moves = []
     for ply, move in enumerate(board.move_stack, 1):
@@ -26,7 +26,7 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
     outcome = board.outcome(claim_draw=True)
     result = None if outcome is None else ('1/2-1/2' if outcome.winner is None else ('1-0' if outcome.winner else '0-1'))
     log_dir = Path(__file__).resolve().parents[2] / 'gamelog'
-    if not recording:
+    if not save_copy:
         path = log_dir / 'latest.json'
     else:
         log_dir /= 'rec'
@@ -51,6 +51,6 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
         'moves': moves,
     }
     path.write_text(json.dumps(payload, indent=2) + '\n')
-    if recording and mirror_latest:
+    if save_copy and mirror_latest:
         (log_dir.parent / 'latest.json').write_text(json.dumps(payload, indent=2) + '\n')
     return path

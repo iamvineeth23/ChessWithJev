@@ -110,7 +110,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
         view = BoardView(position=position, white=white, black=black, white_elo=white_elo, black_elo=black_elo,
-                         on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)), recording='-r' in sys.argv[1:])
+                         on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)))
         view.analysis_busy = True
         view.fen_label = footer
         footer.set_text(view.position.board.fen())

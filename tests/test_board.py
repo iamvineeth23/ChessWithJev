@@ -398,7 +398,6 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     action_buttons = [element for element in action_panel.descendants()
                       if element._props.get('aria-label') in {'Undo move', 'Redo move', 'Previous move in history', 'Next move in history'}]
     assert [button._props['aria-label'] for button in action_buttons] == ['Undo move', 'Redo move', 'Previous move in history', 'Next move in history']
-    assert not any(element._props.get('aria-label') == 'Record game log' for element in action_panel.descendants())
     assert view.status_label.text == 'White to move'
     assert not view.claim_button.visible
     assert not view.undo_button.enabled
@@ -436,13 +435,6 @@ def test_real_nicegui_promotion_draw_and_status_controls() -> None:
     assert view.status_label.text == 'Black to move — check'
     view.set_fen('7k/6Q1/6K1/8/8/8/8/8 b - - 0 1')
     assert view.status_label.text == 'Checkmate — White wins'
-
-
-def test_recording_can_start_enabled() -> None:
-    view = BoardView(recording=True)
-    view.render()
-    assert view.recording
-    assert not any(element._props.get('aria-label') == 'Record game log' for element in view.squares[chess.A1].client.elements.values())
 
 
 def test_move_history_and_new_game() -> None:
@@ -873,7 +865,7 @@ def test_move_analysis_reuses_played_option_and_preserves_mate_score() -> None:
     assert engine.analyse.call_count == 1
 
 
-def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_completed_game_logs_use_latest_or_saved_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     position = Position()
     for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
         assert position.move(chess.parse_square(move[:2]), chess.parse_square(move[2:4]))
@@ -881,12 +873,12 @@ def test_completed_game_logs_use_temporary_or_recording_paths(tmp_path: Path, mo
     args = (position.board, {chess.WHITE: 'human', chess.BLACK: 'stockfish'},
             {chess.WHITE: 1500, chess.BLACK: 2100}, lambda board: len(board.move_stack) / 10)
     path = write_game_log(*args)
-    recorded_path = write_game_log(*args, recording=True)
+    saved_path = write_game_log(*args, save_copy=True)
     log = json.loads(path.read_text())
     assert path == tmp_path / 'repo' / 'gamelog' / 'latest.json'
-    assert recorded_path.parent == tmp_path / 'repo' / 'gamelog' / 'rec'
-    assert recorded_path.name.startswith(f'{date.today().isoformat()}_001')
-    assert json.loads((tmp_path / 'repo' / 'gamelog' / 'latest.json').read_text()) == json.loads(recorded_path.read_text())
+    assert saved_path.parent == tmp_path / 'repo' / 'gamelog' / 'rec'
+    assert saved_path.name.startswith(f'{date.today().isoformat()}_001')
+    assert json.loads((tmp_path / 'repo' / 'gamelog' / 'latest.json').read_text()) == json.loads(saved_path.read_text())
     assert log['players']['black'] == {'type': 'stockfish', 'elo': 2100, 'model': None}
     assert log['result'] == {'winner': 'black', 'score': '0-1', 'termination': 'checkmate'}
     assert log['evaluator'] == {'engine': 'stockfish', 'depth': 18}
@@ -906,7 +898,7 @@ def test_terminal_position_writes_one_game_log() -> None:
     for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
         assert view.play_move(chess.Move.from_uci(move))
     board_view.write_game_log.assert_called_once_with(view.position.board, view.players, view.stockfish_elos,
-                                                      view.controller.white_expectation, False)
+                                                      view.controller.white_expectation)
 
 
 def test_incomplete_game_does_not_write_a_log() -> None:
@@ -1504,9 +1496,9 @@ def test_manual_save_unfinished_game_matches_template_and_keeps_each_save(tmp_pa
         position.push_uci(move)
     args = (position, {chess.WHITE: 'human', chess.BLACK: 'random'},
             {chess.WHITE: 1500, chess.BLACK: 1500}, lambda board: 0.5)
-    first = write_game_log(*args, recording=True, mirror_latest=False)
+    first = write_game_log(*args, save_copy=True, mirror_latest=False)
     assert not (first.parent.parent / 'latest.json').exists()
-    second = write_game_log(*args, recording=True)
+    second = write_game_log(*args, save_copy=True)
     payload = json.loads(first.read_text())
     template = json.loads(Path('temp/log.json').read_text())
     assert payload.keys() == template.keys()
@@ -1534,7 +1526,7 @@ def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatc
     view.evaluation_cache[key] = 0.6
     calls = []
     async def io_bound(function, *args, **kwargs):
-        assert kwargs == {'mirror_latest': False}
+        assert kwargs == {'save_copy': True, 'mirror_latest': False}
         calls.append(args)
         if len(calls) == 2:
             raise OSError('disk full')
@@ -1546,7 +1538,6 @@ def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatc
     asyncio.run(view.save_game())
     assert calls[0][0] is not view.position.board
     assert calls[0][0].fen() == view.position.board.fen()
-    assert calls[0][-1] is True
     assert view.save_button.enabled
     asyncio.run(view.save_game())
     assert view.save_button.enabled

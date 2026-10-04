@@ -16,7 +16,7 @@ Run the board:
 .venv/bin/chess
 ```
 
-Run with `.venv/bin/chess -r` to start with REC enabled. Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
+Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
 
 Stockfish uses the selected ELO when playing and searches to depth 18 rather than using a fixed time budget. Position evaluations, plots, five best alternatives, and evaluation loss always use full strength, regardless of player ELO. Analysis searches to depth 18 with no time limit, using `multipv=5` for the five alternatives. Deeper analysis can take longer to update the display.
 
