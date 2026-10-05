@@ -13,6 +13,8 @@ Feel free to clone or fork to add support. This is just a hobby project, so don'
 - Homebrew on macOS if the setup script needs to install Stockfish
 - On Linux: Debian/Ubuntu with `apt`, sudo access, and a graphical desktop session
 
+**Note:** while Linux maybe supported, I have not yet tested it.
+
 ## Install
 
 Clone the repository, then run:
