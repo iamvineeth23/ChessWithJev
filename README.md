@@ -1,37 +1,84 @@
 # ChessWithJev
 
-Note: developed and tested primarily on MacOS.
+![title](docs/images/banner.png)
 
-Set up the Python environment:
+A desktop chess application built with NiceGUI to review how good `Jev` from [typesafe.ai](https://typesafe.ai) is at decision making for Chess. Play against `Jev` as human, Stockfish, random moves, or even `Jev`; compare Stockfish analysis; and export completed games as PGN.
+
+**Note:** Only coded for MacOS. Will update for Linux in upcoming days.
+Feel free to clone or fork to add support. This is just a hobby project, so don't rely on fast response to any issues. Fast fixes == Fork and do it yourself!
+
+## Requirements
+
+- Python 3.12 or newer
+- [Stockfish](https://stockfishchess.org/download/) available on your `PATH`
+- Homebrew on macOS if the setup script needs to install Stockfish
+
+## Install
+
+Clone the repository, then run:
 
 ```bash
 bash scripts/setup.sh
 ```
 
-The script creates `.venv` if needed and installs `python-chess`, `stockfish`, `nicegui[native]`, and `pytest`. On macOS, it also installs the Stockfish engine with Homebrew if the executable is missing. Install Homebrew first if needed.
+The script creates a local `.venv` and installs the Python dependencies. On macOS, it installs Stockfish with Homebrew when necessary.
 
-Run the board:
+## Configure Jev
+
+Jev is optional (if this is not your goal, although why?). It is used only when you select `jev` as a player in the application.
+
+1. Create an API key in your TypeSafe account.
+2. Set it in the shell where you will launch the application:
+
+   ```bash
+   export JEV_API_KEY="your-api-key"
+   ```
+
+   OR
+
+   Create a `.env` file with similar to `.env.example` and add your Jev API key in it. Then run the following:
+
+   ```
+   set -a
+   source .env
+   set +a
+   ```
+
+3. Start the app from that same shell.
+
+    ```bash
+    .venv/bin/chess
+    ```
+
+Choose a player for White and Black from the application menu. When Jev is selected, the Jev Predictions tab shows its chosen move and highest-rated legal alternatives.
+
+## Game files
+
+- `gamelog/latest.json` contains the most recently completed game.
+- **Save** writes dated JSON and PGN copies under `gamelog/rec/`.
+- **Export PGN** writes the current game under `gamelog/pgn/`.
+
+## Development
+
+Run the test suite with:
 
 ```bash
-.venv/bin/chess
+.venv/bin/python -m pytest -q
 ```
 
-To play with Jev, set `JEV_API_KEY` in the environment before starting the app, then select `jev` for White or Black. Jev receives the current FEN and chooses from every legal move in that position. The Jev Predictions tab shows its selected move and the five highest-rated legal moves from that Choice response; moving through Move Log shows the cached predictions for the selected Jev move.
+## Jev implemenation idea
 
-Run with `.venv/bin/chess -d` to show the current viewport width and height in the bottom-right corner. The values update when you resize the window.
+The idea was simple to use the `choice` of `jev` to rate all available legal moves and choose the best one.
 
-Stockfish uses the selected ELO when playing and searches to depth 18 rather than using a fixed time budget. Position evaluations, plots, five best alternatives, and evaluation loss always use full strength, regardless of player ELO. Analysis searches to depth 18 with no time limit, using `multipv=5` for the five alternatives. Deeper analysis can take longer to update the display.
+i.e 
+```
+Chess position (FEN) → Generate legal moves → Jev Choice → Rank moves → Play highest-rated move
+```
 
-In computer-versus-computer games, each move appears on the board first. The app waits for its Stockfish analysis and plot to appear before making the next move. PAUSE stops further moves while the current analysis finishes.
+This works because of a well-known chess composition by Nenad Petrović demonstrated a position with `218` legal moves that can actually be reached through a legal sequence of moves from the standard game start. 
+As of 04.10.2026, latest `jev` can handle up to 256 choices.
 
-Move Analysis shows who played the selected move, its Stockfish evaluation, evaluation loss, and five best alternatives from the preceding position. Evaluations name the advantaged side and its advantage in pawns; positions within 0.10 pawns are shown as Equal. Loss is measured for the player who moved. Alternative bars show that player's expected score. Mate scores name the winning side with `#` notation and have no pawn-loss value.
+## Upcoming features
 
-Completed games are saved as JSON files in `gamelog/`. The latest completed game is kept in `gamelog/latest.json`
-
-`Export PGN` saves the current game to `gamelog/pgn/` using date-and-sequence filenames such as `2026-10-04_001.pgn`. The Save button stores matching `.json` and `.pgn` files in `gamelog/rec/`.
-
-Notes:
-
-To change the displayed position in code, keep a reference to `BoardView` and call `set_fen(fen)` or `set_board(chess_board)`. Both update the python-chess position and refresh the board. Call these methods from the NiceGUI UI context.
-
-To submit a move in code, call `view.play_move(chess.Move.from_uci('e2e4'))` from the NiceGUI UI context. It returns `True` for a legal move and refreshes the board. `GameController.play(move)` provides the same move validation and state update without a UI.
+- Support for Linux
+- I want to add support for local models from Ollama like `nimble` and `clef`. Although this will need a new architecture as the model doesn't support > 26 legal moves.

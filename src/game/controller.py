@@ -92,7 +92,7 @@ class GameController:
         legal_moves = list(board.legal_moves)
         criteria = {move.uci(): board.san(move) for move in legal_moves}
         question = Choice(
-            instructions='Choose the best chess move for the player to move.',
+            instructions='Choose the best chess move for the player to move for the given FEN state.',
             criteria=criteria,
         )
         with TypeSafeClient(api_key=api_key) as client:
