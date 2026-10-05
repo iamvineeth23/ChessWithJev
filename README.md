@@ -4,14 +4,14 @@
 
 A desktop chess application built with NiceGUI to review how good `Jev` from [typesafe.ai](https://typesafe.ai) is at decision making for Chess. Play against `Jev` as human, Stockfish, random moves, or even `Jev`; compare Stockfish analysis; and export completed games as PGN.
 
-**Note:** Only coded for MacOS. Will update for Linux in upcoming days.
 Feel free to clone or fork to add support. This is just a hobby project, so don't rely on fast response to any issues. Fast fixes == Fork and do it yourself!
 
 ## Requirements
 
 - Python 3.12 or newer
-- [Stockfish](https://stockfishchess.org/download/) available on your `PATH`
+- [Stockfish](https://stockfishchess.org/download/) on your `PATH` or at `/usr/games/stockfish` on Linux
 - Homebrew on macOS if the setup script needs to install Stockfish
+- On Linux: Debian/Ubuntu with `apt`, sudo access, and a graphical desktop session
 
 ## Install
 
@@ -21,7 +21,7 @@ Clone the repository, then run:
 bash scripts/setup.sh
 ```
 
-The script creates a local `.venv` and installs the Python dependencies. On macOS, it installs Stockfish with Homebrew when necessary.
+The script creates a local `.venv` and installs the Python dependencies. On macOS, it installs Stockfish with Homebrew when necessary. On Linux, it uses apt to install Stockfish, venv support, and Qt system libraries, then installs the Qt webview backend in `.venv`. Use a Python 3.12+ installation as `python3`; run setup as your regular user (sudo is used for apt only).
 
 ## Configure Jev
 
@@ -80,5 +80,4 @@ As of 04.10.2026, latest `jev` can handle up to 256 choices.
 
 ## Upcoming features
 
-- Support for Linux
 - I want to add support for local models from Ollama like `nimble` and `clef`. Although this will need a new architecture as the model doesn't support > 26 legal moves.

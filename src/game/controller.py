@@ -3,9 +3,19 @@ import chess.engine
 import os
 import random
 import shutil
+import sys
 from typesafe_sdk import Choice, TypeSafeClient
 
 from src.game.position import Position
+
+
+def stockfish_path() -> str | None:
+    path = shutil.which('stockfish')
+    if path:
+        return path
+    if sys.platform.startswith('linux') and os.access('/usr/games/stockfish', os.X_OK):
+        return '/usr/games/stockfish'
+    return None
 
 
 class GameController:
@@ -17,7 +27,7 @@ class GameController:
 
     def stockfish_engine(self) -> chess.engine.SimpleEngine:
         if self.engine is None:
-            self.engine = chess.engine.SimpleEngine.popen_uci(shutil.which('stockfish') or 'stockfish')
+            self.engine = chess.engine.SimpleEngine.popen_uci(stockfish_path() or 'stockfish')
         return self.engine
 
     def close(self) -> None:

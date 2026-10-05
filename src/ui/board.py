@@ -1,11 +1,11 @@
 import sys
-import shutil
 import os
 from collections.abc import MutableMapping
 
 import chess
 from nicegui import app, ui
 
+from src.game.controller import stockfish_path
 from src.game.position import Position
 from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
 from src.ui.board_assets import BOARD_CSS, DEBUG_VIEWPORT_HTML, MOVE_LOG_SCRIPT
@@ -106,7 +106,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                 ui.button('START GAME', on_click=lambda: show_game(white.value, black.value, white_elo.value, black_elo.value), color=None).classes('terminal-button new-game-button')
 
     def show_game(white: str, black: str, white_elo: int = 1500, black_elo: int = 1500, position: Position | None = None) -> None:
-        if not shutil.which('stockfish'):
+        if not stockfish_path():
             ui.notify('Stockfish executable not found. Run bash scripts/setup.sh first.', type='negative')
             return
         view = BoardView(position=position, white=white, black=black, white_elo=white_elo, black_elo=black_elo,

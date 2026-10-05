@@ -87,7 +87,7 @@ def test_board_opens_native_window(debug: bool) -> None:
 
 def test_native_window_keeps_its_starting_aspect_ratio() -> None:
     window = MagicMock()
-    with patch('webview.windows', [window]), patch('PyObjCTools.AppHelper.callAfter', side_effect=lambda callback: callback()):
+    with patch('webview.windows', [window]), patch.dict('sys.modules', {'PyObjCTools': MagicMock(AppHelper=MagicMock(callAfter=lambda callback: callback()))}):
         lock_window_aspect_ratio()
     window.events.shown.wait.assert_called_once_with()
     window.native.setContentMinSize_.assert_called_once_with((800, 600))
@@ -1452,7 +1452,7 @@ def test_all_player_combinations_apply_each_move_before_async_analysis(monkeypat
 
 def test_initial_analysis_does_not_block_building_the_game(monkeypatch) -> None:
     storage = {'game': {'white': 'stockfish', 'black': 'human', 'position': Position().snapshot()}}
-    monkeypatch.setattr(board.shutil, 'which', lambda name: '/usr/bin/stockfish')
+    monkeypatch.setattr(board, 'stockfish_path', lambda: '/usr/bin/stockfish')
     with patch.object(GameController, 'white_expectation') as evaluation, patch.object(GameController, 'move_analysis') as analysis, patch.object(GameController, 'play_stockfish_move') as opening, patch.object(board.ui, 'timer') as timer:
         build_page(storage)
     evaluation.assert_not_called()
@@ -1508,7 +1508,7 @@ def test_uncached_live_position_changes_queue_analysis(monkeypatch, action) -> N
 def test_start_game_event_keeps_analysis_timer_in_live_slot(monkeypatch, white, black) -> None:
     from nicegui import ui
 
-    monkeypatch.setattr(board.shutil, 'which', lambda name: '/usr/bin/stockfish')
+    monkeypatch.setattr(board, 'stockfish_path', lambda: '/usr/bin/stockfish')
     client = ui.context.client
     with ui.element('div'):
         build_page({})
