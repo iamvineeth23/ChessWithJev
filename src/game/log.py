@@ -6,7 +6,16 @@ import chess
 import chess.pgn
 
 
-def write_pgn(board: chess.Board, path: Path | None = None) -> Path:
+def export_pgn(board: chess.Board, players: dict[chess.Color, str] | None = None) -> str:
+    game = chess.pgn.Game.from_board(board)
+    game.headers.update(Event='ChessWithJev', Site='ChessWithJev',
+                        Date=date.today().strftime('%Y.%m.%d'), Round='01')
+    if players is not None:
+        game.headers.update(White=players[chess.WHITE].title(), Black=players[chess.BLACK].title())
+    return str(game)
+
+
+def write_pgn(board: chess.Board, path: Path | None = None, *, players: dict[chess.Color, str] | None = None) -> Path:
     if path is None:
         log_dir = Path(__file__).resolve().parents[2] / 'gamelog' / 'pgn'
         game_id = date.today().isoformat()
@@ -15,7 +24,7 @@ def write_pgn(board: chess.Board, path: Path | None = None) -> Path:
             sequence += 1
         path = log_dir / f'{game_id}_{sequence:03d}.pgn'
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f'{chess.pgn.Game.from_board(board)}\n')
+    path.write_text(f'{export_pgn(board, players)}\n')
     return path
 
 

@@ -3,12 +3,11 @@ from collections.abc import Callable
 from functools import lru_cache
 
 import chess
-import chess.pgn
 import chess.svg
 from nicegui import run, ui
 
 from src.game.controller import GameController
-from src.game.log import write_game_log, write_pgn
+from src.game.log import export_pgn, write_game_log, write_pgn
 from src.game.position import Position
 from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
 
@@ -41,12 +40,6 @@ def move_history_lines(board: chess.Board) -> list[str]:
         lines.append(f'{prefix} {replay.san(move)}')
         replay.push(move)
     return lines
-
-
-def export_pgn(board: chess.Board) -> str:
-    return str(chess.pgn.Game.from_board(board))
-
-
 
 
 class BoardView:
@@ -570,7 +563,7 @@ class BoardView:
         try:
             path = await run.io_bound(write_game_log, board, self.players.copy(),
                                       self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False)
-            await run.io_bound(write_pgn, board, path.with_suffix('.pgn'))
+            await run.io_bound(write_pgn, board, path.with_suffix('.pgn'), players=self.players.copy())
             ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
         except Exception as error:
             ui.notify(f'Could not save game: {error}', type='negative')
@@ -579,7 +572,7 @@ class BoardView:
 
     async def save_pgn(self) -> None:
         try:
-            path = await run.io_bound(write_pgn, self.position.board.copy(stack=True))
+            path = await run.io_bound(write_pgn, self.position.board.copy(stack=True), players=self.players.copy())
             ui.notify(f'PGN exported to gamelog/pgn/{path.name}', type='positive')
         except Exception as error:
             ui.notify(f'Could not export PGN: {error}', type='negative')

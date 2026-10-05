@@ -569,7 +569,8 @@ def test_export_pgn_and_move_log_button_use_the_live_board(monkeypatch: pytest.M
 
     calls = 0
 
-    async def io_bound(function, board):
+    async def io_bound(function, board, **kwargs):
+        assert kwargs == {'players': view.players}
         nonlocal calls
         calls += 1
         assert function is write_pgn
@@ -1691,7 +1692,7 @@ def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatc
             assert args[3](args[0]) == 0.6
             return Path('gamelog/rec/2026-10-04_001.json')
         assert function is write_pgn
-        assert kwargs == {}
+        assert kwargs == {'players': view.players}
         assert args[1] == Path('gamelog/rec/2026-10-04_001.pgn')
         return args[1]
 
@@ -1706,3 +1707,21 @@ def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatc
     asyncio.run(view.save_game())
     assert view.save_button.enabled
     assert notify.call_args.kwargs['type'] == 'negative'
+
+
+@pytest.mark.parametrize('white,black', [('human', 'jev'), ('stockfish', 'random')])
+def test_pgn_headers_use_game_players_and_date(tmp_path, white, black):
+    import io
+    import chess.pgn
+
+    board = chess.Board()
+    board.push_san('e4')
+    players = {chess.WHITE: white, chess.BLACK: black}
+    path = write_pgn(board, tmp_path / 'game.pgn', players=players)
+    game = chess.pgn.read_game(io.StringIO(path.read_text()))
+    assert dict(game.headers) == {
+        'Event': 'ChessWithJev', 'Site': 'ChessWithJev',
+        'Date': date.today().strftime('%Y.%m.%d'), 'Round': '01',
+        'White': white.title(), 'Black': black.title(), 'Result': '*',
+    }
+    assert game.end().board().fen() == board.fen()
