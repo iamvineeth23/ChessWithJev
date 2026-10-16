@@ -1643,7 +1643,7 @@ def test_live_plot_uses_best_alternative_in_white_perspective() -> None:
 
 
 @pytest.mark.parametrize('moves', [[], ['e2e4', 'e7e5']])
-def test_manual_save_unfinished_game_matches_template_and_keeps_each_save(tmp_path, monkeypatch, moves):
+def test_manual_save_unfinished_game_matches_schema_and_keeps_each_save(tmp_path, monkeypatch, moves):
     monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
     position = chess.Board()
     for move in moves:
@@ -1654,12 +1654,13 @@ def test_manual_save_unfinished_game_matches_template_and_keeps_each_save(tmp_pa
     assert not (first.parent.parent / 'latest.json').exists()
     second = write_game_log(*args, save_copy=True)
     payload = json.loads(first.read_text())
-    template = json.loads(Path('temp/log.json').read_text())
-    assert payload.keys() == template.keys()
-    assert payload['result'] == template['result']
+    assert payload.keys() == {'game_id', 'players', 'result', 'evaluator', 'moves'}
+    assert payload['result'] == {'winner': None, 'score': None, 'termination': None}
     assert len(payload['moves']) == len(moves)
     if moves:
-        assert payload['moves'][0].keys() == template['moves'][0].keys()
+        assert payload['moves'][0].keys() == {
+            'ply', 'move_number', 'color', 'fen_before', 'legal_moves', 'move', 'fen_after', 'evaluation',
+        }
         assert payload['moves'][-1]['fen_after'] == position.fen()
     assert first.parent == tmp_path / 'repo' / 'gamelog' / 'rec'
     assert second != first and first.exists() and second.exists()

@@ -57,6 +57,7 @@ def test_setup_platform_dependencies(tmp_path, platform):
     repo = tmp_path / 'repo'
     (repo / 'scripts').mkdir(parents=True)
     shutil.copyfile(Path(__file__).resolve().parents[1] / 'scripts/setup.sh', repo / 'scripts/setup.sh')
+    shutil.copyfile(Path(__file__).resolve().parents[1] / 'requirements.txt', repo / 'requirements.txt')
     bin_dir = tmp_path / 'bin'
     bin_dir.mkdir()
     log = tmp_path / 'commands'
@@ -71,7 +72,7 @@ def test_setup_platform_dependencies(tmp_path, platform):
         executable.write_text('#!/bin/bash\n' + body + '\n')
         executable.chmod(0o755)
     fake_python = tmp_path / 'python'
-    fake_python.write_text('#!/bin/bash\necho "python $*" >> "$SETUP_LOG"\n')
+    fake_python.write_text('#!/bin/bash\necho "python $*" >> "$SETUP_LOG"\ncat "$5" >> "$SETUP_LOG"\n')
     fake_python.chmod(0o755)
     # Only expose shell utilities, so host Stockfish cannot affect the macOS branch.
     for name in ['bash', 'dirname', 'mkdir', 'cp', 'chmod', 'cat']:
@@ -80,14 +81,18 @@ def test_setup_platform_dependencies(tmp_path, platform):
                    env={**os.environ, 'PATH': str(bin_dir), 'SETUP_LOG': str(log),
                         'FAKE_PYTHON': str(fake_python)})
     commands = log.read_text()
-    assert 'nicegui[native]' in commands
+    assert f'python -m pip install -r {repo / "requirements.txt"}\n' in commands
+    assert 'nicegui[native]==' in commands
+    requirements = (repo / 'requirements.txt').read_text().splitlines()
+    assert {line.split('==')[0] for line in requirements} == {
+        'python-chess', 'nicegui[native]', 'pytest', 'typesafe-sdk', 'pywebview[qt]',
+    }
+    assert 'pywebview[qt]==' in commands and '; sys_platform == "linux"' in commands
     assert (repo / '.venv/bin/chess').stat().st_mode & 0o111
     if platform == 'Linux':
         assert 'apt update\n' in commands
         assert 'apt install -y stockfish python3-venv' in commands
-        assert 'pywebview[qt]' in commands
         assert 'brew' not in commands
     else:
         assert 'brew install stockfish\n' in commands
         assert 'apt ' not in commands
-        assert 'pywebview[qt]' not in commands

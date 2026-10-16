@@ -5,7 +5,6 @@ repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 venv_dir="$repo_dir/.venv"
 
 platform="$(uname -s)"
-dependencies=(python-chess stockfish 'nicegui[native]' pytest typesafe-sdk)
 case "$platform" in
     Darwin)
         if ! command -v stockfish >/dev/null 2>&1; then
@@ -27,7 +26,6 @@ case "$platform" in
         fi
         "${apt_command[@]}" update
         "${apt_command[@]}" install -y stockfish python3-venv libxcb-cursor0 libegl1 libopengl0 libxkbcommon-x11-0
-        dependencies+=('pywebview[qt]')
         ;;
 esac
 
@@ -45,7 +43,7 @@ fi
 #     mv "$activate.tmp" "$activate"
 # fi
 
-"$venv_dir/bin/python" -m pip install "${dependencies[@]}"
+"$venv_dir/bin/python" -m pip install -r "$repo_dir/requirements.txt"
 
 cat > "$venv_dir/bin/chess" <<'EOF'
 #!/usr/bin/env bash

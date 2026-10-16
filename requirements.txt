@@ -1,0 +1,5 @@
+python-chess==1.999
+nicegui[native]==3.17.1
+pytest==9.1.1
+typesafe-sdk==0.7.2
+pywebview[qt]==6.2.1; sys_platform == "linux"
