@@ -259,6 +259,8 @@ class BoardView:
                     continue
                 self.evaluation_cache.update(cache)
                 self.sync_analysis(source, result, refresh=False)
+                if self.on_change:
+                    self.on_change(self)
                 self.set_analysis_indicator(False)
                 break
             await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)

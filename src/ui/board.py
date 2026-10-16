@@ -8,6 +8,7 @@ from nicegui import app, ui
 from src.game.controller import stockfish_path
 from src.game.position import Position
 from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
+from src.ui.analysis_state import analysis_snapshot, restore_analysis
 from src.ui.board_assets import BOARD_CSS, DEBUG_VIEWPORT_HTML, MOVE_LOG_SCRIPT
 from src.ui.board_view import BoardView, export_pgn, move_history, piece_image, square_color, square_name
 
@@ -34,6 +35,7 @@ def game_snapshot(view: BoardView) -> dict[str, object]:
         'white_elo': view.stockfish_elos[chess.WHITE],
         'black_elo': view.stockfish_elos[chess.BLACK],
         'position': view.position.snapshot(),
+        'analysis': analysis_snapshot(view),
     }
 
 
@@ -111,6 +113,8 @@ def build_page(storage: MutableMapping[str, object]) -> None:
             return
         view = BoardView(position=position, white=white, black=black, white_elo=white_elo, black_elo=black_elo,
                          on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)))
+        if position is not None:
+            restore_analysis(view, storage['game'].get('analysis'))
         view.analysis_busy = True
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
