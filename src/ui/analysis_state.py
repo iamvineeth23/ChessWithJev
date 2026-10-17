@@ -40,8 +40,15 @@ def analysis_snapshot(view) -> dict:
                 'alternatives': [[san, encode_score(value)] for san, value in alternatives],
                 'score': encode_score(score), 'loss': loss,
             }
+        if key in view.jev_prediction_cache:
+            predictions, confidence = view.jev_prediction_cache[key]
+            entry['predictions'] = {
+                'moves': [[uci, san, probability, selected] for uci, san, probability, selected in predictions],
+                'confidence': confidence,
+            }
         positions.append(entry)
-    # Bump the version when analysis settings (depth 18, MultiPV 5) or score format change.
+    # Bump the version when analysis settings (depth 18, MultiPV 5) or score format change. New
+    # optional entries (predictions) stay on the same version because old snapshots remain valid.
     return {'version': 1, 'root_fen': root, 'moves': [move.uci() for move in board.move_stack],
             'claimed_draw': str(view.position.claimed_draw), 'positions': positions}
 
@@ -67,22 +74,46 @@ def restore_analysis(view, snapshot) -> None:
         if type(expectation) in (int, float) and 0 <= expectation <= 1:
             claim = view.position.claimed_draw if ply == len(board.move_stack) else None
             view.evaluation_cache[(*key, str(claim))] = expectation
-        if not ply or 'analysis' not in entry:
+        if not ply:
             continue
-        try:
-            analysis = entry['analysis']
-            alternatives = []
-            previous = replay.copy(stack=True)
-            previous.pop()
-            for san, value in analysis['alternatives']:
-                if not isinstance(san, str):
-                    raise ValueError('Invalid alternative')
-                previous.parse_san(san)
-                alternatives.append((san, decode_score(value)))
-            score = decode_score(analysis['score'])
-            loss = analysis['loss']
-            if loss is not None and (type(loss) not in (int, float) or not math.isfinite(loss) or loss < 0):
-                raise ValueError('Invalid loss')
-        except (KeyError, TypeError, ValueError, OverflowError):
-            continue
-        view.move_analysis_cache[key] = (alternatives, score, loss)
+        if 'analysis' in entry:
+            try:
+                analysis = entry['analysis']
+                alternatives = []
+                previous = replay.copy(stack=True)
+                previous.pop()
+                for san, value in analysis['alternatives']:
+                    if not isinstance(san, str):
+                        raise ValueError('Invalid alternative')
+                    previous.parse_san(san)
+                    alternatives.append((san, decode_score(value)))
+                score = decode_score(analysis['score'])
+                loss = analysis['loss']
+                if loss is not None and (type(loss) not in (int, float) or not math.isfinite(loss) or loss < 0):
+                    raise ValueError('Invalid loss')
+            except (KeyError, TypeError, ValueError, OverflowError):
+                alternatives = None
+            if alternatives is not None:
+                view.move_analysis_cache[key] = (alternatives, score, loss)
+        if 'predictions' in entry:
+            try:
+                moves = entry['predictions']['moves']
+                if not isinstance(moves, list) or not moves:
+                    raise ValueError('Invalid predictions')
+                previous = replay.copy(stack=True)
+                previous.pop()
+                parsed = []
+                for uci, san, probability, selected in moves:
+                    if (not isinstance(uci, str) or not isinstance(san, str)
+                            or type(probability) not in (int, float) or not math.isfinite(probability)
+                            or not 0 <= probability <= 1 or type(selected) is not bool):
+                        raise ValueError('Invalid prediction')
+                    previous.parse_san(san)
+                    parsed.append((uci, san, float(probability), selected))
+                confidence = entry['predictions']['confidence']
+                if type(confidence) not in (int, float) or not math.isfinite(confidence) or not 0 <= confidence <= 1:
+                    raise ValueError('Invalid confidence')
+            except (KeyError, TypeError, ValueError, OverflowError):
+                parsed = None
+            if parsed is not None:
+                view.jev_prediction_cache[key] = (parsed, float(confidence))

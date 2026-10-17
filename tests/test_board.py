@@ -1,3 +1,4 @@
+import asyncio
 import runpy
 from base64 import b64decode
 from datetime import date
@@ -15,7 +16,7 @@ from src.ui import board
 from src.ui import board_view
 from src.ui.board_assets import MOVE_LOG_SCRIPT
 from src.game.log import write_game_log, write_pgn
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
 @pytest.fixture(autouse=True)
@@ -379,6 +380,40 @@ def test_jev_predictions_tab_shows_top_five_and_selected_move() -> None:
     assert not view.jev_predictions_panel.default_slot.children
     view.select_history(2)
     assert not view.jev_predictions_panel.default_slot.children
+
+
+def test_restored_page_shows_jev_predictions_from_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Reopening the page (like after a disconnect) rebuilds the BoardView from storage;
+    # browsable Jev predictions must survive that rebuild like evaluations and analysis do.
+    callbacks = []
+    monkeypatch.setattr(board, 'stockfish_path', lambda: '/mock/stockfish')
+    monkeypatch.setattr(board_view.BoardView, 'schedule_update', lambda self, callback: callbacks.append(callback))
+
+    async def worker(callback, *args):
+        return callback(*args)
+
+    monkeypatch.setattr(board_view.run, 'io_bound', worker)
+    monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+    original = BoardView(white='jev', black='human')
+    original.position.board.push_uci('e2e4')
+    original.jev_prediction_cache[(original.position.board.root().fen(), tuple(original.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True), ('d2d4', 'd4', .3, False), ('c2c4', 'c4', .15, False)], .72)
+    storage = {'game': json.loads(json.dumps(board.game_snapshot(original)))}
+    build_page(storage)
+    callback = callbacks.pop()
+    view = callback.__self__
+    asyncio.run(callback())
+
+    descendants = list(view.jev_predictions_panel.descendants())
+    rows = [element for element in descendants if 'jev-prediction-row' in element._classes]
+    assert [row.default_slot.children[0].text for row in rows] == ['1. e4', '2. d4', '3. c4']
+    labels = [element.text for element in descendants if hasattr(element, 'text')]
+    assert {'Top 5 moves by Jev', 'Jev confidence', '72%', 'for e4'} <= set(labels)
+    view.select_history(0)
+    assert not view.jev_predictions_panel.default_slot.children
+    view.select_history(1)
+    rows = [element for element in view.jev_predictions_panel.descendants() if 'jev-prediction-row' in element._classes]
+    assert [row.default_slot.children[0].text for row in rows] == ['1. e4', '2. d4', '3. c4']
 
 
 def test_programmatic_move_refreshes_board_view() -> None:

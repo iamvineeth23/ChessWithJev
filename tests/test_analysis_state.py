@@ -32,6 +32,19 @@ def test_restored_analysis_preserves_claimed_draw_evaluation():
     assert restored_view.controller.engine is None
 
 
+def test_restored_analysis_preserves_jev_predictions():
+    view = board_view.BoardView(white='jev', black='human')
+    view.position.board.push_uci('e2e4')
+    prediction = [('e2e4', 'e4', .4, True), ('d2d4', 'd4', .3, False), ('c2c4', 'c4', .15, False)]
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (prediction, .72)
+    game = json.loads(json.dumps(board.game_snapshot(view)))
+    restored = board.saved_game({'game': game})
+    restored_view = board_view.BoardView(position=restored[0], white='jev', black='human')
+    restore_analysis(restored_view, game['analysis'])
+    assert restored_view.jev_prediction_cache == view.jev_prediction_cache
+    assert restored_view.controller.engine is None
+
+
 def test_page_restore_reuses_analysis_and_computes_only_missing_entries(monkeypatch):
     callbacks = []
     monkeypatch.setattr(board, 'stockfish_path', lambda: '/mock/stockfish')
@@ -78,12 +91,15 @@ def test_page_restore_reuses_analysis_and_computes_only_missing_entries(monkeypa
 
 
 @pytest.mark.parametrize('damage', ['version', 'root', 'moves', 'claim', 'positions',
-                                   'expectation', 'score', 'alternatives', 'loss'])
+                                   'expectation', 'score', 'alternatives', 'loss',
+                                   'prediction', 'probability', 'confidence', 'selected'])
 def test_invalid_saved_analysis_is_ignored(damage):
     view = board_view.BoardView(white='human', black='human')
     view.position.board.push_uci('e2e4')
     view.cached_white_expectation(view.position.board)
     view.cached_move_analysis(view.position.board)
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True)], .25)
     snapshot = copy.deepcopy(analysis_snapshot(view))
     if damage == 'version':
         snapshot['version'] = 99
@@ -101,16 +117,31 @@ def test_invalid_saved_analysis_is_ignored(damage):
         snapshot['positions'][1]['analysis']['score'] = ['invalid', 0]
     elif damage == 'alternatives':
         snapshot['positions'][1]['analysis']['alternatives'] = [['invalid', ['cp', 0]]]
-    else:
+    elif damage == 'loss':
         snapshot['positions'][1]['analysis']['loss'] = -1
+    elif damage == 'prediction':
+        snapshot['positions'][1]['predictions']['moves'] = [[None, 'e4', 1.0, True]]
+    elif damage == 'probability':
+        snapshot['positions'][1]['predictions']['moves'][0][2] = 2
+    elif damage == 'confidence':
+        snapshot['positions'][1]['predictions']['confidence'] = -1
+    else:
+        snapshot['positions'][1]['predictions']['moves'][0][3] = 'yes'
     view.evaluation_cache.clear()
     view.move_analysis_cache.clear()
+    view.jev_prediction_cache.clear()
     restore_analysis(view, snapshot)
     if damage in {'score', 'alternatives', 'loss'}:
         assert not view.move_analysis_cache
         assert view.evaluation_cache
+        assert view.jev_prediction_cache
     elif damage == 'expectation':
         assert not view.evaluation_cache
         assert view.move_analysis_cache
+        assert view.jev_prediction_cache
+    elif damage in {'prediction', 'probability', 'confidence', 'selected'}:
+        assert not view.jev_prediction_cache
+        assert view.evaluation_cache and view.move_analysis_cache
     else:
         assert not view.evaluation_cache and not view.move_analysis_cache
+        assert not view.jev_prediction_cache
