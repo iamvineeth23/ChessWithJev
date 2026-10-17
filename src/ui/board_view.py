@@ -633,7 +633,7 @@ class BoardView:
             self.render_move_analysis(self.preview_board or self.position.board)
             self.analysis_position = (self.preview_board or self.position.board).fen()
         with ui.element('div').classes('evaluation-tabs-wrap'):
-            with ui.tabs().classes('evaluation-plot-heading evaluation-tabs').props('dense no-caps align=left') as tabs:
+            with ui.tabs(on_change=lambda _: self.sync_tab_buttons()).classes('evaluation-plot-heading evaluation-tabs').props('dense no-caps align=left') as tabs:
                 evaluation_tab = ui.tab('Evaluation')
                 predictions_tab = ui.tab('Jev Predictions')
                 confidence_tab = ui.tab('Confidence')
@@ -644,7 +644,7 @@ class BoardView:
             self.tab_next_button = ui.button(icon='chevron_right', on_click=lambda _: self.switch_tab(+1)).classes(
                 'evaluation-nav evaluation-nav--right'
             ).props('flat dense')
-            self.tab_prev_button.props('disable')
+            self.sync_tab_buttons()
         with ui.element('div').classes('move-placeholder-panel'):
             with ui.tab_panels(tabs, value=evaluation_tab).classes('evaluation-panels').props('keep-alive'):
                 with ui.tab_panel(evaluation_tab).classes('evaluation-tab-panel evaluation-plot-panel').props('aria-label="Live evaluation plot"'):
@@ -692,22 +692,29 @@ class BoardView:
 
     def switch_tab(self, delta: int) -> None:
         names = [tab._props.get('label') for tab in self.evaluation_tabs.default_slot.children]
+        index = max(0, min(self.current_tab_index() + delta, len(names) - 1))
+        self.evaluation_tabs.value = names[index]
+        self.sync_tab_buttons()
+
+    def current_tab_index(self) -> int:
+        tabs = self.evaluation_tabs.default_slot.children
+        names = [tab._props.get('label') for tab in tabs]
         value = self.evaluation_tabs.value
         try:
-            index = names.index(value)
+            return names.index(value)
         except ValueError:
-            index = next((i for i, tab in enumerate(self.evaluation_tabs.default_slot.children) if tab is value), 0)
-        index = max(0, min(index + delta, len(names) - 1))
-        self.evaluation_tabs.value = names[index]
+            return next((i for i, tab in enumerate(tabs)
+                         if tab is value or tab._props.get('name') == value), 0)
 
-        def toggle(button: ui.button, disabled: bool) -> None:
-            if disabled:
+    def sync_tab_buttons(self) -> None:
+        '''Keep the prev/next tab arrows in sync with the currently selected tab.'''
+        index = self.current_tab_index()
+        last_index = len(self.evaluation_tabs.default_slot.children) - 1
+        for button, at_boundary in ((self.tab_prev_button, index == 0), (self.tab_next_button, index == last_index)):
+            if at_boundary:
                 button.props('disable')
             else:
                 button.props(remove='disable')
-
-        toggle(self.tab_prev_button, index == 0)
-        toggle(self.tab_next_button, index == len(names) - 1)
 
     def render_move_analysis(self, board: chess.Board, result=None) -> None:
         self.move_analysis_panel.clear()

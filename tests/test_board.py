@@ -344,6 +344,41 @@ def test_evaluation_tab_arrows_switch_tabs() -> None:
     assert view.tab_prev_button._props['disable'] is True
 
 
+def test_evaluation_tab_arrows_follow_manual_tab_selection() -> None:
+    '''Selecting a tab by its name alone must also refresh the prev/next arrow disabled states.'''
+    from types import SimpleNamespace
+    from nicegui import ui
+
+    with ui.element('div'):
+        view = BoardView(white='human', black='human')
+        with patch.object(view, 'sync_evaluation_plot'):
+            view.render_controls()
+    assert view.tab_prev_button._props['disable'] is True
+    assert 'disable' not in view.tab_next_button._props
+
+    def select_tab(name: str) -> None:
+        # Simulate the browser switching tabs when a tab label is clicked directly.
+        listener = next(listener for listener in view.evaluation_tabs._event_listeners.values()
+                        if listener.type == 'update:modelValue')
+        listener.handler(SimpleNamespace(args=name))
+
+    select_tab('Confidence')
+    assert view.evaluation_tabs.value == 'Confidence'
+    assert 'disable' not in view.tab_prev_button._props
+    assert view.tab_next_button._props['disable'] is True
+
+    select_tab('Evaluation')
+    assert view.evaluation_tabs.value == 'Evaluation'
+    assert view.tab_prev_button._props['disable'] is True
+    assert 'disable' not in view.tab_next_button._props
+
+    # Arrows must still work as expected after a manual selection.
+    next(iter(view.tab_next_button._event_listeners.values())).handler(None)
+    assert view.evaluation_tabs.value == 'Jev Predictions'
+    assert 'disable' not in view.tab_prev_button._props
+    assert 'disable' not in view.tab_next_button._props
+
+
 def test_jev_predictions_tab_shows_top_five_and_selected_move() -> None:
     from nicegui import ui
 
