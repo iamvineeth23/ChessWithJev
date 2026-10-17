@@ -633,8 +633,9 @@ class BoardView:
             self.render_move_analysis(self.preview_board or self.position.board)
             self.analysis_position = (self.preview_board or self.position.board).fen()
         with ui.tabs().classes('evaluation-plot-heading evaluation-tabs').props('dense no-caps align=left') as tabs:
-            evaluation_tab = ui.tab('Evaluation Plot')
+            evaluation_tab = ui.tab('Evaluation')
             predictions_tab = ui.tab('Jev Predictions')
+            confidence_tab = ui.tab('Confidence')
         with ui.element('div').classes('move-placeholder-panel'):
             with ui.tab_panels(tabs, value=evaluation_tab).classes('evaluation-panels').props('keep-alive'):
                 with ui.tab_panel(evaluation_tab).classes('evaluation-tab-panel evaluation-plot-panel').props('aria-label="Live evaluation plot"'):
@@ -651,6 +652,8 @@ class BoardView:
                 with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel jev-predictions-tab'):
                     self.jev_predictions_panel = ui.element('div').classes('jev-predictions')
                     self.render_jev_predictions()
+                with ui.tab_panel(confidence_tab).classes('evaluation-tab-panel confidence-tab'):
+                    ui.label('Confidence').classes('confidence-placeholder')
         if not self.analysis_busy:
             self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):

@@ -283,10 +283,10 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
             view.render_controls()
     tabs = next(element for element in container.descendants() if isinstance(element, ui.tabs))
     panels = next(element for element in container.descendants() if isinstance(element, ui.tab_panels))
-    assert [element._props['label'] for element in tabs.default_slot.children] == ['Evaluation Plot', 'Jev Predictions']
+    assert [element._props['label'] for element in tabs.default_slot.children] == ['Evaluation', 'Jev Predictions', 'Confidence']
     assert panels.value is tabs.default_slot.children[0]
     assert 'move-placeholder-panel' in panels.parent_slot.parent._classes
-    evaluation, predictions = panels.default_slot.children
+    evaluation, predictions, confidence = panels.default_slot.children
     assert view.evaluation_plot in evaluation.descendants()
     expand = next(element for element in evaluation.descendants() if isinstance(element, ui.button) and element._props.get('aria-label') == 'Toggle evaluation plot fullscreen')
     assert expand._props['aria-label'] == 'Toggle evaluation plot fullscreen'
@@ -304,8 +304,14 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
     assert 'jev-predictions-empty' in message._classes
     tabs.set_value('Jev Predictions')
     assert panels.value == 'Jev Predictions'
-    tabs.set_value('Evaluation Plot')
-    assert panels.value == 'Evaluation Plot'
+    tabs.set_value('Confidence')
+    assert panels.value == 'Confidence'
+    assert 'confidence-tab' in confidence._classes
+    placeholder = confidence.default_slot.children[0]
+    assert placeholder.text == 'Confidence'
+    assert 'confidence-placeholder' in placeholder._classes
+    tabs.set_value('Evaluation')
+    assert panels.value == 'Evaluation'
 
 
 def test_jev_predictions_tab_shows_top_five_and_selected_move() -> None:

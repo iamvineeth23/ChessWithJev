@@ -91,6 +91,8 @@ BOARD_CSS = '''
         .live-evaluation-chart { width: 100%; height: 100%; }
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
         .jev-predictions-tab { container-type: size; }
+        .confidence-tab { display: flex; align-items: center; justify-content: center; }
+        .confidence-placeholder { color: var(--muted); font-size: 12px; letter-spacing: .1em; }
         .jev-predictions { display: grid; grid-template-rows: minmax(0, 3fr) minmax(0, 1fr); gap: 2cqh; width: 100%; height: 100%; padding: 2cqh 6px; box-sizing: border-box; color: #d7e8d6; font-size: 13px; line-height: 1.1; }
         .jev-predictions-empty { grid-row: 1 / -1; align-self: center; justify-self: center; text-align: center; }
         .jev-prediction-card, .jev-confidence-card { min-height: 0; padding: 2cqh 8px; border: 1px solid #284636; border-radius: 6px; background: rgba(12, 28, 20, .45); }
