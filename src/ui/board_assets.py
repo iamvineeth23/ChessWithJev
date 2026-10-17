@@ -73,7 +73,7 @@ BOARD_CSS = '''
         .terminal-button.export-pgn-button { width: auto; min-width: 0; min-height: 0; padding: 2px 5px; border: 1px solid var(--green); font-size: 9px; font-weight: 400; line-height: 1; }
         .terminal-button.export-pgn-button:hover { background: transparent; text-decoration: underline; }
         .move-placeholder-panel { flex: 1; min-height: 40px; border: 1px solid var(--line); background: #101b14; }
-        .evaluation-tabs { height: 18px; min-height: 18px; flex-shrink: 0; }
+        .evaluation-tabs { height: 18px; min-height: 18px; flex-shrink: 0; overflow: visible; }
         .evaluation-tabs .q-tab { min-height: 18px; padding: 0 12px; }
         .evaluation-tabs .q-tab__indicator { display: none; }
         .evaluation-tabs .q-tab--active::before, .evaluation-tabs .q-tab--active::after { content: ''; position: absolute; inset: 0; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%); pointer-events: none; }
@@ -82,6 +82,11 @@ BOARD_CSS = '''
         .evaluation-tabs .q-tab--active::after { inset: 2px 3px 0 2px; background: #101b14; }
         .evaluation-tabs .q-tab__content { z-index: 1; }
         .evaluation-tabs .q-tab__label { font-size: 12px; line-height: 18px; letter-spacing: .1em; }
+        .evaluation-tabs .q-tabs__arrow { display: flex; align-items: center; justify-content: center; width: 12px; min-width: 0; height: 18px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--muted); background: rgba(168, 240, 176, .16); border-radius: 3px; text-shadow: none; transition: background-color .2s, opacity .3s, color .2s; }
+        .evaluation-tabs .q-tabs__arrow--left { left: -14px; }
+        .evaluation-tabs .q-tabs__arrow--right { right: -14px; }
+        .evaluation-tabs .q-tabs__arrow--faded { opacity: .35; pointer-events: none; }
+        .evaluation-tabs .q-tabs__arrow:hover:not(.q-tabs__arrow--faded) { color: var(--green); background: rgba(168, 240, 176, .32); }
         .evaluation-panels, .evaluation-tab-panel { width: 100%; height: 100%; padding: 0; background: transparent; color: inherit; }
         .evaluation-plot-panel { position: relative; }
         .evaluation-expand { position: absolute; top: 2px; right: 4px; width: 20px; height: 20px; min-height: 20px; color: var(--muted); z-index: 2; }
