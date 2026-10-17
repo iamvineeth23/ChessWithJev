@@ -78,6 +78,7 @@ BOARD_CSS = '''
         .evaluation-tabs .q-tab__indicator { display: none; }
         .evaluation-tabs .q-tab--active::before, .evaluation-tabs .q-tab--active::after { content: ''; position: absolute; inset: 0; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%); pointer-events: none; }
         .evaluation-tabs .q-tab--active:last-child::before, .evaluation-tabs .q-tab--active:last-child::after { clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%); }
+        .evaluation-tabs .q-tab--active:not(:first-child):not(:last-child)::before, .evaluation-tabs .q-tab--active:not(:first-child):not(:last-child)::after { clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 100%, 0 100%); }
         .evaluation-tabs .q-tab--active::before { background: var(--line); }
         .evaluation-tabs .q-tab--active::after { inset: 2px 3px 0 2px; background: #101b14; }
         .evaluation-tabs .q-tab__content { z-index: 1; }
