@@ -1056,6 +1056,113 @@ def test_incomplete_game_does_not_write_a_log() -> None:
     board_view.write_game_log.assert_not_called()
 
 
+@pytest.mark.parametrize('deferred_analysis', [False, True])
+def test_undo_updates_current_log_and_replacement_moves_without_changing_saved_copies(
+        tmp_path, monkeypatch, deferred_analysis):
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
+    monkeypatch.setattr(board_view, 'write_game_log', write_game_log)
+    monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+
+    async def worker(callback, *args):
+        return callback(*args)
+
+    monkeypatch.setattr(board_view.run, 'io_bound', worker)
+    view = BoardView(white='human', black='human')
+    view.render_controls()
+
+    def change(action):
+        view.analysis_busy = deferred_analysis
+        action()
+        if deferred_analysis:
+            asyncio.run(view.analyse_position())
+
+    for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
+        change(lambda: view.play_move(chess.Move.from_uci(move)))
+    latest = tmp_path / 'repo' / 'gamelog' / 'latest.json'
+    assert json.loads(latest.read_text())['result']['score'] == '0-1'
+    saved = write_game_log(view.position.board, view.players, view.stockfish_elos,
+                           lambda _: 0.5, save_copy=True, mirror_latest=False)
+    companion = write_pgn(view.position.board, saved.with_suffix('.pgn'), players=view.players)
+    exported = write_pgn(view.position.board, players=view.players)
+    copies = {path: path.read_bytes() for path in (saved, companion, exported)}
+
+    change(view.undo)
+    payload = json.loads(latest.read_text())
+    assert [move['move'] for move in payload['moves']] == ['f3', 'e5', 'g4']
+    assert payload['result'] == {'winner': None, 'score': None, 'termination': None}
+    assert 'Qh4' not in move_log_text(view)
+    change(view.redo)
+    assert json.loads(latest.read_text())['result']['score'] == '0-1'
+    change(view.undo)
+    change(lambda: view.play_move(chess.Move.from_uci('b8c6')))
+    payload = json.loads(latest.read_text())
+    assert [move['move'] for move in payload['moves']] == ['f3', 'e5', 'g4', 'Nc6']
+    assert payload['result']['score'] is None
+    assert 'Nc6' in move_log_text(view) and 'Qh4' not in move_log_text(view)
+    change(view.undo)
+    change(lambda: view.play_move(chess.Move.from_uci('d8h4')))
+    assert json.loads(latest.read_text())['moves'][-1]['move'] == 'Qh4#'
+    assert json.loads(latest.read_text())['result']['score'] == '0-1'
+    with patch.object(board_view, 'write_game_log') as write:
+        view.sync()
+    write.assert_not_called()
+    assert all(path.read_bytes() == content for path, content in copies.items())
+    assert board.game_snapshot(view)['log_current_game'] is True
+    callbacks = []
+    monkeypatch.setattr(board, 'stockfish_path', lambda: '/mock/stockfish')
+    monkeypatch.setattr(BoardView, 'schedule_update', lambda self, callback: callbacks.append(callback))
+    board.build_page({'game': json.loads(json.dumps(board.game_snapshot(view)))})
+    assert callbacks[-1].__self__.log_current_game
+    view.new_game()
+    assert not view.log_current_game
+    assert view.logged_position is None
+
+
+def test_undo_to_empty_board_updates_log_but_noop_undo_does_not():
+    view = BoardView(white='human', black='random')
+    assert view.play_move(chess.Move.from_uci('e2e4'))
+    assert view.play_move(chess.Move.from_uci('e7e5'))
+    view.undo()
+    assert not view.position.board.move_stack
+    board_view.write_game_log.assert_called_once()
+    view.undo()
+    board_view.write_game_log.assert_called_once()
+
+
+def test_undo_during_async_log_write_rewrites_the_current_position(tmp_path, monkeypatch):
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    monkeypatch.setattr('src.game.log.Path', lambda _: tmp_path / 'repo' / 'src' / 'game' / 'log.py')
+    monkeypatch.setattr(board_view, 'write_game_log', write_game_log)
+    monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+    view = BoardView(white='human', black='human')
+    for move in ('f2f3', 'e7e5', 'g2g4', 'd8h4'):
+        assert view.play_move(chess.Move.from_uci(move))
+    view.logged_position = None
+    writes = 0
+
+    async def worker(callback, *args):
+        nonlocal writes
+        result = callback(*args)
+        if callback is write_game_log:
+            writes += 1
+            if writes == 1:
+                view.undo()
+        return result
+
+    monkeypatch.setattr(board_view.run, 'io_bound', worker)
+    asyncio.run(view.analyse_position())
+    payload = json.loads((tmp_path / 'repo' / 'gamelog' / 'latest.json').read_text())
+    assert writes == 2
+    assert len(payload['moves']) == 3
+    assert payload['result']['score'] is None
+    assert not view.needs_game_log()
+
+
 def test_random_vs_random_starts_pauses_and_resets() -> None:
     from nicegui import ui
 

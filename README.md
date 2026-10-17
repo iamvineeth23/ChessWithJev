@@ -56,7 +56,7 @@ Choose a player for White and Black from the application menu. When Jev is selec
 
 ## Game files
 
-- `gamelog/latest.json` contains the most recently completed game.
+- `gamelog/latest.json` contains the most recently completed game. After Undo, it follows the revised game, including replacement moves.
 - **Save** writes dated JSON and PGN copies under `gamelog/rec/`.
 - **Export PGN** writes the current game under `gamelog/pgn/`.
 
@@ -79,7 +79,3 @@ Chess position (FEN) → Generate legal moves → Jev Choice → Rank moves → 
 
 This works because of a well-known chess composition by Nenad Petrović demonstrated a position with `218` legal moves that can actually be reached through a legal sequence of moves from the standard game start. 
 As of 04.10.2026, latest `jev` can handle up to 256 choices.
-
-## Upcoming features
-
-- I want to add support for local models from Ollama like `nimble` and `clef`. Although this will need a new architecture as the model doesn't support > 26 legal moves.

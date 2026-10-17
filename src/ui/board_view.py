@@ -80,7 +80,8 @@ class BoardView:
         self.redo_button = None
         self.history_back_button = None
         self.history_forward_button = None
-        self.game_logged = self.position.outcome() is not None
+        self.log_current_game = False
+        self.logged_position = self.position.snapshot() if self.position.outcome() else None
         self.has_played_move = bool(self.position.board.move_stack)
         self.preview_index: int | None = None
         self.preview_board: chess.Board | None = None
@@ -121,7 +122,8 @@ class BoardView:
         self.selected = None
         self.pending_promotion = None
         self.has_played_move = False
-        self.game_logged = False
+        self.log_current_game = False
+        self.logged_position = None
         if self.promotion_dialog:
             self.promotion_dialog.close()
         self.sync()
@@ -136,7 +138,8 @@ class BoardView:
         self.selected = None
         self.pending_promotion = None
         self.has_played_move = False
-        self.game_logged = False
+        self.log_current_game = False
+        self.logged_position = None
         if self.promotion_dialog:
             self.promotion_dialog.close()
         self.sync()
@@ -264,12 +267,11 @@ class BoardView:
                 self.set_analysis_indicator(False)
                 break
             await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
-            if self.has_played_move and self.position.outcome() and not self.game_logged:
-                finished = self.position.board
-                await run.io_bound(write_game_log, finished.copy(stack=True), self.players.copy(),
+            while not self.closed and self.needs_game_log():
+                snapshot = self.position.snapshot()
+                await run.io_bound(write_game_log, self.position.board.copy(stack=True), self.players.copy(),
                                    self.stockfish_elos.copy(), self.controller.white_expectation)
-                if self.position.board is finished:
-                    self.game_logged = True
+                self.logged_position = snapshot
             if self.position.outcome():
                 self.pause_random()
         except Exception:
@@ -344,6 +346,7 @@ class BoardView:
         if self.position.undo():
             if self.players[chess.WHITE] != self.players[chess.BLACK] and self.position.board.move_stack:
                 self.position.undo()
+            self.log_current_game = True
             self.selected = None
             self.sync()
 
@@ -439,6 +442,10 @@ class BoardView:
             self.render_move_analysis(board, result)
             self.analysis_position = board.fen()
 
+    def needs_game_log(self) -> bool:
+        return ((self.log_current_game or (self.has_played_move and self.position.outcome() is not None))
+                and self.logged_position != self.position.snapshot())
+
     def sync(self) -> None:
         board = self.preview_board or self.position.board
         if not self.analysis_busy:
@@ -499,9 +506,9 @@ class BoardView:
         self.shown_board = board.copy(stack=True)
         if self.on_change:
             self.on_change(self)
-        if not self.analysis_busy and self.has_played_move and self.position.outcome() and not self.game_logged:
+        if not self.analysis_busy and self.needs_game_log():
             write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation)
-            self.game_logged = True
+            self.logged_position = self.position.snapshot()
 
     def render(self) -> None:
         self.squares.clear()

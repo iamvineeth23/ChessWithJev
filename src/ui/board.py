@@ -36,6 +36,7 @@ def game_snapshot(view: BoardView) -> dict[str, object]:
         'black_elo': view.stockfish_elos[chess.BLACK],
         'position': view.position.snapshot(),
         'analysis': analysis_snapshot(view),
+        'log_current_game': view.log_current_game,
     }
 
 
@@ -115,6 +116,7 @@ def build_page(storage: MutableMapping[str, object]) -> None:
                          on_change=lambda changed: storage.__setitem__('game', game_snapshot(changed)))
         if position is not None:
             restore_analysis(view, storage['game'].get('analysis'))
+            view.log_current_game = storage['game'].get('log_current_game') is True
         view.analysis_busy = True
         view.fen_label = footer
         footer.set_text(view.position.board.fen())
