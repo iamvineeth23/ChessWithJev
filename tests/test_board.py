@@ -314,6 +314,35 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
     assert panels.value == 'Evaluation'
 
 
+def test_evaluation_tab_arrows_switch_tabs() -> None:
+    from nicegui import ui
+
+    with ui.element('div'):
+        view = BoardView(white='human', black='human')
+        with patch.object(view, 'sync_evaluation_plot'):
+            view.render_controls()
+    assert 'evaluation-tabs-wrap' in view.evaluation_tabs.parent_slot.parent._classes
+    assert view.tab_prev_button._props['disable'] is True
+    assert 'disable' not in view.tab_next_button._props
+
+    def click(button: ui.button) -> None:
+        next(iter(button._event_listeners.values())).handler(None)
+
+    click(view.tab_next_button)
+    assert view.evaluation_tabs.value == 'Jev Predictions'
+    assert 'disable' not in view.tab_prev_button._props
+    click(view.tab_next_button)
+    assert view.evaluation_tabs.value == 'Confidence'
+    assert view.tab_next_button._props['disable'] is True
+    click(view.tab_next_button)
+    assert view.evaluation_tabs.value == 'Confidence'
+    click(view.tab_prev_button)
+    assert view.evaluation_tabs.value == 'Jev Predictions'
+    click(view.tab_prev_button)
+    assert view.evaluation_tabs.value == 'Evaluation'
+    assert view.tab_prev_button._props['disable'] is True
+
+
 def test_jev_predictions_tab_shows_top_five_and_selected_move() -> None:
     from nicegui import ui
 

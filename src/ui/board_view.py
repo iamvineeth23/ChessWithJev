@@ -632,10 +632,19 @@ class BoardView:
         if not self.analysis_busy:
             self.render_move_analysis(self.preview_board or self.position.board)
             self.analysis_position = (self.preview_board or self.position.board).fen()
-        with ui.tabs().classes('evaluation-plot-heading evaluation-tabs').props('dense no-caps align=left') as tabs:
-            evaluation_tab = ui.tab('Evaluation')
-            predictions_tab = ui.tab('Jev Predictions')
-            confidence_tab = ui.tab('Confidence')
+        with ui.element('div').classes('evaluation-tabs-wrap'):
+            with ui.tabs().classes('evaluation-plot-heading evaluation-tabs').props('dense no-caps align=left') as tabs:
+                evaluation_tab = ui.tab('Evaluation')
+                predictions_tab = ui.tab('Jev Predictions')
+                confidence_tab = ui.tab('Confidence')
+            self.evaluation_tabs = tabs
+            self.tab_prev_button = ui.button(icon='chevron_left', on_click=lambda _: self.switch_tab(-1)).classes(
+                'evaluation-nav evaluation-nav--left'
+            ).props('flat dense')
+            self.tab_next_button = ui.button(icon='chevron_right', on_click=lambda _: self.switch_tab(+1)).classes(
+                'evaluation-nav evaluation-nav--right'
+            ).props('flat dense')
+            self.tab_prev_button.props('disable')
         with ui.element('div').classes('move-placeholder-panel'):
             with ui.tab_panels(tabs, value=evaluation_tab).classes('evaluation-panels').props('keep-alive'):
                 with ui.tab_panel(evaluation_tab).classes('evaluation-tab-panel evaluation-plot-panel').props('aria-label="Live evaluation plot"'):
@@ -680,6 +689,25 @@ class BoardView:
             with ui.row().classes('promotion-actions'):
                 for piece_type in (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT):
                     ui.button(chess.piece_name(piece_type).title(), on_click=lambda _, piece_type=piece_type: self.choose_promotion(piece_type)).classes('terminal-button')
+
+    def switch_tab(self, delta: int) -> None:
+        names = [tab._props.get('label') for tab in self.evaluation_tabs.default_slot.children]
+        value = self.evaluation_tabs.value
+        try:
+            index = names.index(value)
+        except ValueError:
+            index = next((i for i, tab in enumerate(self.evaluation_tabs.default_slot.children) if tab is value), 0)
+        index = max(0, min(index + delta, len(names) - 1))
+        self.evaluation_tabs.value = names[index]
+
+        def toggle(button: ui.button, disabled: bool) -> None:
+            if disabled:
+                button.props('disable')
+            else:
+                button.props(remove='disable')
+
+        toggle(self.tab_prev_button, index == 0)
+        toggle(self.tab_next_button, index == len(names) - 1)
 
     def render_move_analysis(self, board: chess.Board, result=None) -> None:
         self.move_analysis_panel.clear()
