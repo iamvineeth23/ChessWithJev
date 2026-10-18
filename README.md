@@ -56,6 +56,7 @@ Jev is optional (if this is not your goal, although why?). It is used only when 
 
 - `gamelog/latest.json` contains the most recently completed game. After Undo, it follows the revised game, including replacement moves.
 - **Save** writes dated JSON and PGN copies under `gamelog/rec/`.
+- Each JSON log records every move with the Stockfish evaluation after it (`evaluation.wdl_expectation_white`), and when Jev is a player, Jev's `confidence` in each of its own moves (absent on other players' moves).
 - **Export PGN** writes the current game under `gamelog/pgn/`.
 
 ## Development

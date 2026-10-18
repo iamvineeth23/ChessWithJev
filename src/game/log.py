@@ -28,10 +28,14 @@ def write_pgn(board: chess.Board, path: Path | None = None, *, players: dict[che
     return path
 
 
-def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, save_copy: bool = False, *, mirror_latest: bool = True) -> Path:
+def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, save_copy: bool = False, *, mirror_latest: bool = True, jev_confidences: dict[tuple[str, tuple[chess.Move, ...]], float] | None = None) -> Path:
+    # jev_confidences maps (root fen, move stack including Jev's move) to the confidence
+    # Jev had in that Choice, keyed exactly like BoardView.jev_prediction_cache.
     replay = board.root()
+    root_fen = replay.fen()
     moves = []
     for ply, move in enumerate(board.move_stack, 1):
+        mover = players.get(chess.WHITE if replay.turn else chess.BLACK)
         moves.append({
             'ply': ply,
             'move_number': replay.fullmove_number,
@@ -45,6 +49,9 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
         replay.push(move)
         moves[-1]['fen_after'] = replay.fen()
         moves[-1]['evaluation']['wdl_expectation_white'] = evaluate(replay)
+        if mover == 'jev' and jev_confidences is not None:
+            confidence = jev_confidences.get((root_fen, tuple(replay.move_stack)))
+            moves[-1]['confidence'] = None if confidence is None else float(confidence)
 
     outcome = board.outcome(claim_draw=True)
     result = None if outcome is None else ('1/2-1/2' if outcome.winner is None else ('1-0' if outcome.winner else '0-1'))

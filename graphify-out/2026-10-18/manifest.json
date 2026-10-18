@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "tests/test_board.py": {
-    "mtime": 1792301197.621898,
-    "seen": 1792301218.5165849,
-    "ast_hash": "e3012b51a98e5b919787757ce6747ec5",
+    "mtime": 1792303981.7999613,
+    "seen": 1792303995.0987651,
+    "ast_hash": "6092489e4f995b35c39055efe32582ae",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "src/ui/analysis.py": {
-    "mtime": 1792269689.5610106,
-    "seen": 1792299576.044467,
-    "ast_hash": "94fe23bba7678f67f962ca638fc0d0d3",
+    "mtime": 1792303978.2169902,
+    "seen": 1792303995.098759,
+    "ast_hash": "7af96cb05f40bc1953c50eb8b43373b1",
     "semantic_hash": ""
   },
   "src/ui/board_assets.py": {
@@ -102,9 +102,9 @@
     "semantic_hash": ""
   },
   "src/ui/analysis_state.py": {
-    "mtime": 1792301145.6525757,
-    "seen": 1792301218.5165792,
-    "ast_hash": "63779c39b263408aeb92bec0656b2546",
+    "mtime": 1792303721.2702308,
+    "seen": 1792303846.888756,
+    "ast_hash": "a08c81f27bb459bbdf09d6089c25902a",
     "semantic_hash": ""
   },
   "tests/conftest.py": {
@@ -114,9 +114,9 @@
     "semantic_hash": ""
   },
   "tests/test_analysis_state.py": {
-    "mtime": 1792301165.5729008,
-    "seen": 1792301218.516584,
-    "ast_hash": "4bcff90ccd47bffc430023832980bef4",
+    "mtime": 1792303831.3043463,
+    "seen": 1792303846.888761,
+    "ast_hash": "e26ce64c03f2b6abe5ade1b27fa7b043",
     "semantic_hash": ""
   },
   "tests/test_engine_fixture.py": {

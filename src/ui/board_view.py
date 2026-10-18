@@ -275,7 +275,8 @@ class BoardView:
             while not self.closed and self.needs_game_log():
                 snapshot = self.position.snapshot()
                 await run.io_bound(write_game_log, self.position.board.copy(stack=True), self.players.copy(),
-                                   self.stockfish_elos.copy(), self.controller.white_expectation)
+                                   self.stockfish_elos.copy(), self.controller.white_expectation,
+                                   jev_confidences=self.jev_confidence_map())
                 self.logged_position = snapshot
             if self.position.outcome():
                 self.pause_random()
@@ -513,7 +514,8 @@ class BoardView:
         if self.on_change:
             self.on_change(self)
         if not self.analysis_busy and self.needs_game_log():
-            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation)
+            write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation,
+                           jev_confidences=self.jev_confidence_map())
             self.logged_position = self.position.snapshot()
 
     def render(self) -> None:
@@ -577,7 +579,8 @@ class BoardView:
             return evaluations.get((position.root().fen(), tuple(position.move_stack), str(None)))
         try:
             path = await run.io_bound(write_game_log, board, self.players.copy(),
-                                      self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False)
+                                      self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False,
+                                      jev_confidences=self.jev_confidence_map())
             await run.io_bound(write_pgn, board, path.with_suffix('.pgn'), players=self.players.copy())
             ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
         except Exception as error:
@@ -642,6 +645,10 @@ class BoardView:
                 if cached is not None:
                     confidences.append(float(cached[1]))
         return confidences
+
+    def jev_confidence_map(self) -> dict[tuple[str, tuple], float]:
+        # Keyed like jev_prediction_cache: (root fen, move stack including Jev's move).
+        return {key: cached[1] for key, cached in self.jev_prediction_cache.items()}
 
     def render_confidence(self, board: chess.Board | None = None) -> None:
         if self.confidence_plot is None:

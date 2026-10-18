@@ -1885,7 +1885,7 @@
       "file_type": "code",
       "norm_label": "test_invalid_saved_analysis_is_ignored()",
       "source_file": "tests/test_analysis_state.py",
-      "source_location": "L148"
+      "source_location": "L149"
     },
     {
       "id": "tests_test_analysis_state_test_page_restore_reuses_analysis_and_computes_only_missing_entries",
@@ -4777,7 +4777,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_analysis_state.py",
-      "source_location": "L155",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
@@ -4789,7 +4789,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_analysis_state.py",
-      "source_location": "L185",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -8105,7 +8105,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_analysis_state.py",
-      "source_location": "L148",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -10633,5 +10633,5 @@
       "source_file": "graphify-out/memory/query_20260926_072050_3361236b_yes_follow.md"
     }
   ],
-  "built_at_commit": "2ad78a68c1b5b7c3d9ab06a0c212efc70288a309"
+  "built_at_commit": "a626a0c5324ca83114d5357a124288ed33b0343e"
 }
