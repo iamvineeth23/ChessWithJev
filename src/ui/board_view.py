@@ -75,6 +75,7 @@ class BoardView:
         self.confidence_panel = None
         self.confidence_plot = None
         self.fullscreen_confidence_plot = None
+        self.confidence_fullscreen_button = None
         self.confidence_empty = None
         self.evaluation_cache = {}
         self.move_analysis_cache = {}
@@ -661,6 +662,14 @@ class BoardView:
             self.confidence_plot.set_content(chart)
             if self.fullscreen_confidence_plot is not None:
                 self.fullscreen_confidence_plot.set_content(chart)
+            if self.confidence_fullscreen_button is not None:
+                self.confidence_fullscreen_button.set_enabled(True)
+        else:
+            self.confidence_plot.set_content('')
+            if self.fullscreen_confidence_plot is not None:
+                self.fullscreen_confidence_plot.set_content('')
+            if self.confidence_fullscreen_button is not None:
+                self.confidence_fullscreen_button.set_enabled(False)
 
     def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
@@ -710,7 +719,7 @@ class BoardView:
                             ui.button(icon='fullscreen_exit', on_click=fullscreen_plot.close, color=None).classes(
                                 'evaluation-expand'
                             ).props('flat dense aria-label="Exit confidence plot fullscreen"')
-                    ui.button(icon='fullscreen', on_click=fullscreen_plot.open, color=None).classes(
+                    self.confidence_fullscreen_button = ui.button(icon='fullscreen', on_click=fullscreen_plot.open, color=None).classes(
                         'evaluation-expand'
                     ).props('flat dense aria-label="Toggle confidence plot fullscreen"').tooltip('Fullscreen (Esc to exit)')
                     self.confidence_empty = ui.label('').classes('confidence-placeholder')

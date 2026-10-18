@@ -45,6 +45,58 @@ def test_restored_analysis_preserves_jev_predictions():
     assert restored_view.controller.engine is None
 
 
+def test_restored_analysis_preserves_jev_predictions_for_redo_continuation():
+    # Undo retains moves for Redo, so their predictions must survive a snapshot round trip.
+    view = board_view.BoardView(white='jev', black='human')
+    view.position.board.push_uci('e2e4')
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True), ('d2d4', 'd4', .3, False)], .72)
+    assert view.position.undo()
+    assert view.position.redo_stack == [chess.Move.from_uci('e2e4')]
+
+    game = json.loads(json.dumps(board.game_snapshot(view)))
+    assert game['analysis']['redo'] == ['e2e4']
+    restored = board.saved_game({'game': game})
+    assert restored[0].redo_stack == [chess.Move.from_uci('e2e4')]
+    restored_view = board_view.BoardView(position=restored[0], white='jev', black='human')
+    restore_analysis(restored_view, game['analysis'])
+    assert restored_view.jev_prediction_cache == view.jev_prediction_cache
+    assert restored_view.position.redo()
+    assert restored_view.position.board.move_stack == [chess.Move.from_uci('e2e4')]
+    assert restored_view.controller.engine is None
+
+
+def test_restored_analysis_accepts_snapshots_without_redo_entries():
+    # Snapshots from before the redo continuation existed remain valid: they cover the
+    # live move stack only and restore exactly like they always did.
+    view = board_view.BoardView(white='jev', black='human')
+    view.position.board.push_uci('e2e4')
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True)], .72)
+    snapshot = copy.deepcopy(analysis_snapshot(view))
+    del snapshot['redo']
+    view.jev_prediction_cache.clear()
+    restore_analysis(view, snapshot)
+    assert view.jev_prediction_cache == {(view.position.board.root().fen(), (chess.Move.from_uci('e2e4'),)):
+                                        ([('e2e4', 'e4', .4, True)], .72)}
+
+
+def test_restored_analysis_ignores_snapshot_redo_mismatch():
+    # A stored continuation that does not match the retained redo stack must not be applied.
+    view = board_view.BoardView(white='jev', black='human')
+    view.position.board.push_uci('e2e4')
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True)], .72)
+    assert view.position.undo()
+    snapshot = copy.deepcopy(analysis_snapshot(view))
+    snapshot['redo'] = ['d7d5']
+    view.evaluation_cache.clear()
+    view.move_analysis_cache.clear()
+    view.jev_prediction_cache.clear()
+    restore_analysis(view, snapshot)
+    assert not view.evaluation_cache and not view.move_analysis_cache and not view.jev_prediction_cache
+
+
 def test_page_restore_reuses_analysis_and_computes_only_missing_entries(monkeypatch):
     callbacks = []
     monkeypatch.setattr(board, 'stockfish_path', lambda: '/mock/stockfish')

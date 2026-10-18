@@ -482,6 +482,33 @@ def test_confidence_plot_hides_chart_and_uncovers_message() -> None:
     assert view.confidence_plot.content == confidence_chart_svg([.72])
 
 
+def test_confidence_fullscreen_chart_clears_with_inline_chart_and_disables_fullscreen() -> None:
+    # Regression: once a confidence chart was shown, browsing back before Jev's first move
+    # must purge the fullscreen chart too and take away fullscreen access.
+    view = BoardView(white='human', black='jev')
+    view.position.board.push_uci('e2e4')  # Human move
+    view.position.board.push_uci('e7e5')  # Jev move: confidence point
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e7e5', 'e5', .4, True)], .72)
+    with patch.object(view, 'sync_evaluation_plot'):
+        view.render_controls()
+
+    assert view.confidence_plot.visible
+    assert view.fullscreen_confidence_plot.content == confidence_chart_svg([.72])
+    assert view.confidence_fullscreen_button.enabled
+
+    view.select_history(1)  # back to the human move: no Jev confidence to preview
+    assert not view.confidence_plot.visible
+    assert view.confidence_plot.content == ''
+    assert view.fullscreen_confidence_plot.content == ''
+    assert not view.confidence_fullscreen_button.enabled
+
+    view.select_history(2)
+    assert view.confidence_plot.visible
+    assert view.fullscreen_confidence_plot.content == confidence_chart_svg([.72])
+    assert view.confidence_fullscreen_button.enabled
+
+
 def test_confidence_chart_maps_zero_to_one_onto_percent_axis() -> None:
     # Confidence runs 0..1 while the axis reads 0%..100%; 72% must sit 28% down the plot.
     chart = confidence_chart_svg([.72])
@@ -526,6 +553,36 @@ def test_restored_page_shows_jev_predictions_from_snapshot(monkeypatch: pytest.M
     assert view.confidence_plot.content == confidence_chart_svg([.72])
     view.select_history(0)
     assert not view.confidence_plot.visible
+
+
+def test_restored_page_keeps_jev_predictions_for_retained_redo_moves(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Undo → page restore → Redo: the undone move returns from the retained redo continuation
+    # and must come back with its confidence, like it does for a same-session redo.
+    callbacks = []
+    monkeypatch.setattr(board, 'stockfish_path', lambda: '/mock/stockfish')
+    monkeypatch.setattr(board_view.BoardView, 'schedule_update', lambda self, callback: callbacks.append(callback))
+
+    async def worker(callback, *args):
+        return callback(*args)
+
+    monkeypatch.setattr(board_view.run, 'io_bound', worker)
+    monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+    original = BoardView(white='jev', black='human')
+    original.position.board.push_uci('e2e4')
+    original.jev_prediction_cache[(original.position.board.root().fen(), tuple(original.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True), ('d2d4', 'd4', .3, False)], .72)
+    original.position.undo()
+    storage = {'game': json.loads(json.dumps(board.game_snapshot(original)))}
+    build_page(storage)
+    callback = callbacks.pop()
+    view = callback.__self__
+    asyncio.run(callback())
+
+    assert view.position.redo_stack == [chess.Move.from_uci('e2e4')]
+    view.redo()
+    rows = [element for element in view.jev_predictions_panel.descendants() if 'jev-prediction-row' in element._classes]
+    assert [row.default_slot.children[0].text for row in rows] == ['1. e4', '2. d4']
+    assert view.confidence_plot.content == confidence_chart_svg([.72])
 
 
 def test_programmatic_move_refreshes_board_view() -> None:

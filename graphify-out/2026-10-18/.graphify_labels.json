@@ -1,1 +1,26 @@
-{"0": "Engine Game Control", "1": "Game Logging Tests", "2": "Board Interaction", "3": "Board View Tests", "4": "Application Shell", "5": "Board Feature Tests", "6": "Position Game State", "7": "Board View Rendering", "8": "Architecture Principles", "9": "Async Analysis Tests", "10": "TypeSafe AI Integration", "11": "User Documentation", "12": "Evaluation Charts", "13": "Move History Tests", "14": "Move Execution API", "15": "Setup Script", "16": "Application Stack", "17": "Repository Scope", "18": "README Policy", "19": "Chess Board", "20": "Piece Types", "21": "Board Squares", "22": "Piece Type Helpers", "23": "Square Helpers"}
+{
+  "0": "GameController",
+  "1": "write_game_log",
+  "2": ".sync",
+  "3": "test_board.py",
+  "4": "board.py",
+  "5": "test_analysis_state.py",
+  "6": "Position",
+  "7": "Board",
+  "8": "BoardView Interaction Flow",
+  "9": "test_linux_support.py",
+  "10": "mock_stockfish",
+  "11": "ChessWithJev",
+  "12": "graphify.js",
+  "13": "opencode.json",
+  "14": "BoardView.play_move",
+  "15": "setup.sh",
+  "16": "Application Stack",
+  "17": "Repository-Only Scope",
+  "18": "User-Facing README Policy",
+  "19": "parametrize",
+  "20": "confidence_chart_svg",
+  "21": "MonkeyPatch",
+  "22": "move_log_text",
+  "23": "test_evaluation_tab_arrows_follow_manual_tab_selection"
+}
