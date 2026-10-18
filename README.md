@@ -52,8 +52,6 @@ Jev is optional (if this is not your goal, although why?). It is used only when 
     .venv/bin/chess
     ```
 
-Choose a player for White and Black from the application menu. When Jev is selected, the Jev Predictions tab shows its chosen move and highest-rated legal alternatives.
-
 ## Game files
 
 - `gamelog/latest.json` contains the most recently completed game. After Undo, it follows the revised game, including replacement moves.

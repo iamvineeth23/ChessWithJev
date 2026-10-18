@@ -25,6 +25,36 @@ def latest_game_players(path: Path | None = None) -> str:
         return ''
 
 
+def confidence_chart_svg(confidences: list[float]) -> str:
+    """Return an SVG chart of Jev's confidence (0=0% to 1=100%) at each move it played."""
+    width, height, left, right, top, bottom = 380, 220, 46, 14, 10, 22
+    plot_width, plot_height = width - left - right, height - top - bottom
+
+    def x(index: int) -> float:
+        return left + plot_width * index / max(len(confidences) - 1, 1)
+
+    def y(value: float) -> float:
+        return top + plot_height * (1 - value)
+
+    points = ' '.join(f'{x(index):.1f},{y(value):.1f}' for index, value in enumerate(confidences))
+    horizontal_grid = ''.join(
+        f'<line x1="{left}" y1="{y(percent / 100):.1f}" x2="{width - right}" y2="{y(percent / 100):.1f}" class="chart-grid"/>'
+        f'<text x="{left - 8}" y="{y(percent / 100) + 5:.1f}" text-anchor="end" class="chart-label">{percent}%</text>'
+        for percent in (100, 75, 50, 25, 0))
+    ticks = sorted({0, len(confidences) - 1, *(round((len(confidences) - 1) * step / 4) for step in range(1, 4))})
+    vertical_grid = ''.join(
+        f'<line x1="{x(index):.1f}" y1="{top}" x2="{x(index):.1f}" y2="{height - bottom}" class="chart-grid chart-grid-vertical"/>'
+        f'<text x="{x(index):.1f}" y="{height - 8}" text-anchor="middle" class="chart-label">{index + 1}</text>'
+        for index in ticks)
+    return f'''<svg class="evaluation-chart" viewBox="0 0 {width} {height}" preserveAspectRatio="none" role="img" aria-label="Jev confidence in each move it played, zero to one hundred percent">
+        {horizontal_grid}
+        {vertical_grid}
+        <line x1="{left}" y1="{y(.5):.1f}" x2="{width - right}" y2="{y(.5):.1f}" class="chart-balance"><title>Half: even odds for Jev</title></line>
+        <polyline points="{points}" class="chart-line chart-conf-line"><title>Jev confidence in each move it played</title></polyline>
+        <circle cx="{x(len(confidences) - 1):.1f}" cy="{y(confidences[-1]):.1f}" r="7" class="chart-last-point"/>
+    </svg>'''
+
+
 def evaluation_chart_svg(evaluations: list[float], *, compact: bool = False, recommended: list[float] | None = None) -> str:
     width, height, left, right, top, bottom = (380, 220, 46, 14, 10, 22) if compact else (1080, 580, 100, 40, 40, 72)
     if compact and recommended is not None:

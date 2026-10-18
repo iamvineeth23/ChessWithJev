@@ -9,7 +9,7 @@ from nicegui import run, ui
 from src.game.controller import GameController
 from src.game.log import export_pgn, write_game_log, write_pgn
 from src.game.position import Position
-from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
+from src.ui.analysis import confidence_chart_svg, evaluation_chart_svg, latest_game_evaluations, latest_game_players
 
 
 def square_color(row: int, column: int) -> str:
@@ -72,6 +72,10 @@ class BoardView:
         self.evaluation_plot = None
         self.fullscreen_evaluation_plot = None
         self.jev_predictions_panel = None
+        self.confidence_panel = None
+        self.confidence_plot = None
+        self.fullscreen_confidence_plot = None
+        self.confidence_empty = None
         self.evaluation_cache = {}
         self.move_analysis_cache = {}
         self.jev_prediction_cache = {}
@@ -469,6 +473,7 @@ class BoardView:
         if self.history_panel:
             self.render_history()
         self.render_jev_predictions(board)
+        self.render_confidence(board)
         if self.claim_button:
             self.claim_button.visible = self.preview_board is None and not self.position.outcome() and self.position.board.can_claim_draw()
         if self.undo_button:
@@ -622,6 +627,41 @@ class BoardView:
                 with ui.element('div').classes('jev-confidence-track'):
                     ui.element('div').classes('jev-confidence-fill').style(f'width: {confidence:.1%}')
 
+    def confidence_history(self, board: chess.Board) -> list[float]:
+        if 'jev' not in self.players.values():
+            return []
+        root_fen = board.root().fen()
+        replay = board.root()
+        confidences = []
+        for move in board.move_stack:
+            maker = self.players[replay.turn]
+            replay.push(move)
+            if maker == 'jev':
+                cached = self.jev_prediction_cache.get((root_fen, tuple(replay.move_stack)))
+                if cached is not None:
+                    confidences.append(float(cached[1]))
+        return confidences
+
+    def render_confidence(self, board: chess.Board | None = None) -> None:
+        if self.confidence_plot is None:
+            return
+        board = board or self.preview_board or self.position.board
+        confidences = self.confidence_history(board)
+        self.confidence_plot.visible = bool(confidences)
+        if self.confidence_empty is not None:
+            self.confidence_empty.visible = not confidences
+            self.confidence_empty.set_text(
+                'Select Jev as one of the players for Jev confidence' if 'jev' not in self.players.values()
+                else 'No Jev confidence yet')
+        if self.confidence_panel:
+            self.confidence_panel.classes(add='has-plot' if confidences else None,
+                                          remove=None if confidences else 'has-plot')
+        if confidences:
+            chart = confidence_chart_svg(confidences)
+            self.confidence_plot.set_content(chart)
+            if self.fullscreen_confidence_plot is not None:
+                self.fullscreen_confidence_plot.set_content(chart)
+
     def render_controls(self, header_actions=None, save_actions=None) -> None:
         if self.status_label is None:
             self.render_status()
@@ -661,8 +701,20 @@ class BoardView:
                 with ui.tab_panel(predictions_tab).classes('evaluation-tab-panel jev-predictions-tab'):
                     self.jev_predictions_panel = ui.element('div').classes('jev-predictions')
                     self.render_jev_predictions()
-                with ui.tab_panel(confidence_tab).classes('evaluation-tab-panel confidence-tab'):
-                    ui.label('Confidence').classes('confidence-placeholder')
+                with ui.tab_panel(confidence_tab).classes('evaluation-tab-panel confidence-tab').props('aria-label="Live confidence plot"') as confidence_panel:
+                    self.confidence_panel = confidence_panel
+                    self.confidence_plot = ui.html('').classes('confidence-plot')
+                    with ui.dialog().props('maximized') as fullscreen_plot:
+                        with ui.element('div').classes('evaluation-fullscreen'):
+                            self.fullscreen_confidence_plot = ui.html('').classes('confidence-plot')
+                            ui.button(icon='fullscreen_exit', on_click=fullscreen_plot.close, color=None).classes(
+                                'evaluation-expand'
+                            ).props('flat dense aria-label="Exit confidence plot fullscreen"')
+                    ui.button(icon='fullscreen', on_click=fullscreen_plot.open, color=None).classes(
+                        'evaluation-expand'
+                    ).props('flat dense aria-label="Toggle confidence plot fullscreen"').tooltip('Fullscreen (Esc to exit)')
+                    self.confidence_empty = ui.label('').classes('confidence-placeholder')
+                self.render_confidence()
         if not self.analysis_busy:
             self.sync_evaluation_plot(self.preview_board or self.position.board)
         with ui.element('div').classes('history-heading'):

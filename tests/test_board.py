@@ -9,7 +9,7 @@ import chess.engine
 import pytest
 from src.game.position import Position
 from src.game.controller import GameController
-from src.ui.analysis import evaluation_chart_svg, latest_game_evaluations, latest_game_players
+from src.ui.analysis import confidence_chart_svg, evaluation_chart_svg, latest_game_evaluations, latest_game_players
 from src.ui.board import (BoardView, build_page, export_pgn, lock_window_aspect_ratio, move_history, piece_image, square_color,
                           square_name)
 from src.ui import board
@@ -308,9 +308,20 @@ def test_evaluation_tabs_share_the_existing_window() -> None:
     tabs.set_value('Confidence')
     assert panels.value == 'Confidence'
     assert 'confidence-tab' in confidence._classes
-    placeholder = confidence.default_slot.children[0]
-    assert placeholder.text == 'Confidence'
+    assert view.confidence_plot is confidence.default_slot.children[0]
+    assert not view.confidence_plot.visible
+    assert view.confidence_plot.content == ''
+    placeholder = view.confidence_empty
+    assert placeholder.text == 'Select Jev as one of the players for Jev confidence'
     assert 'confidence-placeholder' in placeholder._classes
+    expand = next(element for element in confidence.descendants() if isinstance(element, ui.button) and element._props.get('aria-label') == 'Toggle confidence plot fullscreen')
+    dialog = view.fullscreen_confidence_plot.parent_slot.parent.parent_slot.parent
+    assert dialog._props['maximized']
+    next(iter(expand._event_listeners.values())).handler(None)
+    assert dialog.value
+    exit_button = next(element for element in dialog.descendants() if isinstance(element, ui.button))
+    next(iter(exit_button._event_listeners.values())).handler(None)
+    assert not dialog.value
     tabs.set_value('Evaluation')
     assert panels.value == 'Evaluation'
 
@@ -417,6 +428,69 @@ def test_jev_predictions_tab_shows_top_five_and_selected_move() -> None:
     assert not view.jev_predictions_panel.default_slot.children
 
 
+def test_confidence_plot_tracks_jev_moves_only() -> None:
+    view = BoardView(white='human', black='jev')
+    view.position.board.push_uci('e2e4')  # Human move: no confidence point
+    view.position.board.push_uci('e7e5')  # Jev move
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e7e5', 'e5', .4, True)], .72)
+    view.position.board.push_uci('d2d4')  # Human move: no confidence point
+    view.position.board.push_uci('d7d5')  # Jev move
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('d7d5', 'd5', .3, True)], .58)
+    with patch.object(view, 'sync_evaluation_plot'):
+        view.render_controls()
+
+    assert view.confidence_plot.visible
+    assert view.confidence_plot.content == confidence_chart_svg([.72, .58])
+    assert 'chart-conf-line' in view.confidence_plot.content
+    assert view.fullscreen_confidence_plot.content == view.confidence_plot.content
+    assert not view.confidence_empty.visible
+
+    # History browsing keeps the confidence line up to the previewed step.
+    view.select_history(3)
+    assert view.confidence_plot.content == confidence_chart_svg([.72])
+    view.select_history(2)
+    assert view.confidence_plot.content == confidence_chart_svg([.72])
+    view.select_history(1)
+    assert not view.confidence_plot.visible
+    assert view.confidence_empty.text == 'No Jev confidence yet'
+    view.select_history(4)
+    assert view.confidence_plot.content == confidence_chart_svg([.72, .58])
+
+
+def test_confidence_plot_hides_chart_and_uncovers_message() -> None:
+    view = BoardView(white='jev', black='human')
+    with patch.object(view, 'sync_evaluation_plot'):
+        view.render_controls()
+    assert not view.confidence_plot.visible
+    assert view.confidence_empty.text == 'No Jev confidence yet'
+    assert 'confidence-placeholder' in view.confidence_empty._classes
+    view.position.board.push_uci('e2e4')
+    view.jev_prediction_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e2e4', 'e4', .4, True)], .72)
+    view.sync()
+    assert view.confidence_plot.visible
+    assert view.confidence_plot.content == confidence_chart_svg([.72])
+    assert not view.confidence_empty.visible
+    assert 'has-plot' in view.confidence_panel._classes
+    view.select_history(0)
+    assert not view.confidence_plot.visible
+    assert view.confidence_empty.text == 'No Jev confidence yet'
+    view.select_history(1)
+    assert view.confidence_plot.visible
+    assert view.confidence_plot.content == confidence_chart_svg([.72])
+
+
+def test_confidence_chart_maps_zero_to_one_onto_percent_axis() -> None:
+    # Confidence runs 0..1 while the axis reads 0%..100%; 72% must sit 28% down the plot.
+    chart = confidence_chart_svg([.72])
+    assert '<polyline points="46.0,62.6" class="chart-line chart-conf-line"><title>Jev confidence in each move it played</title></polyline>' in chart
+    assert 'cy="62.6"' in chart
+    assert '<line x1="46" y1="104.0" x2="366" y2="104.0" class="chart-balance"><title>Half: even odds for Jev</title></line>' in chart
+    assert all(f'chart-label">{percent}%</text>' in chart for percent in (100, 75, 50, 25, 0))
+
+
 def test_restored_page_shows_jev_predictions_from_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
     # Reopening the page (like after a disconnect) rebuilds the BoardView from storage;
     # browsable Jev predictions must survive that rebuild like evaluations and analysis do.
@@ -449,6 +523,9 @@ def test_restored_page_shows_jev_predictions_from_snapshot(monkeypatch: pytest.M
     view.select_history(1)
     rows = [element for element in view.jev_predictions_panel.descendants() if 'jev-prediction-row' in element._classes]
     assert [row.default_slot.children[0].text for row in rows] == ['1. e4', '2. d4', '3. c4']
+    assert view.confidence_plot.content == confidence_chart_svg([.72])
+    view.select_history(0)
+    assert not view.confidence_plot.visible
 
 
 def test_programmatic_move_refreshes_board_view() -> None:

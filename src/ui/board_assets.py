@@ -102,7 +102,10 @@ BOARD_CSS = '''
         .live-evaluation-chart .evaluation-chart { height: 100%; border: 0; }
         .jev-predictions-tab { container-type: size; }
         .confidence-tab { display: flex; align-items: center; justify-content: center; }
+        .confidence-tab.has-plot { display: block; position: relative; }
         .confidence-placeholder { color: var(--muted); font-size: 12px; letter-spacing: .1em; }
+        .confidence-plot { width: 100%; height: 100%; }
+        .confidence-plot .evaluation-chart { height: 100%; border: 0; }
         .jev-predictions { display: grid; grid-template-rows: minmax(0, 3fr) minmax(0, 1fr); gap: 2cqh; width: 100%; height: 100%; padding: 2cqh 6px; box-sizing: border-box; color: #d7e8d6; font-size: 13px; line-height: 1.1; }
         .jev-predictions-empty { grid-row: 1 / -1; align-self: center; justify-self: center; text-align: center; }
         .jev-prediction-card, .jev-confidence-card { min-height: 0; padding: 2cqh 8px; border: 1px solid #284636; border-radius: 6px; background: rgba(12, 28, 20, .45); }
@@ -189,6 +192,13 @@ BOARD_CSS = '''
         .live-evaluation-chart .chart-grid { stroke-width: .6; opacity: .45; }
         .live-evaluation-chart .chart-grid-vertical { opacity: .22; }
         .live-evaluation-chart .chart-balance { stroke-width: .8; stroke-dasharray: 3 4; opacity: .65; }
+        .evaluation-chart .chart-conf-line { stroke: #ffe28a; }
+        .confidence-plot .chart-line { stroke-width: 1.5; filter: none; }
+        .confidence-plot .chart-last-point { r: 2.5px; stroke-width: 1; }
+        .confidence-plot .chart-grid { stroke-width: .6; opacity: .45; }
+        .confidence-plot .chart-grid-vertical { opacity: .22; }
+        .confidence-plot .chart-balance { stroke-width: .8; opacity: .65; }
+        .confidence-plot .chart-label { font-size: 9px; letter-spacing: 0; }
         @keyframes record-blink { 50% { opacity: 0; } }
         .board-actions .terminal-button:disabled { opacity: .4; }
         .eval-bar { grid-column: 1; grid-row: 1; width: 16px; height: 100%; border: 2px solid #89b993; background: #17251c; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; }
