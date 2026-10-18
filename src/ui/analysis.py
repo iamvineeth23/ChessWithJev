@@ -49,7 +49,7 @@ def confidence_chart_svg(confidences: list[float]) -> str:
     return f'''<svg class="evaluation-chart" viewBox="0 0 {width} {height}" preserveAspectRatio="none" role="img" aria-label="Jev confidence in each move it played, zero to one hundred percent">
         {horizontal_grid}
         {vertical_grid}
-        <line x1="{left}" y1="{y(.5):.1f}" x2="{width - right}" y2="{y(.5):.1f}" class="chart-balance"><title>Half: even odds for Jev</title></line>
+        <line x1="{left}" y1="{y(.5):.1f}" x2="{width - right}" y2="{y(.5):.1f}" class="chart-balance"><title>50% confidence</title></line>
         <polyline points="{points}" class="chart-line chart-conf-line"><title>Jev confidence in each move it played</title></polyline>
         <circle cx="{x(len(confidences) - 1):.1f}" cy="{y(confidences[-1]):.1f}" r="7" class="chart-last-point"/>
     </svg>'''

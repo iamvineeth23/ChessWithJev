@@ -514,7 +514,7 @@ def test_confidence_chart_maps_zero_to_one_onto_percent_axis() -> None:
     chart = confidence_chart_svg([.72])
     assert '<polyline points="46.0,62.6" class="chart-line chart-conf-line"><title>Jev confidence in each move it played</title></polyline>' in chart
     assert 'cy="62.6"' in chart
-    assert '<line x1="46" y1="104.0" x2="366" y2="104.0" class="chart-balance"><title>Half: even odds for Jev</title></line>' in chart
+    assert '<line x1="46" y1="104.0" x2="366" y2="104.0" class="chart-balance"><title>50% confidence</title></line>' in chart
     assert all(f'chart-label">{percent}%</text>' in chart for percent in (100, 75, 50, 25, 0))
 
 

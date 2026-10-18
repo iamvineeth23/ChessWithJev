@@ -1,6 +1,6 @@
 {
   "0": "GameController",
-  "1": "write_game_log",
+  "1": "board_view.py",
   "2": ".sync",
   "3": "test_board.py",
   "4": "board.py",
@@ -18,9 +18,5 @@
   "16": "Application Stack",
   "17": "Repository-Only Scope",
   "18": "User-Facing README Policy",
-  "19": "parametrize",
-  "20": "confidence_chart_svg",
-  "21": "MonkeyPatch",
-  "22": "move_log_text",
-  "23": "test_evaluation_tab_arrows_follow_manual_tab_selection"
+  "19": "evaluation_chart_svg"
 }

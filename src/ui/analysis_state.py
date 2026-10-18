@@ -118,13 +118,21 @@ def restore_analysis(view, snapshot) -> None:
                     raise ValueError('Invalid predictions')
                 previous = replay.copy(stack=True)
                 previous.pop()
+                played_move = replay.move_stack[-1]
                 parsed = []
                 for uci, san, probability, selected in moves:
                     if (not isinstance(uci, str) or not isinstance(san, str)
                             or type(probability) not in (int, float) or not math.isfinite(probability)
                             or not 0 <= probability <= 1 or type(selected) is not bool):
                         raise ValueError('Invalid prediction')
-                    previous.parse_san(san)
+                    move = chess.Move.from_uci(uci)  # raises ValueError for malformed UCI
+                    if move not in previous.legal_moves or previous.san(move) != san:
+                        # The UCI must be a legal move and the SAN must describe that same move,
+                        # so damaged storage cannot swap in moves Jev did not predict.
+                        raise ValueError('Invalid prediction move')
+                    if selected and move != played_move:
+                        # Only the actually played continuation move may be flagged selected.
+                        raise ValueError('Invalid prediction selection')
                     parsed.append((uci, san, float(probability), selected))
                 confidence = entry['predictions']['confidence']
                 if type(confidence) not in (int, float) or not math.isfinite(confidence) or not 0 <= confidence <= 1:

@@ -144,7 +144,8 @@ def test_page_restore_reuses_analysis_and_computes_only_missing_entries(monkeypa
 
 @pytest.mark.parametrize('damage', ['version', 'root', 'moves', 'claim', 'positions',
                                    'expectation', 'score', 'alternatives', 'loss',
-                                   'prediction', 'probability', 'confidence', 'selected'])
+                                   'prediction', 'probability', 'confidence', 'selected',
+                                   'uci', 'legal', 'notation', 'chosen'])
 def test_invalid_saved_analysis_is_ignored(damage):
     view = board_view.BoardView(white='human', black='human')
     view.position.board.push_uci('e2e4')
@@ -173,6 +174,14 @@ def test_invalid_saved_analysis_is_ignored(damage):
         snapshot['positions'][1]['analysis']['loss'] = -1
     elif damage == 'prediction':
         snapshot['positions'][1]['predictions']['moves'] = [[None, 'e4', 1.0, True]]
+    elif damage == 'uci':
+        snapshot['positions'][1]['predictions']['moves'] = [['not-a-move', 'e4', 1.0, True]]
+    elif damage == 'legal':
+        snapshot['positions'][1]['predictions']['moves'] = [['e2e5', 'e4', 1.0, True]]
+    elif damage == 'notation':
+        snapshot['positions'][1]['predictions']['moves'] = [['e2e4', 'd4', 1.0, True]]
+    elif damage == 'chosen':
+        snapshot['positions'][1]['predictions']['moves'] = [['e2e4', 'e4', .4, False], ['d2d4', 'd4', .3, True]]
     elif damage == 'probability':
         snapshot['positions'][1]['predictions']['moves'][0][2] = 2
     elif damage == 'confidence':
@@ -191,7 +200,8 @@ def test_invalid_saved_analysis_is_ignored(damage):
         assert not view.evaluation_cache
         assert view.move_analysis_cache
         assert view.jev_prediction_cache
-    elif damage in {'prediction', 'probability', 'confidence', 'selected'}:
+    elif damage in {'prediction', 'probability', 'confidence', 'selected',
+                    'uci', 'legal', 'notation', 'chosen'}:
         assert not view.jev_prediction_cache
         assert view.evaluation_cache and view.move_analysis_cache
     else:
