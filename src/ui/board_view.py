@@ -10,6 +10,7 @@ from src.game.controller import GameController
 from src.game.log import export_pgn, write_game_log, write_pgn
 from src.game.position import Position
 from src.ui.analysis import confidence_chart_svg, evaluation_chart_svg, latest_game_evaluations, latest_game_players
+from src.ui.analysis_state import encode_score
 
 
 def square_color(row: int, column: int) -> str:
@@ -276,7 +277,9 @@ class BoardView:
                 snapshot = self.position.snapshot()
                 await run.io_bound(write_game_log, self.position.board.copy(stack=True), self.players.copy(),
                                    self.stockfish_elos.copy(), self.controller.white_expectation,
-                                   jev_confidences=self.jev_confidence_map())
+                                   jev_confidences=self.jev_confidence_map(),
+                                   stockfish_top_moves=self.stockfish_top_moves_map(),
+                                   jev_top_moves=self.jev_top_moves_map())
                 self.logged_position = snapshot
             if self.position.outcome():
                 self.pause_random()
@@ -515,7 +518,8 @@ class BoardView:
             self.on_change(self)
         if not self.analysis_busy and self.needs_game_log():
             write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation,
-                           jev_confidences=self.jev_confidence_map())
+                           jev_confidences=self.jev_confidence_map(),
+                           stockfish_top_moves=self.stockfish_top_moves_map(), jev_top_moves=self.jev_top_moves_map())
             self.logged_position = self.position.snapshot()
 
     def render(self) -> None:
@@ -580,7 +584,9 @@ class BoardView:
         try:
             path = await run.io_bound(write_game_log, board, self.players.copy(),
                                       self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False,
-                                      jev_confidences=self.jev_confidence_map())
+                                      jev_confidences=self.jev_confidence_map(),
+                                      stockfish_top_moves=self.stockfish_top_moves_map(),
+                                      jev_top_moves=self.jev_top_moves_map())
             await run.io_bound(write_pgn, board, path.with_suffix('.pgn'), players=self.players.copy())
             ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
         except Exception as error:
@@ -645,6 +651,20 @@ class BoardView:
                 if cached is not None:
                     confidences.append(float(cached[1]))
         return confidences
+
+    def stockfish_top_moves_map(self) -> dict[tuple[str, tuple], list]:
+        # Serializes the top-5 alternatives shown in the Move Analysis tab, for write_game_log;
+        # keyed exactly like BoardView.move_analysis_cache.
+        return {key: [{'rank': rank, 'san': san, 'score_white': dict([encode_score(score)])}
+                      for rank, (san, score) in enumerate(alternatives, 1)]
+                for key, (alternatives, _, _) in self.move_analysis_cache.items()}
+
+    def jev_top_moves_map(self) -> dict[tuple[str, tuple], list]:
+        # Serializes Jev's top-5 recommendations, for write_game_log; keyed exactly like
+        # BoardView.jev_prediction_cache.
+        return {key: [{'rank': rank, 'san': san, 'uci': uci, 'probability': float(probability), 'selected': selected}
+                      for rank, (uci, san, probability, selected) in enumerate(predictions, 1)]
+                for key, (predictions, _) in self.jev_prediction_cache.items()}
 
     def jev_confidence_map(self) -> dict[tuple[str, tuple], float]:
         # Keyed like jev_prediction_cache: (root fen, move stack including Jev's move).
