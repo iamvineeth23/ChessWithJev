@@ -279,6 +279,7 @@ class BoardView:
                                    self.stockfish_elos.copy(), self.controller.white_expectation,
                                    jev_confidences=self.jev_confidence_map(),
                                    stockfish_top_moves=self.stockfish_top_moves_map(),
+                                   stockfish_played_score=self.stockfish_played_score_map(),
                                    jev_top_moves=self.jev_top_moves_map())
                 self.logged_position = snapshot
             if self.position.outcome():
@@ -519,7 +520,9 @@ class BoardView:
         if not self.analysis_busy and self.needs_game_log():
             write_game_log(self.position.board, self.players, self.stockfish_elos, self.controller.white_expectation,
                            jev_confidences=self.jev_confidence_map(),
-                           stockfish_top_moves=self.stockfish_top_moves_map(), jev_top_moves=self.jev_top_moves_map())
+                           stockfish_top_moves=self.stockfish_top_moves_map(),
+                           stockfish_played_score=self.stockfish_played_score_map(),
+                           jev_top_moves=self.jev_top_moves_map())
             self.logged_position = self.position.snapshot()
 
     def render(self) -> None:
@@ -586,6 +589,7 @@ class BoardView:
                                       self.stockfish_elos.copy(), evaluate, save_copy=True, mirror_latest=False,
                                       jev_confidences=self.jev_confidence_map(),
                                       stockfish_top_moves=self.stockfish_top_moves_map(),
+                                      stockfish_played_score=self.stockfish_played_score_map(),
                                       jev_top_moves=self.jev_top_moves_map())
             await run.io_bound(write_pgn, board, path.with_suffix('.pgn'), players=self.players.copy())
             ui.notify(f'Game saved to gamelog/rec/{path.name}', type='positive')
@@ -651,6 +655,12 @@ class BoardView:
                 if cached is not None:
                     confidences.append(float(cached[1]))
         return confidences
+
+    def stockfish_played_score_map(self) -> dict[tuple[str, tuple], dict]:
+        # Serializes the Stockfish eval of the actually played move (white perspective, like
+        # score_white), for write_game_log; keyed exactly like BoardView.move_analysis_cache.
+        # Together with stockfish_top_moves[0] this gives every move's exact centipawn loss.
+        return {key: dict([encode_score(played)]) for key, (_, played, _) in self.move_analysis_cache.items()}
 
     def stockfish_top_moves_map(self) -> dict[tuple[str, tuple], list]:
         # Serializes the top-5 alternatives shown in the Move Analysis tab, for write_game_log;

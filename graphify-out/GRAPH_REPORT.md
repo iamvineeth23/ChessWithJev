@@ -1,16 +1,16 @@
-# Graph Report - ChessWithJev  (2026-10-18)
+# Graph Report - ChessWithJev  (2026-10-19)
 
 ## Corpus Check
-- 22 files · ~61,956 words
+- 22 files · ~62,123 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 287 nodes · 647 edges · 19 communities (11 shown, 8 thin omitted)
+- 288 nodes · 652 edges · 19 communities (11 shown, 8 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 31 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `69c60870`
+- Built from commit: `912f2c6f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,8 +19,8 @@
 - write_game_log
 - .sync
 - test_board.py
+- board_view.py
 - board.py
-- test_analysis_state.py
 - Position
 - Board
 - BoardView Interaction Flow
@@ -36,7 +36,7 @@
 - User-Facing README Policy
 
 ## God Nodes (most connected - your core abstractions)
-1. `BoardView` - 109 edges
+1. `BoardView` - 110 edges
 2. `Position` - 39 edges
 3. `GameController` - 30 edges
 4. `write_game_log()` - 17 edges
@@ -70,8 +70,8 @@
 ## Communities (19 total, 8 thin omitted)
 
 ### Community 0 - "GameController"
-Cohesion: 0.12
-Nodes (12): SimpleEngine, GameController, Board, Move, Score, test_controller_accepts_moves_from_any_caller(), test_history_reuses_analysis_without_loading_or_engine_calls(), test_move_analysis_reuses_played_option_and_preserves_mate_score() (+4 more)
+Cohesion: 0.11
+Nodes (13): SimpleEngine, GameController, Board, Move, Score, stockfish_path(), test_controller_accepts_moves_from_any_caller(), test_history_reuses_analysis_without_loading_or_engine_calls() (+5 more)
 
 ### Community 1 - "write_game_log"
 Cohesion: 0.12
@@ -79,19 +79,19 @@ Nodes (24): Color, export_pgn(), Board, Move, Path, write_game_log(), write_pgn(
 
 ### Community 3 - "test_board.py"
 Cohesion: 0.07
-Nodes (58): confidence_chart_svg(), Return an SVG chart of Jev's confidence (0=0% to 1=100%) at each move it played., game_snapshot(), BoardView, move_log_text(), parametrize, Selecting a tab by its name alone must also refresh the prev/next arrow…, test_all_player_combinations_apply_each_move_before_async_analysis() (+50 more)
+Nodes (57): confidence_chart_svg(), Return an SVG chart of Jev's confidence (0=0% to 1=100%) at each move it played., game_snapshot(), BoardView, move_log_text(), parametrize, Selecting a tab by its name alone must also refresh the prev/next arrow…, test_all_player_combinations_apply_each_move_before_async_analysis() (+49 more)
 
-### Community 4 - "board.py"
-Cohesion: 0.10
-Nodes (28): Piece, stockfish_path(), evaluation_chart_svg(), latest_game_evaluations(), latest_game_players(), Path, Return each logged position as a balance percentage: Black -100 to White +100., build_page() (+20 more)
+### Community 4 - "board_view.py"
+Cohesion: 0.12
+Nodes (20): Piece, evaluation_chart_svg(), latest_game_evaluations(), latest_game_players(), Path, Return each logged position as a balance percentage: Black -100 to White +100., move_history(), move_history_lines() (+12 more)
 
-### Community 5 - "test_analysis_state.py"
-Cohesion: 0.28
-Nodes (13): analysis_snapshot(), decode_score(), encode_score(), Score, restore_analysis(), parametrize, test_analysis_score_survives_json_round_trip(), test_invalid_saved_analysis_is_ignored() (+5 more)
+### Community 5 - "board.py"
+Cohesion: 0.15
+Nodes (22): analysis_snapshot(), decode_score(), encode_score(), Score, restore_analysis(), build_page(), lock_window_aspect_ratio(), main() (+14 more)
 
 ### Community 6 - "Position"
 Cohesion: 0.08
-Nodes (17): Outcome, Position, Board, PieceType, Square, test_all_promotion_choices_are_legal(), test_check_checkmate_stalemate_and_draw_status(), test_claimable_and_automatic_draws() (+9 more)
+Nodes (16): Outcome, Position, Board, PieceType, Square, test_all_promotion_choices_are_legal(), test_check_checkmate_stalemate_and_draw_status(), test_claimable_and_automatic_draws() (+8 more)
 
 ### Community 7 - "Board"
 Cohesion: 0.21
@@ -126,11 +126,11 @@ Nodes (6): ChessWithJev, Export PGN, Jev, Move Analysis, Setup Script, Stockfish
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `BoardView` connect `test_board.py` to `GameController`, `write_game_log`, `.sync`, `board.py`, `Position`, `Board`?**
-  _High betweenness centrality (0.315) - this node is a cross-community bridge._
-- **Why does `Position` connect `Position` to `GameController`, `write_game_log`, `test_board.py`, `board.py`?**
+- **Why does `BoardView` connect `test_board.py` to `GameController`, `write_game_log`, `.sync`, `board_view.py`, `board.py`, `Position`, `Board`?**
+  _High betweenness centrality (0.317) - this node is a cross-community bridge._
+- **Why does `Position` connect `Position` to `GameController`, `write_game_log`, `test_board.py`, `board_view.py`, `board.py`?**
   _High betweenness centrality (0.122) - this node is a cross-community bridge._
-- **Why does `GameController` connect `GameController` to `write_game_log`, `test_board.py`, `board.py`, `Position`?**
+- **Why does `GameController` connect `GameController` to `write_game_log`, `test_board.py`, `board_view.py`, `board.py`, `Position`?**
   _High betweenness centrality (0.108) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `BoardView` (e.g. with `game_snapshot()` and `GameController`) actually correct?**
   _`BoardView` has 3 INFERRED edges - model-reasoned connections that need verification._

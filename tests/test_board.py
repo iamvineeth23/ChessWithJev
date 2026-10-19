@@ -1314,20 +1314,25 @@ def test_game_log_records_stockfish_top_moves_and_jev_recommendations(tmp_path: 
             {chess.WHITE: 1500, chess.BLACK: 1500}, lambda board: len(board.move_stack) / 10)
     stockfish_top_moves = {stacks[0]: [{'rank': 1, 'san': 'e4', 'score_white': {'cp': 21}}],
                            stacks[2]: [{'rank': 1, 'san': 'Nf3', 'score_white': {'cp': 3}}]}
+    stockfish_played_score = {stacks[0]: {'cp': 13}, stacks[2]: {'mate': 1}}
     jev_top_moves = {stacks[0]: [{'rank': 1, 'san': 'e4', 'uci': 'e2e4', 'probability': 0.62, 'selected': True}],
                      stacks[1]: [{'rank': 1, 'san': 'e5', 'uci': 'e7e5', 'probability': 0.1, 'selected': True}]}
-    path = write_game_log(*args, stockfish_top_moves=stockfish_top_moves, jev_top_moves=jev_top_moves)
+    path = write_game_log(*args, stockfish_top_moves=stockfish_top_moves, stockfish_played_score=stockfish_played_score,
+                          jev_top_moves=jev_top_moves)
     moves = json.loads(path.read_text())['moves']
     assert moves[0]['stockfish_top_moves'] == [{'rank': 1, 'san': 'e4', 'score_white': {'cp': 21}}]
+    assert moves[0]['stockfish_played_score_white'] == {'cp': 13}
     assert moves[0]['jev_top_moves'] == [{'rank': 1, 'san': 'e4', 'uci': 'e2e4', 'probability': 0.62, 'selected': True}]
     assert moves[1]['stockfish_top_moves'] is None
+    assert moves[1]['stockfish_played_score_white'] is None
     assert 'jev_top_moves' not in moves[1]
     assert moves[2]['stockfish_top_moves'] == [{'rank': 1, 'san': 'Nf3', 'score_white': {'cp': 3}}]
+    assert moves[2]['stockfish_played_score_white'] == {'mate': 1}
     assert moves[2]['jev_top_moves'] is None
     # Without the analysis maps nothing about the schema changes.
     plain = write_game_log(*args)
-    assert all('stockfish_top_moves' not in move and 'jev_top_moves' not in move
-               for move in json.loads(plain.read_text())['moves'])
+    assert all('stockfish_top_moves' not in move and 'stockfish_played_score_white' not in move
+               and 'jev_top_moves' not in move for move in json.loads(plain.read_text())['moves'])
 
 
 def test_top_moves_maps_serialize_move_analysis_and_jev_predictions() -> None:
@@ -1336,18 +1341,20 @@ def test_top_moves_maps_serialize_move_analysis_and_jev_predictions() -> None:
         assert view.play_move(chess.Move.from_uci(move))
     key = (chess.STARTING_FEN, (chess.Move.from_uci('e2e4'),))
     view.move_analysis_cache[key] = ([('e4', chess.engine.Cp(21)), ('d4', chess.engine.Mate(2))],
-                                     chess.engine.Cp(-5), 0.26)
+                                     chess.engine.Mate(3), None)
     view.jev_prediction_cache[key] = ([('e2e4', 'e4', 0.62, True), ('g1f3', 'Nf3', 0.1, False)], 0.4)
     assert view.stockfish_top_moves_map() == {
         key: [{'rank': 1, 'san': 'e4', 'score_white': {'cp': 21}},
               {'rank': 2, 'san': 'd4', 'score_white': {'mate': 2}}],
     }
+    assert view.stockfish_played_score_map() == {key: {'mate': 3}}
     assert view.jev_top_moves_map() == {
         key: [{'rank': 1, 'san': 'e4', 'uci': 'e2e4', 'probability': 0.62, 'selected': True},
               {'rank': 2, 'san': 'Nf3', 'uci': 'g1f3', 'probability': 0.1, 'selected': False}],
     }
     view.move_analysis_cache.clear()
     assert view.stockfish_top_moves_map() == {}
+    assert view.stockfish_played_score_map() == {}
     view.jev_prediction_cache.clear()
     assert view.jev_top_moves_map() == {}
 
@@ -1358,7 +1365,8 @@ def test_terminal_position_writes_one_game_log() -> None:
         assert view.play_move(chess.Move.from_uci(move))
     board_view.write_game_log.assert_called_once_with(view.position.board, view.players, view.stockfish_elos,
                                                       view.controller.white_expectation, jev_confidences={},
-                                                      stockfish_top_moves={}, jev_top_moves={})
+                                                      stockfish_top_moves={}, stockfish_played_score={},
+                                                      jev_top_moves={})
 
 
 def test_incomplete_game_does_not_write_a_log() -> None:
@@ -2109,6 +2117,7 @@ def test_header_save_button_saves_live_board_and_reenables_on_failure(monkeypatc
             log_calls += 1
             assert kwargs == {'save_copy': True, 'mirror_latest': False,
                               'jev_confidences': {prediction_key: 0.75}, 'stockfish_top_moves': {},
+                              'stockfish_played_score': {},
                               'jev_top_moves': {prediction_key: [{'rank': 1, 'san': 'e4', 'uci': 'e2e4',
                                                                   'probability': 0.9, 'selected': True}]}}
             if log_calls == 2:
@@ -2160,11 +2169,14 @@ def test_save_game_records_jev_confidence_and_evaluation_in_saved_copy(tmp_path,
     assert payload['moves'][0]['jev_top_moves'] == [{'rank': 1, 'san': 'e4', 'uci': 'e2e4',
                                                      'probability': 0.9, 'selected': True}]
     assert payload['moves'][0]['stockfish_top_moves'] == [{'rank': 1, 'san': 'stockfish', 'score_white': {'cp': 10}}]
+    assert payload['moves'][0]['stockfish_played_score_white'] == {'cp': 10}
     assert payload['moves'][0]['evaluation'] == {'wdl_expectation_white': 0.55}
     assert payload['moves'][1]['stockfish_top_moves'] == [{'rank': 1, 'san': 'stockfish', 'score_white': {'cp': 10}}]
+    assert payload['moves'][1]['stockfish_played_score_white'] == {'cp': 10}
     assert 'confidence' not in payload['moves'][1] and 'jev_top_moves' not in payload['moves'][1]
     assert payload['moves'][1]['move'] == 'e5'
     assert payload['moves'][2]['confidence'] is None and payload['moves'][2]['jev_top_moves'] is None
+    assert payload['moves'][2]['stockfish_played_score_white'] == {'cp': 10}
     assert payload['moves'][2]['stockfish_top_moves'] == [{'rank': 1, 'san': 'stockfish', 'score_white': {'cp': 10}}]
     assert payload['moves'][2]['move'] == 'Nf3'
 

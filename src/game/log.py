@@ -30,11 +30,14 @@ def write_pgn(board: chess.Board, path: Path | None = None, *, players: dict[che
 
 def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: dict[chess.Color, int], evaluate, save_copy: bool = False, *, mirror_latest: bool = True, jev_confidences: dict[tuple[str, tuple[chess.Move, ...]], float] | None = None,
                    stockfish_top_moves: dict[tuple[str, tuple[chess.Move, ...]], list] | None = None,
+                   stockfish_played_score: dict[tuple[str, tuple[chess.Move, ...]], dict] | None = None,
                    jev_top_moves: dict[tuple[str, tuple[chess.Move, ...]], list] | None = None) -> Path:
     # jev_confidences maps (root fen, move stack including Jev's move) to the confidence
     # Jev had in that Choice, keyed exactly like BoardView.jev_prediction_cache.
     # stockfish_top_moves maps the same key shape to the serialized top-5 alternatives shown in
     # the Move Analysis tab for that move, keyed like BoardView.move_analysis_cache.
+    # stockfish_played_score maps the same key shape to the serialized Stockfish eval of the
+    # actually played move (white perspective), keyed like BoardView.move_analysis_cache.
     # jev_top_moves maps the same key shape to Jev's serialized top-5 recommendations,
     # keyed like BoardView.jev_prediction_cache.
     replay = board.root()
@@ -57,6 +60,8 @@ def write_game_log(board: chess.Board, players: dict[chess.Color, str], elos: di
         moves[-1]['evaluation']['wdl_expectation_white'] = evaluate(replay)
         if stockfish_top_moves is not None:
             moves[-1]['stockfish_top_moves'] = stockfish_top_moves.get((root_fen, tuple(replay.move_stack)))
+        if stockfish_played_score is not None:
+            moves[-1]['stockfish_played_score_white'] = stockfish_played_score.get((root_fen, tuple(replay.move_stack)))
         if mover == 'jev' and jev_confidences is not None:
             confidence = jev_confidences.get((root_fen, tuple(replay.move_stack)))
             moves[-1]['confidence'] = None if confidence is None else float(confidence)
