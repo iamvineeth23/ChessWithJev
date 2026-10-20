@@ -1186,7 +1186,7 @@ def test_move_analysis_compares_the_last_move_with_its_prior_options() -> None:
 @pytest.mark.parametrize('player', ['human', 'random', 'stockfish', 'jev'])
 def test_move_analysis_identifies_player_in_history(player: str) -> None:
     view = BoardView(white='human', black=player)
-    with patch.object(view.controller, 'move_analysis', return_value=([('e5', chess.engine.Cp(10))], chess.engine.Cp(30), 0.2)):
+    with patch.object(view.controller, 'move_analysis', side_effect=lambda position: ([(position.root().variation_san(position.move_stack).split()[-1], chess.engine.Cp(10))], chess.engine.Cp(30), 0.2)):
         view.render_controls()
         for san in ('e4', 'e5', 'Nf3'):
             view.position.board.push_san(san)
@@ -1552,17 +1552,17 @@ def test_live_plot_tracks_every_move_history_branches_and_reset() -> None:
     from nicegui import ui
     view = BoardView(white='human', black='human')
     view.evaluation_plot = ui.html('')
-    with patch.object(view.controller, 'move_analysis', return_value=([('best', chess.engine.Cp(0))], chess.engine.Cp(0), 0)), patch.object(view.controller, 'white_expectation', side_effect=lambda board: 0.5 + len(board.move_stack) * 0.1) as evaluate:
+    with patch.object(view.controller, 'move_analysis', return_value=([], chess.engine.Cp(0), 0)), patch.object(view.controller, 'white_expectation', side_effect=lambda board: 0.5 + len(board.move_stack) * 0.1) as evaluate:
         view.sync()
         assert '0</text>' in view.evaluation_plot.content
         view.play_move(chess.Move.from_uci('e2e4'))
         view.play_move(chess.Move.from_uci('e7e5'))
         assert evaluate.call_count == 3
-        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20, 40], compact=True, recommended=[0, 0, 0])
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20, 40], compact=True, recommended=[0, 20, 40])
         view.sync()
         assert evaluate.call_count == 3
         view.select_history(1)
-        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20], compact=True, recommended=[0, 0])
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, 20], compact=True, recommended=[0, 20])
         view.select_history(2)
         view.undo()
         view.redo()
@@ -1580,7 +1580,7 @@ def test_live_plot_fills_moves_skipped_by_automatic_reply() -> None:
     from nicegui import ui
     view = BoardView()
     view.evaluation_plot = ui.html('')
-    with patch.object(view.controller, 'move_analysis', return_value=([('best', chess.engine.Cp(0))], chess.engine.Cp(0), 0)), patch.object(view.controller, 'white_expectation', return_value=0.5) as evaluate:
+    with patch.object(view.controller, 'move_analysis', return_value=([], chess.engine.Cp(0), 0)), patch.object(view.controller, 'white_expectation', return_value=0.5) as evaluate:
         view.sync()
         assert view.play_human_move(chess.Move.from_uci('e2e4'))
         assert len(view.position.board.move_stack) == 2
@@ -1600,7 +1600,7 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
     async def check():
         view = BoardView(white='random', black='random')
         monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
-        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([('e4', chess.engine.Cp(0))], chess.engine.Cp(0), 0))
+        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([], chess.engine.Cp(0), 0))
         with container:
             view.render()
             view.render_controls()
@@ -1657,7 +1657,7 @@ def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, a
     async def check():
         view = BoardView(white='random', black='random')
         monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
-        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([('e4', chess.engine.Cp(0))], chess.engine.Cp(0), 0))
+        monkeypatch.setattr(view.controller, 'move_analysis', lambda board: ([], chess.engine.Cp(0), 0))
         monkeypatch.setattr(view.controller, 'close', lambda: None)
         with container:
             view.render()
@@ -1989,7 +1989,7 @@ def test_history_reuses_analysis_without_loading_or_engine_calls(monkeypatch, wh
     container = board_view.ui.element('div')
     view = BoardView(white=white, black=black)
     evaluation = MagicMock(return_value=0.5)
-    analysis = MagicMock(return_value=([('e4', chess.engine.Cp(20))], chess.engine.Cp(20), 0))
+    analysis = MagicMock(return_value=([], chess.engine.Cp(20), 0))
     monkeypatch.setattr(view.controller, 'white_expectation', evaluation)
     monkeypatch.setattr(view.controller, 'move_analysis', analysis)
     monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
@@ -2048,23 +2048,44 @@ def test_move_analysis_cache_distinguishes_history_and_clears_on_replacement() -
         assert not view.jev_prediction_cache
 
 
-def test_live_plot_uses_best_alternative_in_white_perspective() -> None:
+@pytest.mark.parametrize('alternatives', [[], [('e4', chess.engine.Cp(999))]])
+def test_live_plot_reuses_played_evaluation_when_best_move_matches(alternatives) -> None:
     from nicegui import ui
     view = BoardView(white='human', black='human')
     view.evaluation_plot = ui.html('')
     view.position.board.push_uci('e2e4')
-    view.position.board.push_uci('e7e5')
+    with patch.object(view.controller, 'white_expectation', side_effect=[.5, .7]) as evaluate, patch.object(
+        view.controller, 'move_analysis', return_value=(alternatives, chess.engine.Cp(999), 0)
+    ):
+        view.sync_evaluation_plot(view.position.board)
+        view.sync_evaluation_plot(view.position.board)
+    assert view.evaluation_plot.content == evaluation_chart_svg([0, 40], compact=True, recommended=[0, 40])
+    assert evaluate.call_count == 2
+
+
+def test_live_plot_uses_post_move_evaluations_in_white_perspective() -> None:
+    from nicegui import ui
+    view = BoardView(white='human', black='human')
+    view.evaluation_plot = ui.html('')
+    view.position.board.push_uci('h2h4')
+    view.position.board.push_uci('h7h5')
     view.fullscreen_evaluation_plot = ui.html('')
-    scores = [chess.engine.Cp(100), chess.engine.Cp(-100)]
-    with patch.object(view.controller, 'white_expectation', return_value=0.5), patch.object(
-        view.controller, 'move_analysis', side_effect=[([('best', score)], chess.engine.Cp(0), 0) for score in scores]
+    expectations = {(): .5, ('h2h4',): .4, ('d2d4',): .6,
+                    ('h2h4', 'h7h5'): .7, ('h2h4', 'd7d5'): .3}
+    def evaluate(position):
+        return expectations[tuple(move.uci() for move in position.move_stack)]
+    with patch.object(view.controller, 'white_expectation', side_effect=evaluate) as evaluation, patch.object(
+        view.controller, 'move_analysis', side_effect=[([('d4', chess.engine.Cp(999))], chess.engine.Cp(0), 0),
+                                                     ([('d5', chess.engine.Cp(-999))], chess.engine.Cp(0), 0)]
     ) as analyse:
         view.sync_evaluation_plot(view.position.board)
-        expected = [0, *(200 * score.wdl().expectation() - 100 for score in scores)]
-        assert view.evaluation_plot.content == evaluation_chart_svg([0, 0, 0], compact=True, recommended=expected)
+        assert view.evaluation_plot.content == evaluation_chart_svg([0, -20, 40], compact=True, recommended=[0, 20, -40])
+        assert evaluation.call_count == 5
         view.sync_evaluation_plot(view.position.board)
+        view.select_history(1)
+        view.select_history(2)
+        assert evaluation.call_count == 5
         assert analyse.call_count == 2
-        assert 'chart-recommended' in view.evaluation_plot.content
         assert view.fullscreen_evaluation_plot.content == view.evaluation_plot.content
 
 
@@ -2151,7 +2172,7 @@ def test_save_game_records_jev_confidence_and_evaluation_in_saved_copy(tmp_path,
     view = BoardView(white='jev', black='human')
     view.render_controls()
     with patch.object(view.controller, 'move_analysis',
-                      return_value=([('stockfish', chess.engine.Cp(10))], chess.engine.Cp(10), 0.0)):
+                      side_effect=lambda position: ([(position.root().variation_san(position.move_stack).split()[-1], chess.engine.Cp(10))], chess.engine.Cp(10), 0.0)):
         for move in ('e2e4', 'e7e5', 'g1f3'):
             assert view.play_move(chess.Move.from_uci(move))
     stacks = tuple(view.position.board.move_stack)
@@ -2168,16 +2189,16 @@ def test_save_game_records_jev_confidence_and_evaluation_in_saved_copy(tmp_path,
     assert payload['moves'][0]['move'] == 'e4' and payload['moves'][0]['confidence'] == 0.86
     assert payload['moves'][0]['jev_top_moves'] == [{'rank': 1, 'san': 'e4', 'uci': 'e2e4',
                                                      'probability': 0.9, 'selected': True}]
-    assert payload['moves'][0]['stockfish_top_moves'] == [{'rank': 1, 'san': 'stockfish', 'score_white': {'cp': 10}}]
+    assert payload['moves'][0]['stockfish_top_moves'] == [{'rank': 1, 'san': 'e4', 'score_white': {'cp': 10}}]
     assert payload['moves'][0]['stockfish_played_score_white'] == {'cp': 10}
     assert payload['moves'][0]['evaluation'] == {'wdl_expectation_white': 0.55}
-    assert payload['moves'][1]['stockfish_top_moves'] == [{'rank': 1, 'san': 'stockfish', 'score_white': {'cp': 10}}]
+    assert payload['moves'][1]['stockfish_top_moves'] == [{'rank': 1, 'san': 'e5', 'score_white': {'cp': 10}}]
     assert payload['moves'][1]['stockfish_played_score_white'] == {'cp': 10}
     assert 'confidence' not in payload['moves'][1] and 'jev_top_moves' not in payload['moves'][1]
     assert payload['moves'][1]['move'] == 'e5'
     assert payload['moves'][2]['confidence'] is None and payload['moves'][2]['jev_top_moves'] is None
     assert payload['moves'][2]['stockfish_played_score_white'] == {'cp': 10}
-    assert payload['moves'][2]['stockfish_top_moves'] == [{'rank': 1, 'san': 'stockfish', 'score_white': {'cp': 10}}]
+    assert payload['moves'][2]['stockfish_top_moves'] == [{'rank': 1, 'san': 'Nf3', 'score_white': {'cp': 10}}]
     assert payload['moves'][2]['move'] == 'Nf3'
 
 

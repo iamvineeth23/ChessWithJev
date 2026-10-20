@@ -6,7 +6,7 @@ import chess
 import chess.svg
 from nicegui import run, ui
 
-from src.game.controller import GameController
+from src.game.controller import GameController, best_move_position
 from src.game.log import export_pgn, write_game_log, write_pgn
 from src.game.position import Position
 from src.ui.analysis import confidence_chart_svg, evaluation_chart_svg, latest_game_evaluations, latest_game_players
@@ -255,7 +255,12 @@ class BoardView:
                     for position in positions[1:]:
                         if self.closed:
                             return cache, None
-                        self.cached_move_analysis(position)
+                        alternatives, _, _ = self.cached_move_analysis(position)
+                        candidate = best_move_position(position, alternatives)
+                        claim = claimed_draw if candidate.move_stack == board.move_stack else None
+                        key = (candidate.root().fen(), tuple(candidate.move_stack), str(claim))
+                        if key not in cache:
+                            cache[key] = 0.5 if claim is not None else self.controller.white_expectation(candidate)
                     return cache, self.cached_move_analysis(board) if board.move_stack else None
 
                 analysed = await run.io_bound(analyse)
@@ -430,8 +435,9 @@ class BoardView:
         for move in board.move_stack:
             replay.push(move)
             alternatives, _, _ = self.cached_move_analysis(replay)
-            recommended.append(200 * alternatives[0][1].wdl().expectation() - 100 if alternatives else evaluations[-1])
             evaluated = board if len(replay.move_stack) == len(board.move_stack) else replay
+            candidate = best_move_position(evaluated, alternatives)
+            recommended.append(200 * self.cached_white_expectation(candidate) - 100)
             evaluations.append(200 * self.cached_white_expectation(evaluated) - 100)
         chart = evaluation_chart_svg(evaluations, compact=True, recommended=recommended)
         self.evaluation_plot.set_content(chart)

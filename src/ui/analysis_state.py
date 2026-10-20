@@ -3,6 +3,8 @@ import math
 import chess
 import chess.engine
 
+from src.game.controller import best_move_position
+
 
 def encode_score(score: chess.engine.Score) -> list:
     if score == chess.engine.MateGiven:
@@ -40,6 +42,10 @@ def analysis_snapshot(view) -> dict:
         entry = {'expectation': view.evaluation_cache.get((*key, str(claim)))}
         if key in view.move_analysis_cache:
             alternatives, score, loss = view.move_analysis_cache[key]
+            candidate = best_move_position(replay, alternatives)
+            candidate_claim = claim if candidate.move_stack == replay.move_stack else None
+            entry['best_expectation'] = view.evaluation_cache.get(
+                (root, tuple(candidate.move_stack), str(candidate_claim)))
             entry['analysis'] = {
                 'alternatives': [[san, encode_score(value)] for san, value in alternatives],
                 'score': encode_score(score), 'loss': loss,
@@ -52,7 +58,7 @@ def analysis_snapshot(view) -> dict:
             }
         positions.append(entry)
     # Bump the version when analysis settings (depth 18, MultiPV 5) or score format change. New
-    # optional entries (predictions, redo continuation) stay on the same version because old
+    # optional entries (predictions, redo continuation, best_expectation) stay on the same version because old
     # snapshots remain valid.
     return {'version': 1, 'root_fen': root, 'moves': [move.uci() for move in board.move_stack],
             'redo': [move.uci() for move in reversed(view.position.redo_stack)],
@@ -111,6 +117,12 @@ def restore_analysis(view, snapshot) -> None:
                 alternatives = None
             if alternatives is not None:
                 view.move_analysis_cache[key] = (alternatives, score, loss)
+                best_expectation = entry.get('best_expectation')
+                if type(best_expectation) in (int, float) and 0 <= best_expectation <= 1:
+                    candidate = best_move_position(replay, alternatives)
+                    claim = (view.position.claimed_draw if ply == len(board.move_stack)
+                             and candidate.move_stack == replay.move_stack else None)
+                    view.evaluation_cache[(candidate.root().fen(), tuple(candidate.move_stack), str(claim))] = best_expectation
         if 'predictions' in entry:
             try:
                 moves = entry['predictions']['moves']

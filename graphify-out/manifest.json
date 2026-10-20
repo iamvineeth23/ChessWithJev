@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "tests/test_board.py": {
-    "mtime": 1792380019.4644334,
-    "seen": 1792380088.048036,
-    "ast_hash": "ce9c905cdff8cc65e508474161656e18",
+    "mtime": 1792467403.0759852,
+    "seen": 1792467422.180198,
+    "ast_hash": "2329971ac89998a8a0dff7d4cac1cd10",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -36,15 +36,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792380048.2412608,
-    "seen": 1792380088.048039,
-    "ast_hash": "73428cba26d163195072e5dd54b8ea4c",
+    "mtime": 1792467403.1202972,
+    "seen": 1792467422.180202,
+    "ast_hash": "2773c37da666a5c8c1d455b1a09e5646",
     "semantic_hash": ""
   },
   "src/game/controller.py": {
-    "mtime": 1791198532.7057292,
-    "seen": 1792299576.044464,
-    "ast_hash": "112b7712d5417724dab6723afefe1af3",
+    "mtime": 1792467303.7163382,
+    "seen": 1792467381.01504,
+    "ast_hash": "0c0c6877280b28b97122b5b33998505e",
     "semantic_hash": ""
   },
   "src/game/log.py": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "src/ui/board_view.py": {
-    "mtime": 1792379954.9722285,
-    "seen": 1792380088.048034,
-    "ast_hash": "384eff7fb9641148c6e707a2bac4b951",
+    "mtime": 1792467303.7399166,
+    "seen": 1792467381.015046,
+    "ast_hash": "49f3ec538914ef79d1de2e79f9762d5e",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260926_072013_3a4a3fd3_yes_follow_these_paths.md": {
@@ -102,9 +102,9 @@
     "semantic_hash": ""
   },
   "src/ui/analysis_state.py": {
-    "mtime": 1792303721.2702308,
-    "seen": 1792303846.888756,
-    "ast_hash": "a08c81f27bb459bbdf09d6089c25902a",
+    "mtime": 1792467403.0992665,
+    "seen": 1792467422.180193,
+    "ast_hash": "3ba4754e0f770aae6bcba3893f8bd1a3",
     "semantic_hash": ""
   },
   "tests/conftest.py": {
@@ -114,9 +114,9 @@
     "semantic_hash": ""
   },
   "tests/test_analysis_state.py": {
-    "mtime": 1792303831.3043463,
-    "seen": 1792303846.888761,
-    "ast_hash": "e26ce64c03f2b6abe5ade1b27fa7b043",
+    "mtime": 1792467364.6255534,
+    "seen": 1792467381.015048,
+    "ast_hash": "412a2499e20572b1f9af0c1235a16ec9",
     "semantic_hash": ""
   },
   "tests/test_engine_fixture.py": {

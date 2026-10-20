@@ -1,0 +1,21 @@
+{
+  "0": "GameController",
+  "1": "write_game_log",
+  "2": ".sync",
+  "3": "test_board.py",
+  "4": "board.py",
+  "5": "test_analysis_state.py",
+  "6": "Position",
+  "7": "Board",
+  "8": "BoardView Interaction Flow",
+  "9": "test_linux_support.py",
+  "10": "mock_stockfish",
+  "11": "ChessWithJev",
+  "12": "graphify.js",
+  "13": "opencode.json",
+  "14": "BoardView.play_move",
+  "15": "setup.sh",
+  "16": "Application Stack",
+  "17": "Repository-Only Scope",
+  "18": "User-Facing README Policy"
+}

@@ -97,6 +97,32 @@ def test_restored_analysis_ignores_snapshot_redo_mismatch():
     assert not view.evaluation_cache and not view.move_analysis_cache and not view.jev_prediction_cache
 
 
+@pytest.mark.parametrize('undo', [False, True])
+def test_best_post_move_evaluation_survives_restore_without_engine_calls(undo):
+    from nicegui import ui
+    view = board_view.BoardView(white='human', black='human')
+    view.position.board.push_san('h4')
+    root = view.position.board.root().fen()
+    played = (chess.Move.from_uci('h2h4'),)
+    best = (chess.Move.from_uci('d2d4'),)
+    view.move_analysis_cache[(root, played)] = ([('d4', chess.engine.Cp(999))], chess.engine.Cp(0), 0)
+    view.evaluation_cache = {(root, (), 'None'): .5, (root, played, 'None'): .4,
+                             (root, best, 'None'): .6}
+    if undo:
+        view.position.undo()
+    game = json.loads(json.dumps(board.game_snapshot(view)))
+    position, *_ = board.saved_game({'game': game})
+    restored = board_view.BoardView(position=position, white='human', black='human')
+    restore_analysis(restored, game['analysis'])
+    assert restored.evaluation_cache == view.evaluation_cache
+    if undo:
+        restored.position.redo()
+    restored.evaluation_plot = ui.html('')
+    restored.sync_evaluation_plot(restored.position.board)
+    assert restored.controller.engine is None
+    assert restored.evaluation_plot.content == board.evaluation_chart_svg([0, -20], compact=True, recommended=[0, 20])
+
+
 def test_page_restore_reuses_analysis_and_computes_only_missing_entries(monkeypatch):
     callbacks = []
     monkeypatch.setattr(board, 'stockfish_path', lambda: '/mock/stockfish')
@@ -121,7 +147,7 @@ def test_page_restore_reuses_analysis_and_computes_only_missing_entries(monkeypa
 
     first = load()
     assert first.controller.engine is not None
-    assert len(first.evaluation_cache) == 4
+    assert len(first.evaluation_cache) == 7
     assert len(first.move_analysis_cache) == 3
     # Analysis must be saved after the worker finishes, not just before it starts.
     storage['game'] = json.loads(json.dumps(storage['game']))

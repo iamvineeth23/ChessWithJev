@@ -18,6 +18,19 @@ def stockfish_path() -> str | None:
     return None
 
 
+def best_move_position(board: chess.Board, alternatives: list[tuple[str, chess.engine.Score]]) -> chess.Board:
+    """Apply the best alternative to the actual position before the last move."""
+    if not alternatives:
+        return board
+    previous = board.copy(stack=True)
+    played = previous.pop()
+    best = previous.parse_san(alternatives[0][0])
+    if best == played:
+        return board
+    previous.push(best)
+    return previous
+
+
 class GameController:
     def __init__(self, position: Position | None = None) -> None:
         self.position = position if position is not None else Position()

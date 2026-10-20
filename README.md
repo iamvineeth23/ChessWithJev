@@ -52,6 +52,8 @@ Jev is optional (if this is not your goal, although why?). It is used only when 
     .venv/bin/chess
     ```
 
+The Evaluation tab compares the position after each played move with the position after Stockfish's best alternative from the same pre-move position. Both lines use depth-18 post-move evaluations from White's perspective; matching moves share the same value.
+
 ## Game files
 
 - `gamelog/latest.json` contains the most recently completed game. After Undo, it follows the revised game, including replacement moves.
