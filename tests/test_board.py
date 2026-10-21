@@ -1665,6 +1665,38 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
     asyncio.run(check())
 
 
+@pytest.mark.parametrize('timeouts', [(True, False), (False, True), (True, True)])
+def test_automatic_turn_continues_and_logs_after_render_timeout(monkeypatch, timeouts) -> None:
+    view = BoardView(white='random', black='random')
+    view.render()
+    view.render_controls()
+    view.log_current_game = True
+    view.toggle_random()
+
+    async def worker(callback, *args, **kwargs):
+        return callback(*args, **kwargs)
+
+    monkeypatch.setattr(board_view.run, 'io_bound', worker)
+    paint = AsyncMock(side_effect=[TimeoutError('JavaScript did not respond') if timeout else True
+                                  for timeout in timeouts] * 2)
+    monkeypatch.setattr(board_view.ui, 'run_javascript', paint)
+
+    async def check():
+        for ply in (1, 2):
+            await view.automatic_turn()
+            assert len(view.position.board.move_stack) == ply
+            assert view.analysis_position == view.position.board.fen()
+            assert view.logged_position == view.position.snapshot()
+            assert board_view.write_game_log.call_count == ply
+            assert view.random_timer.active
+            assert not view.analysis_busy
+            assert view.analysis_engine_label._props['aria-busy'] == 'false'
+        assert paint.await_count == 4
+        view.pause_random()
+
+    asyncio.run(check())
+
+
 def test_automatic_turn_prioritises_the_newest_move_and_keeps_the_panel_in_sync(monkeypatch) -> None:
     import asyncio
     from unittest.mock import AsyncMock

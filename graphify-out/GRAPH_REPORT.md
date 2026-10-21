@@ -1,28 +1,28 @@
 # Graph Report - ChessWithJev  (2026-10-21)
 
 ## Corpus Check
-- 22 files · ~63,170 words
+- 22 files · ~63,250 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 295 nodes · 676 edges · 19 communities (11 shown, 8 thin omitted)
+- 296 nodes · 679 edges · 22 communities (14 shown, 8 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 31 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b4a49be0`
+- Built from commit: `7100aa99`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - GameController
 - write_game_log
-- .sync
+- BoardView
 - test_board.py
 - board.py
 - test_analysis_state.py
 - Position
-- Board
+- build_page
 - BoardView Interaction Flow
 - test_linux_support.py
 - mock_stockfish
@@ -34,9 +34,12 @@
 - Application Stack
 - Repository-Only Scope
 - User-Facing README Policy
+- parametrize
+- .move
+- test_evaluation_tab_arrows_follow_manual_tab_selection
 
 ## God Nodes (most connected - your core abstractions)
-1. `BoardView` - 113 edges
+1. `BoardView` - 114 edges
 2. `Position` - 39 edges
 3. `GameController` - 30 edges
 4. `write_game_log()` - 17 edges
@@ -67,7 +70,7 @@
 - **BoardView UI Coordination** — graphify_out_memory_query_20260928_112254_c179070d_why_does_boardview_connect_board_view_tests_to_pos_boardview, graphify_out_memory_query_20260926_072013_3a4a3fd3_yes_follow_these_paths_position, graphify_out_memory_query_20260928_112254_c179070d_why_does_boardview_connect_board_view_tests_to_pos_gamecontroller, graphify_out_memory_query_20260926_072013_3a4a3fd3_yes_follow_these_paths_board_tests [EXTRACTED 1.00]
 - **Move Log Pipeline** — graphify_out_memory_query_20260926_072050_3361236b_yes_follow_move_submission, graphify_out_memory_query_20260926_072050_3361236b_yes_follow_position_move, graphify_out_memory_query_20260926_072050_3361236b_yes_follow_move_history, graphify_out_memory_query_20260926_072050_3361236b_yes_follow_move_log_tests [EXTRACTED 1.00]
 
-## Communities (19 total, 8 thin omitted)
+## Communities (22 total, 8 thin omitted)
 
 ### Community 0 - "GameController"
 Cohesion: 0.12
@@ -77,12 +80,16 @@ Nodes (12): SimpleEngine, GameController, Board, Move, Score, test_controller_ac
 Cohesion: 0.12
 Nodes (24): Color, export_pgn(), Board, Move, Path, write_game_log(), write_pgn(), prevent_game_log_writes() (+16 more)
 
+### Community 2 - "BoardView"
+Cohesion: 0.07
+Nodes (23): BoardView, Board, Move, PieceType, Square, Keep the prev/next tab arrows in sync with the currently selected tab., test_castling_and_en_passant_update_all_affected_squares(), test_click_move_log_previews_board_and_analysis() (+15 more)
+
 ### Community 3 - "test_board.py"
-Cohesion: 0.06
-Nodes (60): confidence_chart_svg(), Return an SVG chart of Jev's confidence (0=0% to 1=100%) at each move it played., game_snapshot(), BoardView, move_log_text(), parametrize, Selecting a tab by its name alone must also refresh the prev/next arrow…, test_all_player_combinations_apply_each_move_before_async_analysis() (+52 more)
+Cohesion: 0.10
+Nodes (18): move_log_text(), test_clicks_move_only_legal_pieces(), test_evaluation_tabs_share_the_existing_window(), test_history_buttons_preview_without_changing_live_game(), test_history_preview_pauses_computer_game_and_resets_on_new_game(), test_human_black_rotates_the_board(), test_human_cannot_move_black_and_mate_ends_before_reply(), test_incomplete_game_does_not_write_a_log() (+10 more)
 
 ### Community 4 - "board.py"
-Cohesion: 0.11
+Cohesion: 0.12
 Nodes (23): Piece, stockfish_path(), evaluation_chart_svg(), latest_game_evaluations(), latest_game_players(), Path, Return each logged position as a balance percentage: Black -100 to White +100., lock_window_aspect_ratio() (+15 more)
 
 ### Community 5 - "test_analysis_state.py"
@@ -90,12 +97,12 @@ Cohesion: 0.24
 Nodes (16): best_move_position(), Apply the best alternative to the actual position before the last move., analysis_snapshot(), decode_score(), encode_score(), Score, restore_analysis(), parametrize (+8 more)
 
 ### Community 6 - "Position"
-Cohesion: 0.07
-Nodes (23): Outcome, Position, Board, PieceType, Square, build_page(), page(), saved_game() (+15 more)
+Cohesion: 0.09
+Nodes (13): Outcome, Position, Board, test_all_promotion_choices_are_legal(), test_check_checkmate_stalemate_and_draw_status(), test_claimable_and_automatic_draws(), test_debug_prints_legal_moves_after_each_move(), test_move_history_preserves_move_numbers_from_custom_position() (+5 more)
 
-### Community 7 - "Board"
-Cohesion: 0.21
-Nodes (3): Board, PieceType, Keep the prev/next tab arrows in sync with the currently selected tab.
+### Community 7 - "build_page"
+Cohesion: 0.16
+Nodes (16): confidence_chart_svg(), Return an SVG chart of Jev's confidence (0=0% to 1=100%) at each move it played., build_page(), game_snapshot(), page(), saved_game(), test_confidence_chart_maps_zero_to_one_onto_percent_axis(), test_confidence_fullscreen_chart_clears_with_inline_chart_and_disables_fullscreen() (+8 more)
 
 ### Community 8 - "BoardView Interaction Flow"
 Cohesion: 0.16
@@ -113,6 +120,14 @@ Nodes (3): mock_stockfish(), fixture, MonkeyPatch
 Cohesion: 0.33
 Nodes (6): ChessWithJev, Export PGN, Jev, Move Analysis, Setup Script, Stockfish
 
+### Community 19 - "parametrize"
+Cohesion: 0.15
+Nodes (13): parametrize, test_all_player_combinations_apply_each_move_before_async_analysis(), test_automatic_turn_continues_and_logs_after_render_timeout(), test_automatic_turn_handles_changes_while_analysis_is_pending(), test_board_opens_native_window(), test_human_analysis_indicator_lasts_until_calculation_finishes(), test_live_plot_reuses_played_evaluation_when_best_move_matches(), test_move_analysis_displays_advantaged_side() (+5 more)
+
+### Community 20 - ".move"
+Cohesion: 0.33
+Nodes (4): PieceType, Square, test_move_updates_only_changed_squares(), test_random_black_move_uses_legal_moves_and_stops_at_game_end()
+
 ## Knowledge Gaps
 - **12 isolated node(s):** `$schema`, `setup.sh script`, `Export PGN`, `Move Analysis`, `Setup Script` (+7 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 52 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
@@ -126,11 +141,11 @@ Nodes (6): ChessWithJev, Export PGN, Jev, Move Analysis, Setup Script, Stockfish
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `BoardView` connect `test_board.py` to `GameController`, `write_game_log`, `.sync`, `board.py`, `Position`, `Board`?**
+- **Why does `BoardView` connect `BoardView` to `GameController`, `write_game_log`, `test_board.py`, `board.py`, `Position`, `build_page`, `parametrize`, `.move`, `test_evaluation_tab_arrows_follow_manual_tab_selection`?**
   _High betweenness centrality (0.314) - this node is a cross-community bridge._
-- **Why does `Position` connect `Position` to `GameController`, `write_game_log`, `test_board.py`, `board.py`?**
+- **Why does `Position` connect `Position` to `GameController`, `write_game_log`, `BoardView`, `test_board.py`, `board.py`, `build_page`, `.move`?**
   _High betweenness centrality (0.119) - this node is a cross-community bridge._
-- **Why does `GameController` connect `GameController` to `write_game_log`, `test_board.py`, `board.py`, `Position`?**
+- **Why does `GameController` connect `GameController` to `write_game_log`, `BoardView`, `test_board.py`, `board.py`, `Position`, `build_page`, `parametrize`, `.move`?**
   _High betweenness centrality (0.098) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `BoardView` (e.g. with `game_snapshot()` and `GameController`) actually correct?**
   _`BoardView` has 3 INFERRED edges - model-reasoned connections that need verification._

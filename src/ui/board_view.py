@@ -1,5 +1,6 @@
 from base64 import b64encode
 from collections.abc import Callable
+from contextlib import suppress
 from functools import lru_cache
 
 import chess
@@ -230,7 +231,9 @@ class BoardView:
                     return
             self.set_analysis_indicator(True)
             self.sync()
-            await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
+            # Background tabs can suspend painting; gameplay must still continue.
+            with suppress(TimeoutError):
+                await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
             while True:
                 if self.closed:
                     return
@@ -302,7 +305,9 @@ class BoardView:
                     self.on_change(self)
                 self.set_analysis_indicator(False)
                 break
-            await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
+            # Background tabs can suspend painting; gameplay must still continue.
+            with suppress(TimeoutError):
+                await ui.run_javascript('return await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))));', timeout=10)
             while not self.closed and self.needs_game_log():
                 snapshot = self.position.snapshot()
                 await run.io_bound(write_game_log, self.position.board.copy(stack=True), self.players.copy(),

@@ -1,6 +1,6 @@
 {
   "0": "GameController",
-  "1": "board_view.py",
+  "1": "write_game_log",
   "2": ".sync",
   "3": "test_board.py",
   "4": "board.py",
@@ -17,13 +17,5 @@
   "15": "setup.sh",
   "16": "Application Stack",
   "17": "Repository-Only Scope",
-  "18": "User-Facing README Policy",
-  "19": "BoardView",
-  "20": "confidence_chart_svg",
-  "21": ".play_human_move",
-  "22": "parametrize",
-  "23": ".pause_random",
-  "24": ".move",
-  "25": ".sync_tab_buttons",
-  "26": "square_name"
+  "18": "User-Facing README Policy"
 }

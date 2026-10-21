@@ -1,12 +1,12 @@
 {
   "0": "GameController",
   "1": "write_game_log",
-  "2": ".sync",
+  "2": "BoardView",
   "3": "test_board.py",
   "4": "board.py",
   "5": "test_analysis_state.py",
   "6": "Position",
-  "7": "Board",
+  "7": "build_page",
   "8": "BoardView Interaction Flow",
   "9": "test_linux_support.py",
   "10": "mock_stockfish",
@@ -17,5 +17,8 @@
   "15": "setup.sh",
   "16": "Application Stack",
   "17": "Repository-Only Scope",
-  "18": "User-Facing README Policy"
+  "18": "User-Facing README Policy",
+  "19": "parametrize",
+  "20": ".move",
+  "21": "test_evaluation_tab_arrows_follow_manual_tab_selection"
 }

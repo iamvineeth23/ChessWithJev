@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "tests/test_board.py": {
-    "mtime": 1792527354.8181696,
-    "seen": 1792527373.010839,
-    "ast_hash": "0c7a95e270cf5175506338b29345530d",
+    "mtime": 1792552093.6204267,
+    "seen": 1792552105.290057,
+    "ast_hash": "5e5d44b63bbf50b62c324ea9ff765e51",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "src/ui/board_view.py": {
-    "mtime": 1792527130.8525836,
-    "seen": 1792527373.010837,
-    "ast_hash": "bb7cb592274cb25aeb657776093cb553",
+    "mtime": 1792552078.0169544,
+    "seen": 1792552105.2900538,
+    "ast_hash": "c1663db9ff4f7f1ee708ee833a04405a",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20260926_072013_3a4a3fd3_yes_follow_these_paths.md": {

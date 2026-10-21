@@ -1,9 +1,0 @@
-[Event "ChessWithJev"]
-[Site "ChessWithJev"]
-[Date "2026.10.20"]
-[Round "01"]
-[White "Jev"]
-[Black "Stockfish"]
-[Result "0-1"]
-
-1. e4 e5 2. Nf3 Nc6 3. d4 exd4 4. Nc3 dxc3 5. bxc3 Qe7 6. e5 d6 7. Qxd6 cxd6 8. e6 Rb8 9. Ne5 Bxe6 10. Nxc6 bxc6 11. Bg5 Qxg5 12. c4 g6 13. c5 Qe5+ 14. Kd2 Qd4+ 15. Bd3 Bh6+ 16. f4 Bxf4+ 17. Ke2 Qe5+ 18. Be4 Rb4 19. cxd6 Rxe4+ 20. Kd3 Qd5+ 21. Kc3 Rc4+ 22. Kb2 Rb4+ 23. Kc3 Bd2# 0-1
