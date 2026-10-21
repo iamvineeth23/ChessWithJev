@@ -1195,6 +1195,24 @@ def test_move_analysis_identifies_player_in_history(player: str) -> None:
     assert {f'Played by black ({player.title()})', 'Position before 1... e5', 'White +0.30', '0.20 pawns'} <= text
 
 
+def test_move_analysis_shows_newest_move_with_pending_numbers() -> None:
+    view = BoardView()
+    with patch.object(view.controller, 'move_analysis', return_value=([('e4', chess.engine.Cp(20))], chess.engine.Cp(20), 0.0)) as analysis:
+        view.render_controls()
+        assert view.controller.play(chess.Move.from_uci('e2e4'))
+        view.render_move_analysis(view.position.board, analysing=True)
+        assert analysis.call_count == 0  # the placeholder never touches the engine
+    text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
+    assert {'Position before 1. e4', 'Played by white (Human)', 'e4', 'Eval after move',
+            'Analysing…', 'Eval loss', 'Best alternatives'} <= text
+    assert 'White +0.20' not in text
+    view.move_analysis_cache[(view.position.board.root().fen(), tuple(view.position.board.move_stack))] = (
+        [('e4', chess.engine.Cp(20))], chess.engine.Cp(20), 0.0)
+    view.render_move_analysis(view.position.board, analysing=True)
+    text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
+    assert {'White +0.20', '0.00 pawns'} <= text and 'Analysing…' not in text
+
+
 @pytest.mark.parametrize('score, expected', [
     (chess.engine.Cp(-113), 'Black +1.13'),
     (chess.engine.Cp(-81), 'Black +0.81'),
@@ -1626,7 +1644,7 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
         await started.wait()
         assert len(view.position.board.move_stack) == 1
         assert view.shown_pieces == {square: view.position.board.piece_at(square) for square in view.squares}
-        assert view.analysis_position == chess.STARTING_FEN
+        assert view.analysis_position is None  # the pending panel shows the newest move, not analysis
         assert 'analyzing' in view.analysis_engine_label._classes
         assert view.analysis_engine_label._props['aria-busy'] == 'true'
         assert '1.' in move_log_text(view)
@@ -1635,7 +1653,7 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
         finish.set()
         await turn
         assert view.analysis_position == view.position.board.fen()
-        assert paints == [(1, chess.STARTING_FEN), (1, view.position.board.fen())]
+        assert paints == [(1, None), (1, view.position.board.fen())]  # (1, None): the pending panel shows the newest move
         assert not view.analysis_busy
         assert 'analyzing' not in view.analysis_engine_label._classes
         assert view.analysis_engine_label._props['aria-busy'] == 'false'
@@ -1643,6 +1661,67 @@ def test_automatic_turn_shows_board_before_analysis_and_waits_for_panel(monkeypa
         assert len(view.position.board.move_stack) == 2
         assert view.analysis_position == view.position.board.fen()
         view.pause_random()
+
+    asyncio.run(check())
+
+
+def test_automatic_turn_prioritises_the_newest_move_and_keeps_the_panel_in_sync(monkeypatch) -> None:
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    container = board_view.ui.element('div')
+
+    async def check():
+        view = BoardView(white='random', black='random')
+        view.position.board.push_uci('e2e4')
+        view.position.board.push_uci('e7e5')
+        recorded = []
+
+        def analyse(board):
+            recorded.append(('analysis', len(board.move_stack)))
+            return ([], chess.engine.Cp(0), 0)
+
+        def expected(board=None):
+            recorded.append(('eval', len((board if board is not None else view.position.board).move_stack)))
+            return 0.5
+
+        monkeypatch.setattr(view.controller, 'white_expectation', expected)
+        monkeypatch.setattr(view.controller, 'move_analysis', analyse)
+        monkeypatch.setattr(view.controller, 'play_random_move',
+                            lambda: view.controller.play(chess.Move.from_uci('g1f3')))
+        with container:
+            view.render()
+            view.render_controls()
+        view.evaluation_cache.clear()
+        view.move_analysis_cache.clear()
+        baseline = list(recorded)
+        started, phase = asyncio.Event(), asyncio.Event()
+
+        async def io_bound(callback, *args):
+            started.set()
+            if callback.__name__ == 'analyse_latest':
+                await phase.wait()
+            return await asyncio.to_thread(callback, *args)
+
+        monkeypatch.setattr(board_view.run, 'io_bound', io_bound)
+        monkeypatch.setattr(board_view.ui, 'run_javascript', AsyncMock())
+
+        async def turn_in_context():
+            with container:
+                await view.automatic_turn()
+
+        turn = asyncio.create_task(turn_in_context())
+        await started.wait()
+        text = [element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')]
+        assert 'Position before 2. Nf3' in text and 'Analysing…' in text
+        assert recorded == baseline  # the newest move is queued, not computed, behind the placeholder
+        phase.set()
+        await turn
+        assert recorded[len(baseline):] == [('eval', 3), ('analysis', 3), ('eval', 0), ('eval', 1), ('eval', 2),
+                                            ('analysis', 1), ('analysis', 2)]
+        text = [element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')]
+        assert 'Position before 2. Nf3' in text and 'Analysing…' not in text
+        assert not view.analysis_busy
 
     asyncio.run(check())
 
@@ -1692,6 +1771,8 @@ def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, a
                 view.select_history(0)
         elif action == 'close':
             view.close()
+        if action in {'reset', 'history'}:
+            assert not list(view.move_analysis_panel.descendants())
         finish.set()
         if action == 'error':
             with pytest.raises(RuntimeError, match='Engine failed'):
@@ -1709,6 +1790,46 @@ def test_automatic_turn_handles_changes_while_analysis_is_pending(monkeypatch, a
             assert view.analysis_position == view.position.board.fen()
 
     asyncio.run(check())
+
+
+@pytest.mark.parametrize('cached', [False, True])
+@pytest.mark.parametrize('action', ['history', 'undo', 'redo'])
+def test_position_changes_refresh_move_analysis_while_busy(monkeypatch, action, cached) -> None:
+    view = BoardView(white='human', black='human')
+    monkeypatch.setattr(view.controller, 'white_expectation', lambda board=None: 0.5)
+    analysis = MagicMock(return_value=([], chess.engine.Cp(20), 0.0))
+    monkeypatch.setattr(view.controller, 'move_analysis', analysis)
+    view.position.board.push_uci('e2e4')
+    view.position.board.push_uci('e7e5')
+    if action == 'redo':
+        view.position.undo()
+    view.render()
+    view.render_controls()
+    view.move_analysis_cache.clear()
+    target = view.position.board.copy(stack=True)
+    if action == 'redo':
+        target.push_uci('e7e5')
+    else:
+        target.pop()
+    result = ([], chess.engine.Cp(20), 0.0)
+    if cached:
+        view.move_analysis_cache[(target.root().fen(), tuple(target.move_stack))] = result
+    analysis.reset_mock()
+    view.analysis_busy = True
+    if action == 'history':
+        view.select_history(1)
+    else:
+        getattr(view, action)()
+    text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
+    context = 'Position before 1... e5' if action == 'redo' else 'Position before 1. e4'
+    assert context in text
+    assert ('Analysing…' in text) is not cached
+    assert ('White +0.20' in text) is cached
+    analysis.assert_not_called()
+    view.sync_analysis(target, result, refresh=False, plot=False)
+    text = {element.text for element in view.move_analysis_panel.descendants() if hasattr(element, 'text')}
+    assert context in text and 'Analysing…' not in text
+    assert view.analysis_position == target.fen()
 
 
 @pytest.mark.parametrize('fen,moves,expected', [
@@ -1858,7 +1979,7 @@ def test_all_player_combinations_apply_each_move_before_async_analysis(monkeypat
                 await started.wait()
                 assert len(view.position.board.move_stack) == count
                 assert view.shown_pieces == {square: view.position.board.piece_at(square) for square in view.squares}
-                assert view.analysis_position == previous_analysis
+                assert view.analysis_position is None  # the pending panel shows the newest move, not analysis
                 assert 'analyzing' in view.analysis_engine_label._classes
                 assert view.analysis_engine_label._props['aria-busy'] == 'true'
                 with container:

@@ -265,7 +265,7 @@
       "file_type": "code",
       "norm_label": "test_history_reuses_analysis_without_loading_or_engine_calls()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1985"
+      "source_location": "L2106"
     },
     {
       "id": "tests_test_board_test_move_analysis_reuses_played_option_and_preserves_mate_score",
@@ -277,7 +277,7 @@
       "file_type": "code",
       "norm_label": "test_move_analysis_reuses_played_option_and_preserves_mate_score()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1243"
+      "source_location": "L1261"
     },
     {
       "id": "tests_test_board_test_stockfish_analysis_uses_full_strength_between_elo_limited_turns",
@@ -373,7 +373,7 @@
       "file_type": "code",
       "norm_label": ".save_pgn()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L607"
+      "source_location": "L636"
     },
     {
       "id": "tests_test_board_prevent_game_log_writes",
@@ -409,7 +409,7 @@
       "file_type": "code",
       "norm_label": "test_completed_game_logs_use_latest_or_saved_paths()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1256"
+      "source_location": "L1274"
     },
     {
       "id": "tests_test_board_test_export_pgn_and_move_log_button_use_the_live_board",
@@ -433,7 +433,7 @@
       "file_type": "code",
       "norm_label": "test_game_log_records_jev_confidence_for_jev_moves()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1284"
+      "source_location": "L1302"
     },
     {
       "id": "tests_test_board_test_game_log_records_stockfish_top_moves_and_jev_recommendations",
@@ -445,7 +445,7 @@
       "file_type": "code",
       "norm_label": "test_game_log_records_stockfish_top_moves_and_jev_recommendations()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1305"
+      "source_location": "L1323"
     },
     {
       "id": "tests_test_board_test_jev_chooses_from_every_legal_move_for_current_fen",
@@ -493,7 +493,7 @@
       "file_type": "code",
       "norm_label": "test_manual_save_unfinished_game_matches_schema_and_keeps_each_save()",
       "source_file": "tests/test_board.py",
-      "source_location": "L2093"
+      "source_location": "L2214"
     },
     {
       "id": "tests_test_board_test_pgn_headers_use_game_players_and_date",
@@ -505,7 +505,7 @@
       "file_type": "code",
       "norm_label": "test_pgn_headers_use_game_players_and_date()",
       "source_file": "tests/test_board.py",
-      "source_location": "L2206"
+      "source_location": "L2327"
     },
     {
       "id": "tests_test_board_test_save_game_records_jev_confidence_and_evaluation_in_saved_copy",
@@ -517,7 +517,7 @@
       "file_type": "code",
       "norm_label": "test_save_game_records_jev_confidence_and_evaluation_in_saved_copy()",
       "source_file": "tests/test_board.py",
-      "source_location": "L2166"
+      "source_location": "L2287"
     },
     {
       "id": "tests_test_board_test_undo_during_async_log_write_rewrites_the_current_position",
@@ -529,7 +529,7 @@
       "file_type": "code",
       "norm_label": "test_undo_during_async_log_write_rewrites_the_current_position()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1454"
+      "source_location": "L1472"
     },
     {
       "id": "tests_test_board_test_write_pgn_uses_save_filename_convention",
@@ -613,7 +613,7 @@
       "file_type": "code",
       "norm_label": ".claim_draw()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L340"
+      "source_location": "L365"
     },
     {
       "id": "src_ui_board_view_boardview_click_square",
@@ -625,7 +625,7 @@
       "file_type": "code",
       "norm_label": ".click_square()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L379"
+      "source_location": "L404"
     },
     {
       "id": "src_ui_board_view_boardview_close",
@@ -637,7 +637,7 @@
       "file_type": "code",
       "norm_label": ".close()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L315"
+      "source_location": "L340"
     },
     {
       "id": "src_ui_board_view_boardview_jev_confidence_map",
@@ -649,7 +649,7 @@
       "file_type": "code",
       "norm_label": ".jev_confidence_map()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L685"
+      "source_location": "L714"
     },
     {
       "id": "src_ui_board_view_boardview_jev_top_moves_map",
@@ -661,7 +661,7 @@
       "file_type": "code",
       "norm_label": ".jev_top_moves_map()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L678"
+      "source_location": "L707"
     },
     {
       "id": "src_ui_board_view_boardview_movement_origins",
@@ -685,7 +685,7 @@
       "file_type": "code",
       "norm_label": ".needs_game_log()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L461"
+      "source_location": "L486"
     },
     {
       "id": "src_ui_board_view_boardview_new_game",
@@ -697,7 +697,7 @@
       "file_type": "code",
       "norm_label": ".new_game()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L348"
+      "source_location": "L373"
     },
     {
       "id": "src_ui_board_view_boardview_pause_random",
@@ -709,7 +709,7 @@
       "file_type": "code",
       "norm_label": ".pause_random()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L330"
+      "source_location": "L355"
     },
     {
       "id": "src_ui_board_view_boardview_play_human_move",
@@ -757,19 +757,7 @@
       "file_type": "code",
       "norm_label": ".redo()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L368"
-    },
-    {
-      "id": "src_ui_board_view_boardview_render",
-      "label": ".render()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": ".sync",
-      "file_type": "code",
-      "norm_label": ".render()",
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L534"
+      "source_location": "L393"
     },
     {
       "id": "src_ui_board_view_boardview_render_evaluation",
@@ -781,7 +769,19 @@
       "file_type": "code",
       "norm_label": ".render_evaluation()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L577"
+      "source_location": "L606"
+    },
+    {
+      "id": "src_ui_board_view_boardview_render_history",
+      "label": ".render_history()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": ".sync",
+      "file_type": "code",
+      "norm_label": ".render_history()",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L910"
     },
     {
       "id": "src_ui_board_view_boardview_resume_history_scroll",
@@ -793,7 +793,7 @@
       "file_type": "code",
       "norm_label": ".resume_history_scroll()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L335"
+      "source_location": "L360"
     },
     {
       "id": "src_ui_board_view_boardview_save_game",
@@ -805,7 +805,7 @@
       "file_type": "code",
       "norm_label": ".save_game()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L586"
+      "source_location": "L615"
     },
     {
       "id": "src_ui_board_view_boardview_schedule_update",
@@ -817,7 +817,7 @@
       "file_type": "code",
       "norm_label": ".schedule_update()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L304"
+      "source_location": "L329"
     },
     {
       "id": "src_ui_board_view_boardview_select_history",
@@ -829,7 +829,7 @@
       "file_type": "code",
       "norm_label": ".select_history()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L402"
+      "source_location": "L427"
     },
     {
       "id": "src_ui_board_view_boardview_set_analysis_indicator",
@@ -841,7 +841,7 @@
       "file_type": "code",
       "norm_label": ".set_analysis_indicator()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L309"
+      "source_location": "L334"
     },
     {
       "id": "src_ui_board_view_boardview_set_board",
@@ -868,18 +868,6 @@
       "source_location": "L121"
     },
     {
-      "id": "src_ui_board_view_boardview_step_history",
-      "label": ".step_history()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": ".sync",
-      "file_type": "code",
-      "norm_label": ".step_history()",
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L396"
-    },
-    {
       "id": "src_ui_board_view_boardview_stockfish_played_score_map",
       "label": ".stockfish_played_score_map()",
       "_callable": true,
@@ -889,7 +877,7 @@
       "file_type": "code",
       "norm_label": ".stockfish_played_score_map()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L665"
+      "source_location": "L694"
     },
     {
       "id": "src_ui_board_view_boardview_stockfish_top_moves_map",
@@ -901,7 +889,7 @@
       "file_type": "code",
       "norm_label": ".stockfish_top_moves_map()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L671"
+      "source_location": "L700"
     },
     {
       "id": "src_ui_board_view_boardview_sync",
@@ -913,7 +901,7 @@
       "file_type": "code",
       "norm_label": ".sync()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L465"
+      "source_location": "L490"
     },
     {
       "id": "src_ui_board_view_boardview_toggle_random",
@@ -925,7 +913,7 @@
       "file_type": "code",
       "norm_label": ".toggle_random()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L320"
+      "source_location": "L345"
     },
     {
       "id": "src_ui_board_view_boardview_undo",
@@ -937,31 +925,7 @@
       "file_type": "code",
       "norm_label": ".undo()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L354"
-    },
-    {
-      "id": "src_ui_board_view_piece_image",
-      "label": "piece_image()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": ".sync",
-      "file_type": "code",
-      "norm_label": "piece_image()",
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L27"
-    },
-    {
-      "id": "tests_test_board_test_piece_images_are_distinct_svgs",
-      "label": "test_piece_images_are_distinct_svgs()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": ".sync",
-      "file_type": "code",
-      "norm_label": "test_piece_images_are_distinct_svgs()",
-      "source_file": "tests/test_board.py",
-      "source_location": "L106"
+      "source_location": "L379"
     },
     {
       "id": "src_ui_analysis_confidence_chart_svg",
@@ -974,18 +938,6 @@
       "norm_label": "confidence_chart_svg()",
       "source_file": "src/ui/analysis.py",
       "source_location": "L28"
-    },
-    {
-      "id": "src_ui_analysis_evaluation_chart_svg",
-      "label": "evaluation_chart_svg()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "test_board.py",
-      "file_type": "code",
-      "norm_label": "evaluation_chart_svg()",
-      "source_file": "src/ui/analysis.py",
-      "source_location": "L58"
     },
     {
       "id": "src_ui_board_game_snapshot",
@@ -1021,7 +973,7 @@
       "file_type": "code",
       "norm_label": "test_all_player_combinations_apply_each_move_before_async_analysis()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1809"
+      "source_location": "L1930"
     },
     {
       "id": "tests_test_board_test_analysis_helpers_remain_available_from_board",
@@ -1045,7 +997,19 @@
       "file_type": "code",
       "norm_label": "test_automatic_turn_handles_changes_while_analysis_is_pending()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1651"
+      "source_location": "L1730"
+    },
+    {
+      "id": "tests_test_board_test_automatic_turn_prioritises_the_newest_move_and_keeps_the_panel_in_sync",
+      "label": "test_automatic_turn_prioritises_the_newest_move_and_keeps_the_panel_in_sync()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "test_board.py",
+      "file_type": "code",
+      "norm_label": "test_automatic_turn_prioritises_the_newest_move_and_keeps_the_panel_in_sync()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1668"
     },
     {
       "id": "tests_test_board_test_automatic_turn_shows_board_before_analysis_and_waits_for_panel",
@@ -1057,7 +1021,7 @@
       "file_type": "code",
       "norm_label": "test_automatic_turn_shows_board_before_analysis_and_waits_for_panel()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1594"
+      "source_location": "L1612"
     },
     {
       "id": "tests_test_board_test_board_opens_native_window",
@@ -1237,7 +1201,7 @@
       "file_type": "code",
       "norm_label": "test_header_save_button_saves_live_board_and_reenables_on_failure()",
       "source_file": "tests/test_board.py",
-      "source_location": "L2116"
+      "source_location": "L2237"
     },
     {
       "id": "tests_test_board_test_history_buttons_preview_without_changing_live_game",
@@ -1273,7 +1237,7 @@
       "file_type": "code",
       "norm_label": "test_human_analysis_indicator_lasts_until_calculation_finishes()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1752"
+      "source_location": "L1873"
     },
     {
       "id": "tests_test_board_test_human_black_rotates_the_board",
@@ -1309,7 +1273,7 @@
       "file_type": "code",
       "norm_label": "test_incomplete_game_does_not_write_a_log()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1372"
+      "source_location": "L1390"
     },
     {
       "id": "tests_test_board_test_jev_predictions_tab_shows_top_five_and_selected_move",
@@ -1324,18 +1288,6 @@
       "source_location": "L393"
     },
     {
-      "id": "tests_test_board_test_live_plot_fills_moves_skipped_by_automatic_reply",
-      "label": "test_live_plot_fills_moves_skipped_by_automatic_reply()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "test_board.py",
-      "file_type": "code",
-      "norm_label": "test_live_plot_fills_moves_skipped_by_automatic_reply()",
-      "source_file": "tests/test_board.py",
-      "source_location": "L1579"
-    },
-    {
       "id": "tests_test_board_test_live_plot_reuses_played_evaluation_when_best_move_matches",
       "label": "test_live_plot_reuses_played_evaluation_when_best_move_matches()",
       "_callable": true,
@@ -1345,31 +1297,7 @@
       "file_type": "code",
       "norm_label": "test_live_plot_reuses_played_evaluation_when_best_move_matches()",
       "source_file": "tests/test_board.py",
-      "source_location": "L2052"
-    },
-    {
-      "id": "tests_test_board_test_live_plot_tracks_every_move_history_branches_and_reset",
-      "label": "test_live_plot_tracks_every_move_history_branches_and_reset()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "test_board.py",
-      "file_type": "code",
-      "norm_label": "test_live_plot_tracks_every_move_history_branches_and_reset()",
-      "source_file": "tests/test_board.py",
-      "source_location": "L1551"
-    },
-    {
-      "id": "tests_test_board_test_live_plot_uses_post_move_evaluations_in_white_perspective",
-      "label": "test_live_plot_uses_post_move_evaluations_in_white_perspective()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "test_board.py",
-      "file_type": "code",
-      "norm_label": "test_live_plot_uses_post_move_evaluations_in_white_perspective()",
-      "source_file": "tests/test_board.py",
-      "source_location": "L2066"
+      "source_location": "L2173"
     },
     {
       "id": "tests_test_board_test_move_analysis_cache_distinguishes_history_and_clears_on_replacement",
@@ -1381,7 +1309,7 @@
       "file_type": "code",
       "norm_label": "test_move_analysis_cache_distinguishes_history_and_clears_on_replacement()",
       "source_file": "tests/test_board.py",
-      "source_location": "L2026"
+      "source_location": "L2147"
     },
     {
       "id": "tests_test_board_test_move_analysis_compares_the_last_move_with_its_prior_options",
@@ -1405,7 +1333,7 @@
       "file_type": "code",
       "norm_label": "test_move_analysis_displays_advantaged_side()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1209"
+      "source_location": "L1227"
     },
     {
       "id": "tests_test_board_test_move_analysis_identifies_player_in_history",
@@ -1429,7 +1357,19 @@
       "file_type": "code",
       "norm_label": "test_move_analysis_loss_and_played_move_outside_top_five()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1220"
+      "source_location": "L1238"
+    },
+    {
+      "id": "tests_test_board_test_move_analysis_shows_newest_move_with_pending_numbers",
+      "label": "test_move_analysis_shows_newest_move_with_pending_numbers()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "test_board.py",
+      "file_type": "code",
+      "norm_label": "test_move_analysis_shows_newest_move_with_pending_numbers()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1198"
     },
     {
       "id": "tests_test_board_test_move_history_and_new_game",
@@ -1477,7 +1417,7 @@
       "file_type": "code",
       "norm_label": "test_move_log_redraw_does_not_delete_pending_analysis_timer()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1956"
+      "source_location": "L2077"
     },
     {
       "id": "tests_test_board_test_piece_animation_offsets_follow_board_orientation",
@@ -1489,7 +1429,7 @@
       "file_type": "code",
       "norm_label": "test_piece_animation_offsets_follow_board_orientation()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1738"
+      "source_location": "L1859"
     },
     {
       "id": "tests_test_board_test_piece_animation_tracks_actual_moves",
@@ -1501,7 +1441,7 @@
       "file_type": "code",
       "norm_label": "test_piece_animation_tracks_actual_moves()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1721"
+      "source_location": "L1842"
     },
     {
       "id": "tests_test_board_test_player_combinations_and_random_opening",
@@ -1514,6 +1454,18 @@
       "norm_label": "test_player_combinations_and_random_opening()",
       "source_file": "tests/test_board.py",
       "source_location": "L1018"
+    },
+    {
+      "id": "tests_test_board_test_position_changes_refresh_move_analysis_while_busy",
+      "label": "test_position_changes_refresh_move_analysis_while_busy()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "test_board.py",
+      "file_type": "code",
+      "norm_label": "test_position_changes_refresh_move_analysis_while_busy()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1797"
     },
     {
       "id": "tests_test_board_test_programmatic_move_refreshes_board_view",
@@ -1561,7 +1513,7 @@
       "file_type": "code",
       "norm_label": "test_random_vs_random_starts_pauses_and_resets()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1485"
+      "source_location": "L1503"
     },
     {
       "id": "tests_test_board_test_real_nicegui_promotion_draw_and_status_controls",
@@ -1612,18 +1564,6 @@
       "source_location": "L521"
     },
     {
-      "id": "tests_test_board_test_start_game_event_keeps_analysis_timer_in_live_slot",
-      "label": "test_start_game_event_keeps_analysis_timer_in_live_slot()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "test_board.py",
-      "file_type": "code",
-      "norm_label": "test_start_game_event_keeps_analysis_timer_in_live_slot()",
-      "source_file": "tests/test_board.py",
-      "source_location": "L1934"
-    },
-    {
       "id": "tests_test_board_test_stockfish_and_random_can_play_each_other",
       "label": "test_stockfish_and_random_can_play_each_other()",
       "_callable": true,
@@ -1657,7 +1597,7 @@
       "file_type": "code",
       "norm_label": "test_terminal_position_writes_one_game_log()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1362"
+      "source_location": "L1380"
     },
     {
       "id": "tests_test_board_test_top_moves_maps_serialize_move_analysis_and_jev_predictions",
@@ -1669,7 +1609,7 @@
       "file_type": "code",
       "norm_label": "test_top_moves_maps_serialize_move_analysis_and_jev_predictions()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1338"
+      "source_location": "L1356"
     },
     {
       "id": "tests_test_board_test_uncached_live_position_changes_queue_analysis",
@@ -1681,7 +1621,7 @@
       "file_type": "code",
       "norm_label": "test_uncached_live_position_changes_queue_analysis()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1894"
+      "source_location": "L2015"
     },
     {
       "id": "tests_test_board_test_undo_redo_updates_board_history_and_status",
@@ -1705,7 +1645,7 @@
       "file_type": "code",
       "norm_label": "test_undo_to_empty_board_updates_log_but_noop_undo_does_not()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1443"
+      "source_location": "L1461"
     },
     {
       "id": "tests_test_board_test_undo_updates_current_log_and_replacement_moves_without_changing_saved_copies",
@@ -1717,19 +1657,7 @@
       "file_type": "code",
       "norm_label": "test_undo_updates_current_log_and_replacement_moves_without_changing_saved_copies()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1379"
-    },
-    {
-      "id": "src_game_controller_best_move_position",
-      "label": "best_move_position()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "board.py",
-      "file_type": "code",
-      "norm_label": "best_move_position()",
-      "source_file": "src/game/controller.py",
-      "source_location": "L21"
+      "source_location": "L1397"
     },
     {
       "id": "src_game_controller_stockfish_path",
@@ -1742,6 +1670,18 @@
       "norm_label": "stockfish_path()",
       "source_file": "src/game/controller.py",
       "source_location": "L12"
+    },
+    {
+      "id": "src_ui_analysis_evaluation_chart_svg",
+      "label": "evaluation_chart_svg()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "evaluation_chart_svg()",
+      "source_file": "src/ui/analysis.py",
+      "source_location": "L58"
     },
     {
       "id": "src_ui_analysis_latest_game_evaluations",
@@ -1768,18 +1708,6 @@
       "source_location": "L16"
     },
     {
-      "id": "src_ui_board_build_page",
-      "label": "build_page()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "board.py",
-      "file_type": "code",
-      "norm_label": "build_page()",
-      "source_file": "src/ui/board.py",
-      "source_location": "L59"
-    },
-    {
       "id": "src_ui_board_lock_window_aspect_ratio",
       "label": "lock_window_aspect_ratio()",
       "_callable": true,
@@ -1804,28 +1732,16 @@
       "source_location": "L164"
     },
     {
-      "id": "src_ui_board_page",
-      "label": "page()",
+      "id": "src_ui_board_view_boardview_render",
+      "label": ".render()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "board.py",
       "file_type": "code",
-      "norm_label": "page()",
-      "source_file": "src/ui/board.py",
-      "source_location": "L160"
-    },
-    {
-      "id": "src_ui_board_saved_game",
-      "label": "saved_game()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "board.py",
-      "file_type": "code",
-      "norm_label": "saved_game()",
-      "source_file": "src/ui/board.py",
-      "source_location": "L43"
+      "norm_label": ".render()",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L563"
     },
     {
       "id": "src_ui_board_view_boardview_show_analysis",
@@ -1837,7 +1753,55 @@
       "file_type": "code",
       "norm_label": ".show_analysis()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L563"
+      "source_location": "L592"
+    },
+    {
+      "id": "src_ui_board_view_boardview_step_history",
+      "label": ".step_history()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": ".step_history()",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L421"
+    },
+    {
+      "id": "src_ui_board_view_move_history",
+      "label": "move_history()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "move_history()",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "src_ui_board_view_move_history_lines",
+      "label": "move_history_lines()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "move_history_lines()",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "src_ui_board_view_piece_image",
+      "label": "piece_image()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "piece_image()",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L27"
     },
     {
       "id": "src_ui_board_view_square_color",
@@ -1888,28 +1852,40 @@
       "source_location": "L31"
     },
     {
-      "id": "tests_test_board_test_initial_analysis_does_not_block_building_the_game",
-      "label": "test_initial_analysis_does_not_block_building_the_game()",
+      "id": "tests_test_board_test_live_plot_fills_moves_skipped_by_automatic_reply",
+      "label": "test_live_plot_fills_moves_skipped_by_automatic_reply()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "board.py",
       "file_type": "code",
-      "norm_label": "test_initial_analysis_does_not_block_building_the_game()",
+      "norm_label": "test_live_plot_fills_moves_skipped_by_automatic_reply()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1879"
+      "source_location": "L1597"
     },
     {
-      "id": "tests_test_board_test_landing_starts_game_and_returns_to_setup",
-      "label": "test_landing_starts_game_and_returns_to_setup()",
+      "id": "tests_test_board_test_live_plot_tracks_every_move_history_branches_and_reset",
+      "label": "test_live_plot_tracks_every_move_history_branches_and_reset()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "board.py",
       "file_type": "code",
-      "norm_label": "test_landing_starts_game_and_returns_to_setup()",
+      "norm_label": "test_live_plot_tracks_every_move_history_branches_and_reset()",
       "source_file": "tests/test_board.py",
-      "source_location": "L1505"
+      "source_location": "L1569"
+    },
+    {
+      "id": "tests_test_board_test_live_plot_uses_post_move_evaluations_in_white_perspective",
+      "label": "test_live_plot_uses_post_move_evaluations_in_white_perspective()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "test_live_plot_uses_post_move_evaluations_in_white_perspective()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L2187"
     },
     {
       "id": "tests_test_board_test_native_window_keeps_its_starting_aspect_ratio",
@@ -1922,6 +1898,18 @@
       "norm_label": "test_native_window_keeps_its_starting_aspect_ratio()",
       "source_file": "tests/test_board.py",
       "source_location": "L89"
+    },
+    {
+      "id": "tests_test_board_test_piece_images_are_distinct_svgs",
+      "label": "test_piece_images_are_distinct_svgs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "test_piece_images_are_distinct_svgs()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L106"
     },
     {
       "id": "tests_test_board_test_square_coordinates",
@@ -1946,6 +1934,18 @@
       "norm_label": "test_starting_pieces()",
       "source_file": "tests/test_board.py",
       "source_location": "L134"
+    },
+    {
+      "id": "src_game_controller_best_move_position",
+      "label": "best_move_position()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "test_analysis_state.py",
+      "file_type": "code",
+      "norm_label": "best_move_position()",
+      "source_file": "src/game/controller.py",
+      "source_location": "L21"
     },
     {
       "id": "src_ui_analysis_state_analysis_snapshot",
@@ -2248,6 +2248,42 @@
       "source_location": "L57"
     },
     {
+      "id": "src_ui_board_build_page",
+      "label": "build_page()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "build_page()",
+      "source_file": "src/ui/board.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "src_ui_board_page",
+      "label": "page()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "page()",
+      "source_file": "src/ui/board.py",
+      "source_location": "L160"
+    },
+    {
+      "id": "src_ui_board_saved_game",
+      "label": "saved_game()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "saved_game()",
+      "source_file": "src/ui/board.py",
+      "source_location": "L43"
+    },
+    {
       "id": "tests_test_board_test_all_promotion_choices_are_legal",
       "label": "test_all_promotion_choices_are_legal()",
       "_callable": true,
@@ -2294,6 +2330,42 @@
       "norm_label": "test_debug_prints_legal_moves_after_each_move()",
       "source_file": "tests/test_board.py",
       "source_location": "L652"
+    },
+    {
+      "id": "tests_test_board_test_initial_analysis_does_not_block_building_the_game",
+      "label": "test_initial_analysis_does_not_block_building_the_game()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "test_initial_analysis_does_not_block_building_the_game()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L2000"
+    },
+    {
+      "id": "tests_test_board_test_landing_starts_game_and_returns_to_setup",
+      "label": "test_landing_starts_game_and_returns_to_setup()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "test_landing_starts_game_and_returns_to_setup()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1523"
+    },
+    {
+      "id": "tests_test_board_test_move_history_preserves_move_numbers_from_custom_position",
+      "label": "test_move_history_preserves_move_numbers_from_custom_position()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "test_move_history_preserves_move_numbers_from_custom_position()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L793"
     },
     {
       "id": "tests_test_board_test_move_updates_only_changed_squares",
@@ -2356,6 +2428,18 @@
       "source_location": "L252"
     },
     {
+      "id": "tests_test_board_test_start_game_event_keeps_analysis_timer_in_live_slot",
+      "label": "test_start_game_event_keeps_analysis_timer_in_live_slot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Position",
+      "file_type": "code",
+      "norm_label": "test_start_game_event_keeps_analysis_timer_in_live_slot()",
+      "source_file": "tests/test_board.py",
+      "source_location": "L2055"
+    },
+    {
       "id": "tests_test_board_test_threefold_claim_and_fivefold_automatic_draw",
       "label": "test_threefold_claim_and_fivefold_automatic_draw()",
       "_callable": true,
@@ -2389,7 +2473,7 @@
       "file_type": "code",
       "norm_label": ".cached_move_analysis()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L418"
+      "source_location": "L443"
     },
     {
       "id": "src_ui_board_view_boardview_cached_white_expectation",
@@ -2401,7 +2485,7 @@
       "file_type": "code",
       "norm_label": ".cached_white_expectation()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L424"
+      "source_location": "L449"
     },
     {
       "id": "src_ui_board_view_boardview_choose_promotion",
@@ -2425,7 +2509,7 @@
       "file_type": "code",
       "norm_label": ".confidence_history()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L650"
+      "source_location": "L679"
     },
     {
       "id": "src_ui_board_view_boardview_current_tab_index",
@@ -2437,7 +2521,7 @@
       "file_type": "code",
       "norm_label": ".current_tab_index()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L803"
+      "source_location": "L832"
     },
     {
       "id": "src_ui_board_view_boardview_render_confidence",
@@ -2449,7 +2533,7 @@
       "file_type": "code",
       "norm_label": ".render_confidence()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L689"
+      "source_location": "L718"
     },
     {
       "id": "src_ui_board_view_boardview_render_controls",
@@ -2461,19 +2545,7 @@
       "file_type": "code",
       "norm_label": ".render_controls()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L717"
-    },
-    {
-      "id": "src_ui_board_view_boardview_render_history",
-      "label": ".render_history()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "Board",
-      "file_type": "code",
-      "norm_label": ".render_history()",
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L865"
+      "source_location": "L746"
     },
     {
       "id": "src_ui_board_view_boardview_render_jev_predictions",
@@ -2485,7 +2557,7 @@
       "file_type": "code",
       "norm_label": ".render_jev_predictions()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L614"
+      "source_location": "L643"
     },
     {
       "id": "src_ui_board_view_boardview_render_move_analysis",
@@ -2497,7 +2569,7 @@
       "file_type": "code",
       "norm_label": ".render_move_analysis()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L823"
+      "source_location": "L852"
     },
     {
       "id": "src_ui_board_view_boardview_render_status",
@@ -2509,7 +2581,7 @@
       "file_type": "code",
       "norm_label": ".render_status()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L582"
+      "source_location": "L611"
     },
     {
       "id": "src_ui_board_view_boardview_switch_tab",
@@ -2521,7 +2593,7 @@
       "file_type": "code",
       "norm_label": ".switch_tab()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L797"
+      "source_location": "L826"
     },
     {
       "id": "src_ui_board_view_boardview_sync_analysis",
@@ -2533,7 +2605,7 @@
       "file_type": "code",
       "norm_label": ".sync_analysis()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L447"
+      "source_location": "L472"
     },
     {
       "id": "src_ui_board_view_boardview_sync_evaluation_plot",
@@ -2545,7 +2617,7 @@
       "file_type": "code",
       "norm_label": ".sync_evaluation_plot()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L431"
+      "source_location": "L456"
     },
     {
       "id": "src_ui_board_view_boardview_sync_tab_buttons",
@@ -2557,43 +2629,7 @@
       "file_type": "code",
       "norm_label": ".sync_tab_buttons()",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L813"
-    },
-    {
-      "id": "src_ui_board_view_move_history",
-      "label": "move_history()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "Board",
-      "file_type": "code",
-      "norm_label": "move_history()",
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L32"
-    },
-    {
-      "id": "src_ui_board_view_move_history_lines",
-      "label": "move_history_lines()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "Board",
-      "file_type": "code",
-      "norm_label": "move_history_lines()",
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L36"
-    },
-    {
-      "id": "tests_test_board_test_move_history_preserves_move_numbers_from_custom_position",
-      "label": "test_move_history_preserves_move_numbers_from_custom_position()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "Board",
-      "file_type": "code",
-      "norm_label": "test_move_history_preserves_move_numbers_from_custom_position()",
-      "source_file": "tests/test_board.py",
-      "source_location": "L793"
+      "source_location": "L842"
     },
     {
       "id": "tests_test_linux_support_test_linux_native_startup_skips_macos_hook",
@@ -2894,17 +2930,6 @@
       "source_location": "L1"
     },
     {
-      "id": "piece",
-      "label": "Piece",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": ".sync",
-      "file_type": "code",
-      "norm_label": "piece",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "src_ui_board_view_py_move",
       "label": "Move",
       "_origin": "ast",
@@ -2969,6 +2994,17 @@
       "norm_label": "selecting a tab by its name alone must also refresh the prev/next arrow...",
       "source_file": "tests/test_board.py",
       "source_location": "L359"
+    },
+    {
+      "id": "piece",
+      "label": "Piece",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "board.py",
+      "file_type": "code",
+      "norm_label": "piece",
+      "source_file": "",
+      "source_location": ""
     },
     {
       "id": "src_game_controller",
@@ -3048,17 +3084,6 @@
       "source_location": "L1"
     },
     {
-      "id": "src_game_controller_rationale_22",
-      "label": "Apply the best alternative to the actual position before the last move.",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "board.py",
-      "file_type": "rationale",
-      "norm_label": "apply the best alternative to the actual position before the last move.",
-      "source_file": "src/game/controller.py",
-      "source_location": "L22"
-    },
-    {
       "id": "src_ui_analysis_rationale_6",
       "label": "Return each logged position as a balance percentage: Black -100 to White +100.",
       "_origin": "ast",
@@ -3112,6 +3137,17 @@
       "norm_label": "parametrize",
       "source_file": "",
       "source_location": ""
+    },
+    {
+      "id": "src_game_controller_rationale_22",
+      "label": "Apply the best alternative to the actual position before the last move.",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "test_analysis_state.py",
+      "file_type": "rationale",
+      "norm_label": "apply the best alternative to the actual position before the last move.",
+      "source_file": "src/game/controller.py",
+      "source_location": "L22"
     },
     {
       "id": "outcome",
@@ -3180,7 +3216,7 @@
       "source_location": ""
     },
     {
-      "id": "src_ui_board_view_rationale_814",
+      "id": "src_ui_board_view_rationale_843",
       "label": "Keep the prev/next tab arrows in sync with the currently selected tab.",
       "_origin": "ast",
       "community": 7,
@@ -3188,7 +3224,7 @@
       "file_type": "rationale",
       "norm_label": "keep the prev/next tab arrows in sync with the currently selected tab.",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L814"
+      "source_location": "L843"
     },
     {
       "id": "tests_test_linux_support",
@@ -4019,7 +4055,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L268",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -4031,7 +4067,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L275",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -4043,7 +4079,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L281",
+      "source_location": "L306",
       "weight": 1.0
     },
     {
@@ -4055,7 +4091,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L285",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -4067,7 +4103,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L286",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -4079,7 +4115,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L287",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -4091,7 +4127,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L288",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -4103,7 +4139,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L302",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -4151,7 +4187,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L346",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -4163,7 +4199,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L391",
+      "source_location": "L416",
       "weight": 1.0
     },
     {
@@ -4175,7 +4211,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L394",
+      "source_location": "L419",
       "weight": 1.0
     },
     {
@@ -4187,7 +4223,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L317",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -4211,7 +4247,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L349",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -4223,7 +4259,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L350",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -4235,7 +4271,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L352",
+      "source_location": "L377",
       "weight": 1.0
     },
     {
@@ -4331,7 +4367,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L371",
+      "source_location": "L396",
       "weight": 1.0
     },
     {
@@ -4343,7 +4379,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L377",
+      "source_location": "L402",
       "weight": 1.0
     },
     {
@@ -4355,7 +4391,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L542",
+      "source_location": "L571",
       "weight": 1.0
     },
     {
@@ -4367,7 +4403,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L544",
+      "source_location": "L573",
       "weight": 1.0
     },
     {
@@ -4379,7 +4415,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L544",
+      "source_location": "L573",
       "weight": 1.0
     },
     {
@@ -4391,7 +4427,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L551",
+      "source_location": "L580",
       "weight": 1.0
     },
     {
@@ -4403,7 +4439,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L556",
+      "source_location": "L585",
       "weight": 1.0
     },
     {
@@ -4415,7 +4451,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L693",
+      "source_location": "L722",
       "weight": 1.0
     },
     {
@@ -4427,7 +4463,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L704",
+      "source_location": "L733",
       "weight": 1.0
     },
     {
@@ -4439,7 +4475,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L719",
+      "source_location": "L748",
       "weight": 1.0
     },
     {
@@ -4451,7 +4487,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L725",
+      "source_location": "L754",
       "weight": 1.0
     },
     {
@@ -4463,7 +4499,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L728",
+      "source_location": "L757",
       "weight": 1.0
     },
     {
@@ -4475,7 +4511,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L733",
+      "source_location": "L762",
       "weight": 1.0
     },
     {
@@ -4487,7 +4523,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L755",
+      "source_location": "L784",
       "weight": 1.0
     },
     {
@@ -4499,7 +4535,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L769",
+      "source_location": "L798",
       "weight": 1.0
     },
     {
@@ -4511,7 +4547,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L771",
+      "source_location": "L800",
       "weight": 1.0
     },
     {
@@ -4523,7 +4559,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L777",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -4535,7 +4571,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L795",
+      "source_location": "L824",
       "weight": 1.0
     },
     {
@@ -4547,7 +4583,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L580",
+      "source_location": "L609",
       "weight": 1.0
     },
     {
@@ -4559,7 +4595,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L870",
+      "source_location": "L915",
       "weight": 1.0
     },
     {
@@ -4571,7 +4607,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L874",
+      "source_location": "L919",
       "weight": 1.0
     },
     {
@@ -4583,7 +4619,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L831",
+      "source_location": "L876",
       "weight": 1.0
     },
     {
@@ -4595,7 +4631,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L596",
+      "source_location": "L625",
       "weight": 1.0
     },
     {
@@ -4607,7 +4643,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L597",
+      "source_location": "L626",
       "weight": 1.0
     },
     {
@@ -4619,7 +4655,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L598",
+      "source_location": "L627",
       "weight": 1.0
     },
     {
@@ -4631,7 +4667,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L599",
+      "source_location": "L628",
       "weight": 1.0
     },
     {
@@ -4643,7 +4679,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L408",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -4655,7 +4691,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L416",
+      "source_location": "L441",
       "weight": 1.0
     },
     {
@@ -4691,7 +4727,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L564",
+      "source_location": "L593",
       "weight": 1.0
     },
     {
@@ -4703,7 +4739,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L572",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -4715,7 +4751,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L574",
+      "source_location": "L603",
       "weight": 1.0
     },
     {
@@ -4727,7 +4763,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L400",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -4739,7 +4775,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L669",
+      "source_location": "L698",
       "weight": 1.0
     },
     {
@@ -4751,7 +4787,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L674",
+      "source_location": "L703",
       "weight": 1.0
     },
     {
@@ -4763,7 +4799,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L799",
+      "source_location": "L828",
       "weight": 1.0
     },
     {
@@ -4775,7 +4811,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L801",
+      "source_location": "L830",
       "weight": 1.0
     },
     {
@@ -4787,7 +4823,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L477",
+      "source_location": "L502",
       "weight": 1.0
     },
     {
@@ -4799,7 +4835,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L478",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -4811,7 +4847,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L480",
+      "source_location": "L505",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ui_board_view_boardview_sync",
+      "target": "src_ui_board_view_boardview_render_move_analysis",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L509",
       "weight": 1.0
     },
     {
@@ -4823,7 +4871,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L486",
+      "source_location": "L515",
       "weight": 1.0
     },
     {
@@ -4835,7 +4883,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L487",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -4847,7 +4895,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L488",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -4859,7 +4907,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L503",
+      "source_location": "L532",
       "weight": 1.0
     },
     {
@@ -4871,7 +4919,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L515",
+      "source_location": "L544",
       "weight": 1.0
     },
     {
@@ -4883,7 +4931,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L526",
+      "source_location": "L555",
       "weight": 1.0
     },
     {
@@ -4895,7 +4943,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L527",
+      "source_location": "L556",
       "weight": 1.0
     },
     {
@@ -4907,7 +4955,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L528",
+      "source_location": "L557",
       "weight": 1.0
     },
     {
@@ -4919,7 +4967,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L529",
+      "source_location": "L558",
       "weight": 1.0
     },
     {
@@ -4931,7 +4979,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L530",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -4943,7 +4991,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L531",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -4955,7 +5003,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L451",
+      "source_location": "L476",
       "weight": 1.0
     },
     {
@@ -4967,7 +5015,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L456",
+      "source_location": "L481",
       "weight": 1.0
     },
     {
@@ -4979,7 +5027,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L458",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -4991,7 +5039,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L433",
+      "source_location": "L458",
       "weight": 1.0
     },
     {
@@ -5003,7 +5051,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L437",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -5015,7 +5063,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L439",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -5027,7 +5075,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L442",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -5039,7 +5087,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L815",
+      "source_location": "L844",
       "weight": 1.0
     },
     {
@@ -5051,7 +5099,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L324",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -5063,7 +5111,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L327",
+      "source_location": "L352",
       "weight": 1.0
     },
     {
@@ -5075,7 +5123,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L357",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -5087,7 +5135,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L366",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -5375,7 +5423,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1257",
+      "source_location": "L1275",
       "weight": 1.0
     },
     {
@@ -5387,7 +5435,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1263",
+      "source_location": "L1281",
       "weight": 1.0
     },
     {
@@ -5591,7 +5639,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1286",
+      "source_location": "L1304",
       "weight": 1.0
     },
     {
@@ -5603,7 +5651,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1293",
+      "source_location": "L1311",
       "weight": 1.0
     },
     {
@@ -5615,7 +5663,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1307",
+      "source_location": "L1325",
       "weight": 1.0
     },
     {
@@ -5627,7 +5675,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1320",
+      "source_location": "L1338",
       "weight": 1.0
     },
     {
@@ -5639,7 +5687,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2120",
+      "source_location": "L2241",
       "weight": 1.0
     },
     {
@@ -5687,7 +5735,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1990",
+      "source_location": "L2111",
       "weight": 1.0
     },
     {
@@ -5699,7 +5747,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2011",
+      "source_location": "L2132",
       "weight": 1.0
     },
     {
@@ -5735,7 +5783,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1373",
+      "source_location": "L1391",
       "weight": 1.0
     },
     {
@@ -5747,7 +5795,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1880",
+      "source_location": "L2001",
       "weight": 1.0
     },
     {
@@ -5759,7 +5807,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1883",
+      "source_location": "L2004",
       "weight": 1.0
     },
     {
@@ -5819,7 +5867,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1509",
+      "source_location": "L1527",
       "weight": 1.0
     },
     {
@@ -5831,7 +5879,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1581",
+      "source_location": "L1599",
       "weight": 1.0
     },
     {
@@ -5843,7 +5891,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1588",
+      "source_location": "L1606",
       "weight": 1.0
     },
     {
@@ -5855,7 +5903,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2054",
+      "source_location": "L2175",
       "weight": 1.0
     },
     {
@@ -5867,7 +5915,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2062",
+      "source_location": "L2183",
       "weight": 1.0
     },
     {
@@ -5879,7 +5927,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1553",
+      "source_location": "L1571",
       "weight": 1.0
     },
     {
@@ -5891,7 +5939,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1561",
+      "source_location": "L1579",
       "weight": 1.0
     },
     {
@@ -5903,7 +5951,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2068",
+      "source_location": "L2189",
       "weight": 1.0
     },
     {
@@ -5915,7 +5963,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2082",
+      "source_location": "L2203",
       "weight": 1.0
     },
     {
@@ -5927,7 +5975,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2100",
+      "source_location": "L2221",
       "weight": 1.0
     },
     {
@@ -5939,7 +5987,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2027",
+      "source_location": "L2148",
       "weight": 1.0
     },
     {
@@ -5963,7 +6011,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1210",
+      "source_location": "L1228",
       "weight": 1.0
     },
     {
@@ -5987,7 +6035,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1244",
+      "source_location": "L1262",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board_test_move_analysis_shows_newest_move_with_pending_numbers",
+      "target": "src_ui_board_view_boardview",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1199",
       "weight": 1.0
     },
     {
@@ -6047,7 +6107,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1960",
+      "source_location": "L2081",
       "weight": 1.0
     },
     {
@@ -6095,7 +6155,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2213",
+      "source_location": "L2334",
       "weight": 1.0
     },
     {
@@ -6107,7 +6167,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1740",
+      "source_location": "L1861",
       "weight": 1.0
     },
     {
@@ -6119,7 +6179,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1722",
+      "source_location": "L1843",
       "weight": 1.0
     },
     {
@@ -6132,6 +6192,18 @@
       "context": "call",
       "source_file": "tests/test_board.py",
       "source_location": "L1019",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board_test_position_changes_refresh_move_analysis_while_busy",
+      "target": "src_ui_board_view_boardview",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1798",
       "weight": 1.0
     },
     {
@@ -6227,7 +6299,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1488",
+      "source_location": "L1506",
       "weight": 1.0
     },
     {
@@ -6371,7 +6443,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L2172",
+      "source_location": "L2293",
       "weight": 1.0
     },
     {
@@ -6383,7 +6455,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1940",
+      "source_location": "L2061",
       "weight": 1.0
     },
     {
@@ -6455,7 +6527,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1363",
+      "source_location": "L1381",
       "weight": 1.0
     },
     {
@@ -6479,7 +6551,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1339",
+      "source_location": "L1357",
       "weight": 1.0
     },
     {
@@ -6491,7 +6563,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1897",
+      "source_location": "L2018",
       "weight": 1.0
     },
     {
@@ -6503,7 +6575,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1461",
+      "source_location": "L1479",
       "weight": 1.0
     },
     {
@@ -6551,7 +6623,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1444",
+      "source_location": "L1462",
       "weight": 1.0
     },
     {
@@ -6563,7 +6635,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1392",
+      "source_location": "L1410",
       "weight": 1.0
     },
     {
@@ -6575,7 +6647,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1407",
+      "source_location": "L1425",
       "weight": 1.0
     },
     {
@@ -6587,7 +6659,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1415",
+      "source_location": "L1433",
       "weight": 1.0
     },
     {
@@ -6599,7 +6671,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1432",
+      "source_location": "L1450",
       "weight": 1.0
     },
     {
@@ -6611,7 +6683,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/test_board.py",
-      "source_location": "L1436",
+      "source_location": "L1454",
       "weight": 1.0
     },
     {
@@ -6731,7 +6803,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1808",
+      "source_location": "L1929",
       "weight": 1.0
     },
     {
@@ -6743,7 +6815,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1650",
+      "source_location": "L1729",
       "weight": 1.0
     },
     {
@@ -6767,7 +6839,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1984",
+      "source_location": "L2105",
       "weight": 1.0
     },
     {
@@ -6779,7 +6851,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1751",
+      "source_location": "L1872",
       "weight": 1.0
     },
     {
@@ -6791,7 +6863,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L2051",
+      "source_location": "L2172",
       "weight": 1.0
     },
     {
@@ -6803,7 +6875,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L2092",
+      "source_location": "L2213",
       "weight": 1.0
     },
     {
@@ -6815,7 +6887,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1198",
+      "source_location": "L1216",
       "weight": 1.0
     },
     {
@@ -6839,7 +6911,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1219",
+      "source_location": "L1237",
       "weight": 1.0
     },
     {
@@ -6851,7 +6923,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L2205",
+      "source_location": "L2326",
       "weight": 1.0
     },
     {
@@ -6863,7 +6935,19 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1714",
+      "source_location": "L1835",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board_test_position_changes_refresh_move_analysis_while_busy",
+      "target": "tests_test_board_py_parametrize",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "decorator",
+      "source_file": "tests/test_board.py",
+      "source_location": "L1796",
       "weight": 1.0
     },
     {
@@ -6875,7 +6959,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1933",
+      "source_location": "L2054",
       "weight": 1.0
     },
     {
@@ -6899,7 +6983,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1893",
+      "source_location": "L2014",
       "weight": 1.0
     },
     {
@@ -6911,7 +6995,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "tests/test_board.py",
-      "source_location": "L1378",
+      "source_location": "L1396",
       "weight": 1.0
     },
     {
@@ -7895,7 +7979,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L418",
+      "source_location": "L443",
       "weight": 1.0
     },
     {
@@ -7907,7 +7991,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L424",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -7931,7 +8015,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L379",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -7943,7 +8027,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L650",
+      "source_location": "L679",
       "weight": 1.0
     },
     {
@@ -8003,7 +8087,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L689",
+      "source_location": "L718",
       "weight": 1.0
     },
     {
@@ -8015,7 +8099,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L614",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -8027,7 +8111,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L823",
+      "source_location": "L852",
       "weight": 1.0
     },
     {
@@ -8051,7 +8135,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L447",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -8063,7 +8147,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L431",
+      "source_location": "L456",
       "weight": 1.0
     },
     {
@@ -8171,7 +8255,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_board.py",
-      "source_location": "L1256",
+      "source_location": "L1274",
       "weight": 1.0
     },
     {
@@ -8183,7 +8267,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_board.py",
-      "source_location": "L1256",
+      "source_location": "L1274",
       "weight": 1.0
     },
     {
@@ -8207,7 +8291,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_board.py",
-      "source_location": "L1284",
+      "source_location": "L1302",
       "weight": 1.0
     },
     {
@@ -8219,7 +8303,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_board.py",
-      "source_location": "L1284",
+      "source_location": "L1302",
       "weight": 1.0
     },
     {
@@ -8231,7 +8315,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_board.py",
-      "source_location": "L1305",
+      "source_location": "L1323",
       "weight": 1.0
     },
     {
@@ -8243,7 +8327,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_board.py",
-      "source_location": "L1305",
+      "source_location": "L1323",
       "weight": 1.0
     },
     {
@@ -8975,13 +9059,13 @@
     },
     {
       "source": "tests_test_board",
-      "target": "tests_test_board_test_move_analysis_displays_advantaged_side",
+      "target": "tests_test_board_test_move_analysis_shows_newest_move_with_pending_numbers",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1209",
+      "source_location": "L1198",
       "weight": 1.0
     },
     {
@@ -8997,13 +9081,24 @@
     },
     {
       "source": "tests_test_board",
+      "target": "tests_test_board_test_move_analysis_displays_advantaged_side",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L1227",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
       "target": "tests_test_board_test_move_analysis_loss_and_played_move_outside_top_five",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1220",
+      "source_location": "L1238",
       "weight": 1.0
     },
     {
@@ -9014,7 +9109,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1243",
+      "source_location": "L1261",
       "weight": 1.0
     },
     {
@@ -9025,7 +9120,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1256",
+      "source_location": "L1274",
       "weight": 1.0
     },
     {
@@ -9036,7 +9131,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1284",
+      "source_location": "L1302",
       "weight": 1.0
     },
     {
@@ -9047,18 +9142,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1305",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_board",
-      "target": "tests_test_board_test_top_moves_maps_serialize_move_analysis_and_jev_predictions",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_board.py",
-      "source_location": "L1338",
+      "source_location": "L1323",
       "weight": 1.0
     },
     {
@@ -9074,13 +9158,24 @@
     },
     {
       "source": "tests_test_board",
+      "target": "tests_test_board_test_top_moves_maps_serialize_move_analysis_and_jev_predictions",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L1356",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
       "target": "tests_test_board_test_terminal_position_writes_one_game_log",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1362",
+      "source_location": "L1380",
       "weight": 1.0
     },
     {
@@ -9091,7 +9186,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1372",
+      "source_location": "L1390",
       "weight": 1.0
     },
     {
@@ -9102,7 +9197,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1379",
+      "source_location": "L1397",
       "weight": 1.0
     },
     {
@@ -9124,7 +9219,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1443",
+      "source_location": "L1461",
       "weight": 1.0
     },
     {
@@ -9135,7 +9230,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1454",
+      "source_location": "L1472",
       "weight": 1.0
     },
     {
@@ -9146,7 +9241,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1485",
+      "source_location": "L1503",
       "weight": 1.0
     },
     {
@@ -9157,7 +9252,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1505",
+      "source_location": "L1523",
       "weight": 1.0
     },
     {
@@ -9168,7 +9263,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1551",
+      "source_location": "L1569",
       "weight": 1.0
     },
     {
@@ -9190,7 +9285,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1579",
+      "source_location": "L1597",
       "weight": 1.0
     },
     {
@@ -9201,7 +9296,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1594",
+      "source_location": "L1612",
       "weight": 1.0
     },
     {
@@ -9217,57 +9312,35 @@
     },
     {
       "source": "tests_test_board",
+      "target": "tests_test_board_test_automatic_turn_prioritises_the_newest_move_and_keeps_the_panel_in_sync",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L1668",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
       "target": "tests_test_board_test_automatic_turn_handles_changes_while_analysis_is_pending",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1651",
+      "source_location": "L1730",
       "weight": 1.0
     },
     {
       "source": "tests_test_board",
-      "target": "tests_test_board_test_piece_animation_tracks_actual_moves",
+      "target": "tests_test_board_test_position_changes_refresh_move_analysis_while_busy",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1721",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_board",
-      "target": "tests_test_board_test_piece_animation_offsets_follow_board_orientation",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_board.py",
-      "source_location": "L1738",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_board",
-      "target": "tests_test_board_test_human_analysis_indicator_lasts_until_calculation_finishes",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_board.py",
-      "source_location": "L1752",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_board",
-      "target": "tests_test_board_test_all_player_combinations_apply_each_move_before_async_analysis",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_board.py",
-      "source_location": "L1809",
+      "source_location": "L1797",
       "weight": 1.0
     },
     {
@@ -9283,24 +9356,35 @@
     },
     {
       "source": "tests_test_board",
-      "target": "tests_test_board_test_initial_analysis_does_not_block_building_the_game",
+      "target": "tests_test_board_test_piece_animation_tracks_actual_moves",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1879",
+      "source_location": "L1842",
       "weight": 1.0
     },
     {
       "source": "tests_test_board",
-      "target": "tests_test_board_test_uncached_live_position_changes_queue_analysis",
+      "target": "tests_test_board_test_piece_animation_offsets_follow_board_orientation",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1894",
+      "source_location": "L1859",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
+      "target": "tests_test_board_test_human_analysis_indicator_lasts_until_calculation_finishes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L1873",
       "weight": 1.0
     },
     {
@@ -9316,13 +9400,46 @@
     },
     {
       "source": "tests_test_board",
+      "target": "tests_test_board_test_all_player_combinations_apply_each_move_before_async_analysis",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L1930",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
+      "target": "tests_test_board_test_initial_analysis_does_not_block_building_the_game",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L2000",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
+      "target": "tests_test_board_test_uncached_live_position_changes_queue_analysis",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L2015",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
       "target": "tests_test_board_test_start_game_event_keeps_analysis_timer_in_live_slot",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1934",
+      "source_location": "L2055",
       "weight": 1.0
     },
     {
@@ -9333,7 +9450,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1956",
+      "source_location": "L2077",
       "weight": 1.0
     },
     {
@@ -9344,7 +9461,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L1985",
+      "source_location": "L2106",
       "weight": 1.0
     },
     {
@@ -9355,7 +9472,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L2026",
+      "source_location": "L2147",
       "weight": 1.0
     },
     {
@@ -9366,7 +9483,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L2052",
+      "source_location": "L2173",
       "weight": 1.0
     },
     {
@@ -9377,7 +9494,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L2066",
+      "source_location": "L2187",
       "weight": 1.0
     },
     {
@@ -9388,7 +9505,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L2093",
+      "source_location": "L2214",
       "weight": 1.0
     },
     {
@@ -9399,29 +9516,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
-      "source_location": "L2116",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_board",
-      "target": "tests_test_board_test_save_game_records_jev_confidence_and_evaluation_in_saved_copy",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_board.py",
-      "source_location": "L2166",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_board",
-      "target": "tests_test_board_test_pgn_headers_use_game_players_and_date",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_board.py",
-      "source_location": "L2206",
+      "source_location": "L2237",
       "weight": 1.0
     },
     {
@@ -9437,6 +9532,17 @@
     },
     {
       "source": "tests_test_board",
+      "target": "tests_test_board_test_save_game_records_jev_confidence_and_evaluation_in_saved_copy",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L2287",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
       "target": "tests_test_board_prevent_game_log_writes",
       "relation": "contains",
       "_origin": "ast",
@@ -9444,6 +9550,17 @@
       "confidence_score": 1.0,
       "source_file": "tests/test_board.py",
       "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_board",
+      "target": "tests_test_board_test_pgn_headers_use_game_players_and_date",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_board.py",
+      "source_location": "L2327",
       "weight": 1.0
     },
     {
@@ -10356,7 +10473,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L304",
+      "source_location": "L329",
       "weight": 1.0
     },
     {
@@ -10367,7 +10484,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L309",
+      "source_location": "L334",
       "weight": 1.0
     },
     {
@@ -10378,7 +10495,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L315",
+      "source_location": "L340",
       "weight": 1.0
     },
     {
@@ -10389,7 +10506,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L320",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -10400,7 +10517,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L330",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -10411,7 +10528,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L335",
+      "source_location": "L360",
       "weight": 1.0
     },
     {
@@ -10422,7 +10539,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L340",
+      "source_location": "L365",
       "weight": 1.0
     },
     {
@@ -10433,7 +10550,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L348",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -10444,7 +10561,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L354",
+      "source_location": "L379",
       "weight": 1.0
     },
     {
@@ -10455,7 +10572,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L368",
+      "source_location": "L393",
       "weight": 1.0
     },
     {
@@ -10466,7 +10583,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L379",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -10477,7 +10594,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L396",
+      "source_location": "L421",
       "weight": 1.0
     },
     {
@@ -10488,7 +10605,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L402",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -10499,7 +10616,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L418",
+      "source_location": "L443",
       "weight": 1.0
     },
     {
@@ -10510,7 +10627,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L424",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -10521,40 +10638,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L431",
-      "weight": 1.0
-    },
-    {
-      "source": "src_ui_board_view_boardview",
-      "target": "src_ui_board_view_boardview_sync_analysis",
-      "relation": "method",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L447",
-      "weight": 1.0
-    },
-    {
-      "source": "src_ui_board_view_boardview",
-      "target": "src_ui_board_view_boardview_needs_game_log",
-      "relation": "method",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L461",
-      "weight": 1.0
-    },
-    {
-      "source": "src_ui_board_view_boardview",
-      "target": "src_ui_board_view_boardview_sync",
-      "relation": "method",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/ui/board_view.py",
-      "source_location": "L465",
+      "source_location": "L456",
       "weight": 1.0
     },
     {
@@ -10570,18 +10654,40 @@
     },
     {
       "source": "src_ui_board_view_boardview",
-      "target": "src_ui_board_view_boardview_render",
+      "target": "src_ui_board_view_boardview_sync_analysis",
       "relation": "method",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L534",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
       "source": "src_ui_board_view_boardview",
-      "target": "src_ui_board_view_boardview_show_analysis",
+      "target": "src_ui_board_view_boardview_needs_game_log",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L486",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ui_board_view_boardview",
+      "target": "src_ui_board_view_boardview_sync",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L490",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ui_board_view_boardview",
+      "target": "src_ui_board_view_boardview_render",
       "relation": "method",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -10592,13 +10698,24 @@
     },
     {
       "source": "src_ui_board_view_boardview",
+      "target": "src_ui_board_view_boardview_show_analysis",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/ui/board_view.py",
+      "source_location": "L592",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ui_board_view_boardview",
       "target": "src_ui_board_view_boardview_render_evaluation",
       "relation": "method",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L577",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -10609,7 +10726,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L582",
+      "source_location": "L611",
       "weight": 1.0
     },
     {
@@ -10620,7 +10737,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L586",
+      "source_location": "L615",
       "weight": 1.0
     },
     {
@@ -10631,7 +10748,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L607",
+      "source_location": "L636",
       "weight": 1.0
     },
     {
@@ -10642,7 +10759,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L614",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -10653,7 +10770,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L650",
+      "source_location": "L679",
       "weight": 1.0
     },
     {
@@ -10664,7 +10781,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L665",
+      "source_location": "L694",
       "weight": 1.0
     },
     {
@@ -10675,7 +10792,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L671",
+      "source_location": "L700",
       "weight": 1.0
     },
     {
@@ -10686,7 +10803,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L678",
+      "source_location": "L707",
       "weight": 1.0
     },
     {
@@ -10697,7 +10814,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L685",
+      "source_location": "L714",
       "weight": 1.0
     },
     {
@@ -10708,7 +10825,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L689",
+      "source_location": "L718",
       "weight": 1.0
     },
     {
@@ -10719,7 +10836,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L717",
+      "source_location": "L746",
       "weight": 1.0
     },
     {
@@ -10730,7 +10847,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L797",
+      "source_location": "L826",
       "weight": 1.0
     },
     {
@@ -10741,7 +10858,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L803",
+      "source_location": "L832",
       "weight": 1.0
     },
     {
@@ -10752,7 +10869,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L813",
+      "source_location": "L842",
       "weight": 1.0
     },
     {
@@ -10763,7 +10880,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L823",
+      "source_location": "L852",
       "weight": 1.0
     },
     {
@@ -10774,7 +10891,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L865",
+      "source_location": "L910",
       "weight": 1.0
     },
     {
@@ -10833,14 +10950,14 @@
       "weight": 1.0
     },
     {
-      "source": "src_ui_board_view_rationale_814",
+      "source": "src_ui_board_view_rationale_843",
       "target": "src_ui_board_view_boardview_sync_tab_buttons",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/board_view.py",
-      "source_location": "L814",
+      "source_location": "L843",
       "weight": 1.0
     },
     {
@@ -10863,7 +10980,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L283",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -10875,7 +10992,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L594",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -10887,7 +11004,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L600",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -10899,7 +11016,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/ui/board_view.py",
-      "source_location": "L609",
+      "source_location": "L638",
       "weight": 1.0
     },
     {
@@ -10935,7 +11052,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "tests/test_board.py",
-      "source_location": "L2171",
+      "source_location": "L2292",
       "weight": 1.0
     },
     {
@@ -10947,7 +11064,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "tests/test_board.py",
-      "source_location": "L1459",
+      "source_location": "L1477",
       "weight": 1.0
     },
     {
@@ -10959,7 +11076,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "tests/test_board.py",
-      "source_location": "L1385",
+      "source_location": "L1403",
       "weight": 1.0
     },
     {
@@ -11110,7 +11227,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "tests/test_board.py",
-      "source_location": "L1882",
+      "source_location": "L2003",
       "weight": 0.8
     },
     {
@@ -11121,7 +11238,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "tests/test_board.py",
-      "source_location": "L1221",
+      "source_location": "L1239",
       "weight": 0.8
     },
     {
@@ -11411,5 +11528,5 @@
       "source_file": "graphify-out/memory/query_20260926_072050_3361236b_yes_follow.md"
     }
   ],
-  "built_at_commit": "255ae8512e841c452bc6fec2470693d50e7e76c4"
+  "built_at_commit": "b4a49be041d4f57d5c2d01da7feb06b83c1a2bac"
 }

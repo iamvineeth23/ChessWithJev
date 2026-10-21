@@ -236,10 +236,24 @@ class BoardView:
                     return
                 source = self.preview_board or self.position.board
                 board = source.copy(stack=True)
-                cache = self.evaluation_cache.copy()
                 claimed_draw = self.position.claimed_draw if source is self.position.board else None
 
-                def analyse():
+                def analyse_latest():
+                    # Move Analysis and the eval bar only need the newest move; compute it first so
+                    # the panel can follow the played move while the backlog is still running.
+                    if self.closed:
+                        return None
+                    cache = self.evaluation_cache.copy()
+                    claim = claimed_draw
+                    key = (board.root().fen(), tuple(board.move_stack), str(claim))
+                    if key not in cache:
+                        cache[key] = (0.5 if claim is not None else self.controller.white_expectation(board))
+                    result = self.cached_move_analysis(board) if board.move_stack else None
+                    return cache, result
+
+                def analyse_backlog():
+                    # Older plies feed only the evaluation plot and the saved snapshot.
+                    cache = self.evaluation_cache.copy()
                     replay = board.root()
                     positions = [replay.copy(stack=True)]
                     for move in board.move_stack:
@@ -247,31 +261,42 @@ class BoardView:
                         positions.append(replay.copy(stack=True))
                     for position in positions:
                         if self.closed:
-                            return cache, None
+                            return None
                         claim = claimed_draw if position.move_stack == board.move_stack else None
                         key = (position.root().fen(), tuple(position.move_stack), str(claim))
                         if key not in cache:
                             cache[key] = (0.5 if claim is not None else self.controller.white_expectation(position))
                     for position in positions[1:]:
                         if self.closed:
-                            return cache, None
+                            return None
                         alternatives, _, _ = self.cached_move_analysis(position)
                         candidate = best_move_position(position, alternatives)
                         claim = claimed_draw if candidate.move_stack == board.move_stack else None
                         key = (candidate.root().fen(), tuple(candidate.move_stack), str(claim))
                         if key not in cache:
                             cache[key] = 0.5 if claim is not None else self.controller.white_expectation(candidate)
-                    return cache, self.cached_move_analysis(board) if board.move_stack else None
+                    return cache
 
-                analysed = await run.io_bound(analyse)
+                def stale() -> bool:
+                    return (source is not (self.preview_board or self.position.board) or source.fen() != board.fen()
+                            or (source is self.position.board and claimed_draw != self.position.claimed_draw))
+
+                analysed = await run.io_bound(analyse_latest)
                 if self.closed or analysed is None:
                     self.pause_random()
                     return
                 cache, result = analysed
-                if (source is not (self.preview_board or self.position.board) or source.fen() != board.fen()
-                        or (source is self.position.board and claimed_draw != self.position.claimed_draw)):
+                if stale():
                     continue
                 self.evaluation_cache.update(cache)
+                self.sync_analysis(source, result, refresh=False, plot=False)
+                analysed = await run.io_bound(analyse_backlog)
+                if self.closed or analysed is None:
+                    self.pause_random()
+                    return
+                self.evaluation_cache.update(analysed)
+                if stale():
+                    continue
                 self.sync_analysis(source, result, refresh=False)
                 if self.on_change:
                     self.on_change(self)
@@ -444,7 +469,7 @@ class BoardView:
         if self.fullscreen_evaluation_plot is not None:
             self.fullscreen_evaluation_plot.set_content(chart)
 
-    def sync_analysis(self, board: chess.Board, result=None, *, refresh: bool = True) -> None:
+    def sync_analysis(self, board: chess.Board, result=None, *, refresh: bool = True, plot: bool = True) -> None:
         if self.eval_fill:
             position = (board.fen(), self.position.claimed_draw if self.preview_board is None else None)
             if position != self.eval_position:
@@ -452,7 +477,7 @@ class BoardView:
                 self.eval_fill.style(f'height: {percent:.1f}%')
                 self.eval_bar.props(f'aria-valuenow="{percent:.0f}" aria-valuetext="White expected score {percent:.0f} percent"')
                 self.eval_position = position
-        if self.evaluation_plot:
+        if self.evaluation_plot and plot:
             self.sync_evaluation_plot(board)
         if self.move_analysis_panel and board.fen() != self.analysis_position:
             self.render_move_analysis(board, result)
@@ -478,6 +503,10 @@ class BoardView:
                 self.schedule_update(self.analyse_position)
             else:
                 self.sync_analysis(board, refresh=False)
+        if self.analysis_busy and self.move_analysis_panel is not None:
+            # Pending content must be replaced by completed results even at the same FEN.
+            self.analysis_position = None
+            self.render_move_analysis(board, analysing=True)
         if self.status_label:
             self.status_label.set_text(f'Viewing move {self.preview_index} / {len(self.position.board.move_stack)}' if self.preview_index is not None else self.position.status())
         if self.fen_label:
@@ -820,7 +849,7 @@ class BoardView:
             else:
                 button.props(remove='disable')
 
-    def render_move_analysis(self, board: chess.Board, result=None) -> None:
+    def render_move_analysis(self, board: chess.Board, result=None, *, analysing: bool = False) -> None:
         self.move_analysis_panel.clear()
         if not board.move_stack:
             return
@@ -828,6 +857,22 @@ class BoardView:
         played = previous_position.pop()
         played_san = previous_position.san(played)
         prefix = f'{previous_position.fullmove_number}.' if previous_position.turn else f'{previous_position.fullmove_number}...'
+        if result is None and analysing and (board.root().fen(), tuple(board.move_stack)) not in self.move_analysis_cache:
+            # The newest move is still waiting for its Stockfish analysis; render it with pending
+            # numbers so the panel follows the played move instead of lagging one move behind.
+            with self.move_analysis_panel:
+                ui.label(f'Position before {prefix} {played_san}').classes('move-analysis-context')
+                with ui.element('div').classes('played-move-card'):
+                    with ui.element('div').classes('move-analysis-detail'):
+                        ui.label(f'Played by {chess.COLOR_NAMES[previous_position.turn]} ({self.players[previous_position.turn].title()})').classes('move-analysis-context')
+                        ui.label(played_san).classes('played-move-name')
+                    for detail in ('Eval after move', 'Eval loss'):
+                        with ui.element('div').classes('move-analysis-detail'):
+                            ui.label(detail)
+                            ui.label('Analysing…').classes('played-move-name')
+                ui.label('Best alternatives').classes('move-analysis-context')
+                ui.label('Analysing…').classes('move-analysis-context')
+            return
         alternatives, played_score, loss = result if result is not None else self.cached_move_analysis(board)
 
         def evaluation_text(score: chess.engine.Score) -> str:
